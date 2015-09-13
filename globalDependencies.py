@@ -18,6 +18,26 @@ import gc
 from threading import Timer
 from collections import defaultdict
 
+
+class Stack:
+    def __init__(self):
+        self.items = []
+
+    def isEmpty(self):
+        return self.items == []
+
+    def push(self, item):
+        self.items.append(item)
+
+    def pop(self):
+        return self.items.pop()
+
+    def peek(self):
+        return self.items[len(self.items) - 1]
+
+    def size(self):
+        return len(self.items)
+
 class AutoVivification(dict):
     """
     Implementation of perl's autovivification feature.
@@ -58,6 +78,8 @@ thisConfig = thisData['config'] = autoVivify(thisData['config'])
 ethernetInterfaces = list()
 wifiInterfaces = list()
 masterList = list()
+menuStack = Stack()
+screenChosen = None
 
 interfaceSettings = dict()
 wifiList = getConfig.getID_List(URL3)
@@ -151,26 +173,29 @@ def drawAndEnable(currentScreen):
     currentScreen.displayThis()
     print currentScreen.title
 
-def draw_confirmation(line2, line3, fillNum, fillBg, currentScreen):
+def draw_confirmation(line1, line2, line3, fillNum, fillBg):
     """for drawing an error."""
     global disp, n, maxn, Image, ImageDraw, draw, font
     # Draw a black filled fox to clear the image.
-
+    print 309
     draw.rectangle((0, 0, width - 1, height - 1), outline=1, fill=fillBg)
+    print 311
 
     top = 2
     draw.rectangle((1, 0, width - 1, top + 9), outline=1, fill=fillNum)
-    draw.text((center_text("S A V E D", 0), top), "S A V E D", font=font, fill=fillBg)
+    draw.text((center_text(line1, 0), top), line1, font=font, fill=fillBg)
     draw.text((center_text(line2, 0), top + 9), line2, font=font, fill=fillNum)
     draw.text((center_text(line3, 0), top + 18), line3, font=font, fill=fillNum)
-    disp.image(image.rotate(180))
+    print 318
 
+    disp.image(image.rotate(180))
     disp.display()
-    GPIO.remove_event_detect(27)
-    GPIO.remove_event_detect(17)
-    GPIO.remove_event_detect(18)
-    t = Timer(2.5, drawAndEnable, [currentScreen])
+    print 326
+    t = Timer(1, drawAndEnable)
+    print 329
+    t.setDaemon(True)
     t.start()
+    print 331
 
 def draw_screen(s, line2, line3, fillNum, fillBg):
     """for drawing the next screen."""

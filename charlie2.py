@@ -37,29 +37,8 @@ draw = gd.draw
 font = gd.font
 disp = gd.disp
 print list(layout.keys())
-
-class Stack:
-    def __init__(self):
-        self.items = []
-
-    def isEmpty(self):
-        return self.items == []
-
-    def push(self, item):
-        self.items.append(item)
-
-    def pop(self):
-        return self.items.pop()
-
-    def peek(self):
-        return self.items[len(self.items) - 1]
-
-    def size(self):
-        return len(self.items)
-
-menuStack = Stack()
+menuStack = gd.menuStack
 topLevelMenu = screens.Screen("topMenu", "Top Menu", "", "")
-
 
 def button_callback(channel):
     """
@@ -69,7 +48,7 @@ def button_callback(channel):
     Args:
         channel: the button that was pressed
     """
-    global thisData, disable, action_up_now, action_select_now, action_down_now, charSetIndex, screenChosen
+    global thisData, disable, action_up_now, action_select_now, action_down_now, charSetIndex
 
     if action_up_now or action_select_now or action_down_now:
         print "simultaneous press", channel
@@ -83,73 +62,78 @@ def button_callback(channel):
         action_select_now = True
 
     if channel == 17:
-        if screenChosen.editMode == True:
-            screenChosen.editVal(screenChosen.childIndex, 1)
+        if gd.screenChosen.editMode == True:
+            gd.screenChosen.editVal(gd.screenChosen.childIndex, 1)
         else:
-            if screenChosen.childIndex == screenChosen.valueLength:
-                if not screenChosen.type == topLevelMenu.type:
-                    screenChosen.setChildIndex(0)
-                    screenChosen = menuStack.pop()
-                    draw_confirmation("End Reached", "Returning to", "previous menu.", gd.fillNum, gd.fillBg)
+            if gd.screenChosen.childIndex == gd.screenChosen.valueLength:
+                if not gd.screenChosen.type == topLevelMenu.type:
+                    gd.screenChosen.setChildIndex(0)
+                    gd.screenChosen = menuStack.pop()
+                    draw_confirmation("End Reached", "Returning to", "parent menu.", gd.fillNum, gd.fillBg)
                 else:
-                    screenChosen.childIndex = 0
-                    screenChosen.screens[screenChosen.childIndex].displayThis()
+                    gd.screenChosen.childIndex = 0
+                    gd.screenChosen.screens[gd.screenChosen.childIndex].displayThis()
             else:
-                screenChosen.childIndex += 1
-                screenChosen.screens[screenChosen.childIndex].displayThis()
+                gd.screenChosen.childIndex += 1
+                gd.screenChosen.screens[gd.screenChosen.childIndex].displayThis()
     elif channel == 18:
-        if screenChosen.editMode == True:
-            screenChosen.editVal(screenChosen.childIndex, 0)
+        if gd.screenChosen.editMode == True:
+            gd.screenChosen.editVal(gd.screenChosen.childIndex, 0)
         else:
-            if screenChosen.childIndex == 0:
-                if not screenChosen.type == topLevelMenu.type:
-                    screenChosen.setChildIndex(0)
-                    screenChosen = menuStack.pop()
-                    draw_confirmation("End Reached", "Returning to", "previous menu.", gd.fillNum, gd.fillBg)
+            if gd.screenChosen.childIndex == 0:
+                if not gd.screenChosen.type == topLevelMenu.type:
+                    gd.screenChosen.setChildIndex(0)
+                    gd.screenChosen = menuStack.pop()
+                    draw_confirmation("End Reached", "Returning to", "parent menu.", gd.fillNum, gd.fillBg)
                 else:
-                    screenChosen.childIndex = screenChosen.valueLength
-                    screenChosen.screens[screenChosen.childIndex].displayThis()
+                    gd.screenChosen.childIndex = gd.screenChosen.valueLength
+                    gd.screenChosen.screens[gd.screenChosen.childIndex].displayThis()
             else:
-                screenChosen.childIndex -= 1
-                screenChosen.screens[screenChosen.childIndex].displayThis()
+                gd.screenChosen.childIndex -= 1
+                gd.screenChosen.screens[gd.screenChosen.childIndex].displayThis()
     elif channel == 27:
-        print screenChosen.type
-        if screenChosen.type == "subMenu" or screenChosen.type == "topMenu":
-            menuStack.push(screenChosen)
-            screenChosen = screenChosen.screens[screenChosen.childIndex]
-            print 112, screenChosen.type
-            if screenChosen.type == "subMenu" or screenChosen.type == "topMenu":
-                print 114, "sub"
-                screenChosen.screens[screenChosen.childIndex].displayThis()
-            elif screenChosen.type == "editable":
-                print 117, screenChosen.editLine
-
-                print screenChosen.title
-                screenChosen.editMode = True
-                screenChosen.navigation = screenChosen.editLine
-                screenChosen.displayThis()
+        print gd.screenChosen.type
+        if gd.screenChosen.type == "subMenu" or gd.screenChosen.type == "topMenu":
+            print 97, gd.screenChosen.screens
+            if hasattr(gd.screenChosen.screens[gd.screenChosen.childIndex], "screens") and len(gd.screenChosen.screens[gd.screenChosen.childIndex].screens) < 1:
+                pass
             else:
-                screenChosen = menuStack.pop()
-        elif screenChosen.type == "editable":
-            if screenChosen.editMode == True and (screenChosen.screenType == "DateTimeScreen" or screenChosen.screenType == "StringScreen" or screenChosen.screenType == "NetworkScreen"):
+                menuStack.push(gd.screenChosen)
+                gd.screenChosen = gd.screenChosen.screens[gd.screenChosen.childIndex]
+                print 112, gd.screenChosen.type
+                if gd.screenChosen.type == "subMenu" or gd.screenChosen.type == "topMenu":
+                    print 114, "sub"
+                    gd.screenChosen.screens[gd.screenChosen.childIndex].displayThis()
+                elif gd.screenChosen.type == "editable":
+                    print 117, gd.screenChosen.editLine
+
+                    print gd.screenChosen.title
+                    gd.screenChosen.editMode = True
+                    gd.screenChosen.navigation = gd.screenChosen.editLine
+                    gd.screenChosen.displayThis()
+                else:
+                    gd.screenChosen = menuStack.pop()
+        elif gd.screenChosen.type == "editable":
+            print 117, gd.screenChosen.value
+            if gd.screenChosen.editMode == True and (gd.screenChosen.screenType == "DateTimeScreen" or gd.screenChosen.screenType == "StringScreen" or gd.screenChosen.screenType == "NetworkScreen"):
                 print True
-                screenChosen.childIndex += 1
-                print screenChosen.childIndex
-                print screenChosen.valueLength
-            screenChosen.editMode = True
-            screenChosen.navigation = screenChosen.editLine
-            screenChosen.editVal(screenChosen.childIndex, 2)
-            if screenChosen.childIndex > screenChosen.valueLength or screenChosen.screenType == "BooleanScreen":
+                gd.screenChosen.childIndex += 1
+                print gd.screenChosen.childIndex
+                print gd.screenChosen.valueLength
+            gd.screenChosen.editMode = True
+            gd.screenChosen.navigation = gd.screenChosen.editLine
+            gd.screenChosen.editVal(gd.screenChosen.childIndex, 2)
+            if not gd.screenChosen.value == "Manual Entry" and (gd.screenChosen.childIndex > gd.screenChosen.valueLength or gd.screenChosen.screenType == "BooleanScreen"):
                 print "else"
-                screenChosen.childIndex = 0
-                screenChosen.editMode = False
-                screenChosen.navigation = screenChosen.incrLine
-                screenChosen.changeConfig()
+                gd.screenChosen.childIndex = 0
+                gd.screenChosen.editMode = False
+                gd.screenChosen.navigation = gd.screenChosen.incrLine
+                gd.screenChosen.changeConfig()
                 print thisData["config"]
-                screenChosen = menuStack.pop()
-                draw_confirmation("Saved! Returning", "to previous menu.", gd.fillNum, gd.fillBg, screenChosen.screens[screenChosen.childIndex])
-                # screenChosen.screens[screenChosen.childIndex].displayThis()
-        elif screenChosen.type == "readOnly":
+                gd.screenChosen = menuStack.pop()
+                draw_confirmation("S A V E D !", " Returning", "to previous menu.", gd.fillNum, gd.fillBg)
+                # gd.screenChosen.screens[gd.screenChosen.childIndex].displayThis()
+        elif gd.screenChosen.type == "readOnly":
             pass
     action_up_now = False
     action_select_now = False
@@ -199,7 +183,7 @@ def button_callback2(channel):
                 masterList[n].colorInvert()
             else:
                 level = 2
-                masterList[n].screenChosen()
+                masterList[n].gd.screenChosen()
     elif (level == 2):
         # level 2 in tree - we display sub-screens
         if(masterList[n].type == "subMenu" or masterList[n].type == "readOnly"):
@@ -299,8 +283,7 @@ def retrieveData(physical, logical, requestedData):
         return safeget(dataDict, requestedData)
 
 def drawAndEnable():
-    global screenChosen
-    screenChosen.screens[screenChosen.childIndex].displayThis()
+    gd.screenChosen.screens[gd.screenChosen.childIndex].displayThis()
 
 def draw_confirmation(line1, line2, line3, fillNum, fillBg):
     """for drawing an error."""
@@ -385,7 +368,7 @@ def buildNetworkStatus():
     iFaceList = getInterfaceList()
     for iface in iFaceList:
         newScreen = screens.Screen("subMenu", iface["subkey"], " ", iface["subkey"])
-        print iface
+        print 366, iface
         for item in layout["network-status"][iface["keyType"]]:
             if isinstance(layout["network-status"][iface["keyType"]][item], dict):
                 x = createScreen("", item, "subMenu", "", item)
@@ -402,7 +385,6 @@ def buildNetworkStatus():
                 val = retrieveData(iface["key"], iface["subkey"], item)
                 res = layout["network-status"][iface["keyType"]][item]
                 x = createScreen(res[1], item, res[0], val, iface["key"])
-                print res
                 newScreen.appendScreenList(x)
                 print newScreen.screens
         networkStatusScreen.appendScreenList(newScreen)
@@ -480,7 +462,7 @@ if "mainSetupMenu" in layoutKeys:
     topLevelMenu.appendScreenList(buildMainSetupMenu())
 
 topLevelMenu.screens[0].displayThis()
-screenChosen = topLevelMenu
+gd.screenChosen = topLevelMenu
 maxn = len(masterList) - 1
 
 

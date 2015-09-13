@@ -29,7 +29,7 @@ def resetFromStatic(interface):
 
 def changeSecurityType(interface, newSecurity, oldSecurity):
     """Change necessary screens and config keys when changing between wep and WPA."""
-    global maxn, masterList, thisData
+    global thisData
     # dictionaries to hold new and old values
     wepSecurity = {"ssid": "wireless-essid", "passphrase": "wireless-key"}
     wpaSecurity = {"ssid": "wpa-ssid", "passphrase": "wpa-psk"}
@@ -45,41 +45,33 @@ def changeSecurityType(interface, newSecurity, oldSecurity):
     print "CHANGE SECURITY", "old_ssid:", old_ssid, "new_ssid", new_ssid
 
     # loop through Screen List and change the title of the screen
-    print masterList[n].screens
     if newSecurity.lower() == "wep" and (oldSecurity.lower() == "wpa" or oldSecurity.lower() == "wpa2"):
         if configAddress.get("wpa-scan-ssid", False) is not False:
             configAddress.pop("wpa-scan-ssid")
         if configAddress.get("wpa-ap-scan", False) is not False:
             configAddress.pop("wpa-ap-scan")
+        if configAddress.get("wpa-psk", False) is not False:
+            configAddress.pop("wpa-psk")
+        if configAddress.get("wpa-ssid", False) is not False:
+            configAddress.pop("wpa-ssid")
     elif newSecurity.lower() == "none" and (oldSecurity.lower() == "wpa" or oldSecurity.lower() == "wpa2"):
         if configAddress.get("wpa-scan-ssid", False) is not False:
             configAddress.pop("wpa-scan-ssid")
         if configAddress.get("wpa-ap-scan", False) is not False:
             configAddress.pop("wpa-ap-scan")
+        if configAddress.get("wpa-psk", False) is not False:
+            configAddress.pop("wpa-psk")
+        if configAddress.get("wpa-ssid", False) is not False:
+            configAddress.pop("wpa-ssid")
+    elif oldSecurity.lower() == "wep":
+        print 67, configAddress
+        if configAddress.get("wireless-ssid", False) is not False:
+            configAddress.pop("wireless-ssid")
+        if configAddress.get("wireless-key", False) is not False:
+            configAddress.pop("wireless-ssid")
     elif newSecurity.lower() == "wpa" or newSecurity.lower() == "wpa2":
         configAddress["wpa-scan-ssid"] = "1"
         configAddress["wpa-ap-scan"] = "1"
-
-    for i, entry in enumerate(masterList[n].screens):
-        if(entry.getTitle().lower() == oldPassPhrase.lower()):
-            entry.setTitle(newPassPhrase)
-            if(newSecurity.lower() == "none"):
-                print "test"
-                configAddress.pop(oldPassPhrase)
-            elif(oldSecurity.lower() == "none"):
-                configAddress[newPassPhrase] = "<none>"
-            elif oldPassPhrase in configAddress:
-                configAddress[newPassPhrase] = configAddress.pop(oldPassPhrase)
-            else:
-                pass
-            print configAddress
-        if(entry.getTitle().lower() == old_ssid.lower()):
-            entry.setTitle(new_ssid)
-            configAddress[new_ssid] = configAddress.pop(old_ssid)
-            print configAddress
-        if(entry.getTitle().lower() == "hidden ssid"):
-            entry.setConfigKey(old_ssid)
-    print 1502, thisData['config']
 
 
 class Screen:
@@ -606,10 +598,10 @@ class WifiCreds(StringScreen):
             self.navigation = self.incrLine
 
     def editVal(self, index, addorsub):
-        global charSet, charHexaSet, charSetIndex
+        global charSet, charSetIndex
         security = gd.interfaceSettings[self.interface]["security"]
         if security == "WEP":
-            thisSet = charHexaSet
+            thisSet = gd.charHexaSet
         else:
             thisSet = charSet
         word = self.value
@@ -646,10 +638,10 @@ class WifiCreds(StringScreen):
         print self.value.lower()
         # WPA keys need quotes around them
         security = gd.interfaceSettings[self.interface]["security"]
-        if security == "WEP" or security is None:
-            thisData['config'][self.interface]['protocol']['inet']['wpa-psk'] = self.value.strip()
+        if not security == "WEP" or security is None:
+            thisData['config'][self.interface]['protocol']['inet']['wpa-psk'] = '\"' + self.value.strip() + '\"'
         else:
-            thisData['config'][self.interface]['protocol']['inet']['wireless-key'] = '\"' + self.value.strip() + '\"'
+            thisData['config'][self.interface]['protocol']['inet']['wireless-key'] = self.value.strip()
         print thisData['config']
 
 class BooleanScreen(Screen):
@@ -925,6 +917,19 @@ class ListScreen(Screen):
 
         self.displayEdit(index, 6)
 
+class TempScreen(StringScreen):
+    """Screen used for Manual SSID Entry."""
+
+    def changeConfig(self):
+        prevMenu = gd.menuStack.peek()
+        prevMenu.value = self.value
+        prevMenu.valList.insert(0,self.value)
+        self.value = "ssidname"
+        screenChosen = gd.menuStack.pop()
+        screenChosen.childIndex = 0
+
+manualEntry = TempScreen("editable", "Manual SSID Entry", "ssidname")
+
 
 class SsidChooser(ListScreen):
     """
@@ -938,7 +943,7 @@ class SsidChooser(ListScreen):
         global humanTranslations, ssidListGlobal
         self.type = type
         self.screenType = "ListScreen"
-        self.valueLength = 0
+        self.valueLength = -1
         if title in humanTranslations:
             self.title = humanTranslations[title]
         else:
@@ -948,6 +953,7 @@ class SsidChooser(ListScreen):
         self.titleOrig = title
         self.childIndex = 0
         self.valList = gd.getConfig.hasKeys(gd.wifiList)
+        self.valList.append("Manual Entry")
         self.value = self.valList[0]
         self.editLine = "Prev   Choose   Next"
         self.editMode = False
@@ -958,6 +964,29 @@ class SsidChooser(ListScreen):
         else:
             self.navigation = self.incrLine
 
+    def editVal(self, index, addorsub):
+        global manualEntry
+        print self.valList
+        if(addorsub == 0):
+            self.childIndex += -1
+            if(self.childIndex < 0):
+                self.childIndex = len(self.valList) - 1
+            self.value = self.valList[self.childIndex]
+        elif(addorsub == 1):
+            self.childIndex += 1
+            if(self.childIndex > len(self.valList) - 1):
+                self.childIndex = 0
+            self.value = self.valList[self.childIndex]
+        elif(addorsub == 2):
+            if self.valList[self.childIndex] == "Manual Entry":
+                gd.menuStack.push(self)
+                manualEntry.editMode = True
+                gd.screenChosen = manualEntry
+            else:
+                pass
+        self.value
+        self.displayEdit(index, 0)
+
     def setVal(self, val):
         self.value = val
 
@@ -965,7 +994,7 @@ class SsidChooser(ListScreen):
         global thisData
         security = gd.interfaceSettings[self.interface]["security"]
         print security
-        if security == "WPA" or security == "WPA2":
+        if not security == "WEP" or security == None:
             thisData['config'][self.interface]['protocol']['inet']["wpa-ssid"] = self.value
         else:
             thisData['config'][self.interface]['protocol']['inet']["wireless-essid"] = self.value
@@ -974,6 +1003,7 @@ class SsidChooser(ListScreen):
         """Screen is chosen - sets child index to zero and displays first child."""
         print("screenChosen " + self.title)
         self.valsList = gd.getConfig.hasKeys(gd.wifiList)
+        self.valList.append("Manual Entry")
         self.valueLength = len(self.valsList)
         self.childIndex = 0
         self.screens[self.childIndex].displayThis()
@@ -982,6 +1012,7 @@ class SsidChooser(ListScreen):
         global inView
         inView = self
         self.valList = gd.getConfig.hasKeys(gd.wifiList)
+        self.valList.append("Manual Entry")
         gd.draw_screen(self.title, self.value, self.navigation, 255, 0)
 
 
@@ -1041,7 +1072,8 @@ class SecurityChanger(ListScreen):
     def changeConfig(self):
         # update config and screens for this interface
         global thisData
-        # changeSecurityType(self.interface, self.value, self.prevVal)
+        changeSecurityType(self.interface, self.value, self.prevVal)
+        gd.interfaceSettings[self.interface]["security"] = self.value
         self.prevVal = self.value
         print thisData['config']
 
@@ -1149,7 +1181,7 @@ class confSend(Screen):
                 #     text_file.write("Data: {0}".format(thisData['config']))
                 getConfig.sendConfig(URL2, thisData['config'])
                 self.navigation = self.incrLine
-                draw_confirmation("Sent valid config", "RESTARTING", 255, 0, masterList[n])
+                gd.draw_confirmation("S A V E D !", "Sent valid config", "RESTARTING", 255, 0)
                 # print thisData['config']
             else:
                 print result
