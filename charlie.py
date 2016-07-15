@@ -86,6 +86,11 @@ disp.begin()
 disp.clear()
 disp.display()
 
+# Set up globals for drawing
+width = disp.width
+height = disp.height
+image = Image.new('1', (width, height))
+draw = ImageDraw.Draw(image)
 GPIO.setmode(GPIO.BCM)
 
 # allow access to GPIO as input and turn on pull up resistors
@@ -438,79 +443,82 @@ class DateTimeScreen(Screen):
             self.navigation = self.incrLine
 
     def editVal(self, index, addorsub):
+        global draw
         if(index == 0):
             self.editYear(addorsub)
+            underline_pos = 0
+            underline_width = 24
         elif(index == 1):
             self.editMonth(addorsub)
+            underline_pos = 2.5
+            underline_width = 12
         elif(index == 2):
             self.editDay(addorsub)
+            underline_pos = 4
+            underline_width = 12
         elif(index == 3):
             self.editHour(addorsub)
+            underline_pos = 5.5
+            underline_width = 12
         elif(index == 4):
             self.editMinute(addorsub)
+            underline_pos = 7
+            underline_width = 12
         elif(index == 5):
             self.editSecond(addorsub)
+            underline_pos = 8.5
+            underline_width = 12
         self.timeChange = tdelta(years=self.year, months=self.month, days=self.day, hours=self.hour, minutes=self.minute, seconds=self.second)
         self.date = dt.now() + self.timeChange
         self.value = self.date.strftime("%Y-%m-%d %H:%M:%S")
-        self.displayThis()
+        self.displayEdit(underline_pos, underline_width)
 
     def editYear(self, addorsub):
+        print("got here")
+        print(self.year)
         if(addorsub == 0):
-            # self.date = self.date + tdelta(years=-1)
-            self.year == self.year - 1
+            self.year = self.year - 1
         elif(addorsub == 1):
-            # self.date = self.date + tdelta(years=1)
-            self.year == self.year + 1
+            self.year = self.year + 1
         else:
             print('else')
 
     def editMonth(self, addorsub):
         if(addorsub == 0):
-            # self.date = self.date + tdelta(months=-1)
             self.month = self.month - 1
         elif(addorsub == 1):
-            # self.date = self.date + tdelta(months=1)
             self.month = self.month + 1
         else:
             print('else')
 
     def editDay(self, addorsub):
         if(addorsub == 0):
-            # self.date = self.date + tdelta(days=-1)
             self.day = self.day - 1
         elif(addorsub == 1):
-            # self.date = self.date + tdelta(days=1)
             self.day = self.day + 1
         else:
             print('else')
 
     def editHour(self, addorsub):
         if(addorsub == 0):
-            # self.date = self.date + tdelta(hours=-1)
             self.hour = self.hour - 1
         elif(addorsub == 1):
-            # self.date = self.date + tdelta(hours=1)
             self.hour = self.hour + 1
         else:
             print('else')
 
     def editMinute(self, addorsub):
         if(addorsub == 0):
-            # self.date = self.date + tdelta(minutes=-1)
             self.minute = self.minute - 1
         elif(addorsub == 1):
-            # self.date = self.date + tdelta(minutes=1)
             self.minute = self.minute + 1
         else:
             print('else')
 
     def editSecond(self, addorsub):
         if(addorsub == 0):
-            # self.date = self.date + tdelta(seconds=-1)
             self.second = self.second - 1
         elif(addorsub == 1):
-            # self.date = self.date + tdelta(seconds=1)
             self.second = self.second + 1
         else:
             print('else')
@@ -566,13 +574,9 @@ def replaceChar(word, index, char):
 
 def draw_screen(s, line2, line3, fillNum, fillBg):
     """for drawing the next screen."""
-    global disp, n, maxn, Image, ImageDraw
-    width = disp.width
-    height = disp.height
-    image = Image.new('1', (width, height))
-    disp.clear()
+    global disp, n, maxn, Image, ImageDraw, draw
 
-    draw = ImageDraw.Draw(image)
+    disp.clear()
 
     # Draw a black filled box to clear the image.
     draw.rectangle((0, 0, width, height), outline=0, fill=fillBg)
@@ -592,13 +596,9 @@ def draw_screen(s, line2, line3, fillNum, fillBg):
 
 def draw_screen_ul(s, line2, line3, fillNum, fillBg, underline_pos, underline_width):
     """for drawing the next screen."""
-    global disp, n, maxn, Image, ImageDraw
-    width = disp.width
-    height = disp.height
-    image = Image.new('1', (width, height))
-    disp.clear()
+    global disp, n, maxn, Image, ImageDraw, draw
 
-    draw = ImageDraw.Draw(image)
+    disp.clear()
 
     # Draw a black filled box to clear the image.
     draw.rectangle((0, 0, width, height), outline=0, fill=fillBg)
