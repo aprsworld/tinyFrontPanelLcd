@@ -177,6 +177,7 @@ def button_callback(channel):
                 this.childIndex = 0
                 level = 2
                 this.navigation = this.incrLine
+                this.displayThis()
     print(channel)
 
 
@@ -343,8 +344,6 @@ class NetworkScreen(Screen):
                 self.addr3 = 255
             self.value = self.formatAddr(str(self.addr0)) + "." + self.formatAddr(str(self.addr1)) + "." + self.formatAddr(str(self.addr2)) + "." + self.formatAddr(str(self.addr3))
             self.displayEdit(addrNum + 3, 6)
-
-
         # append everything into a network address string so that it can be shown on screen
         print(self.value)
 
@@ -379,7 +378,7 @@ class StringScreen(Screen):
         # String: line two on the LCD Screen
         self.childIndex = 0
         self.value = value
-        self.valueLength = len(self.value)
+        self.valueLength = 18
         # String: line Three on the LCD Screen
         # Can be either <--    Select    -->   OR   (-)    Select    (+)
         if(self.type == "readOnly"):
@@ -402,11 +401,12 @@ class StringScreen(Screen):
             return
         else:
             addAmt = 1
+        charSetIndex = charSetIndex + addAmt
+
         char = charSet[charSetIndex]
         word = self.value
         word = word[:index] + char + word[index + 1:]
         self.value = word
-        charSetIndex = charSetIndex + addAmt
         self.displayEdit(index, 6)
 
 # --------------------End of StringScreen Class Definition -----------------------
