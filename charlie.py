@@ -27,6 +27,7 @@ f = os.popen('ifconfig eth0 | grep "inet\ addr" | cut -d: -f2 | cut -d" " -f1')
 ff = os.popen('ifconfig lo | grep "inet\ addr" | cut -d: -f2 | cut -d" " -f1')
 ip = f.read()
 lo = ff.read()
+inView = ""
 
 # global flag that determines level of "Directory" that we are on
 level = 1
@@ -169,17 +170,18 @@ def button_callback(channel):
         elif(channel == 18):
             this.editVal(this.childIndex, 0)
         elif(channel == 27):
-            if(curIndex < this.valueLength):
+            if(curIndex < this.valueLength and "BooleanScreen" != this.screenType):
                 this.childIndex = this.childIndex + 1
                 this.editVal(this.childIndex, 2)
                 charSetIndex = 0
             else:
+                this.edit = False
                 this.childIndex = 0
                 level = 2
                 this.navigation = this.incrLine
                 this.displayThis()
     print(channel)
-
+    time.sleep(.05)
 
 # detect button falling edges
 def detect_edges(callbackFn):
@@ -188,7 +190,7 @@ def detect_edges(callbackFn):
     GPIO.remove_event_detect(27)
     GPIO.add_event_detect(17, GPIO.FALLING, callback=callbackFn, bouncetime=300)
     GPIO.add_event_detect(18, GPIO.FALLING, callback=callbackFn, bouncetime=300)
-    GPIO.add_event_detect(27, GPIO.FALLING, callback=callbackFn, bouncetime=300)
+    GPIO.add_event_detect(27, GPIO.FALLING, callback=callbackFn, bouncetime=500)
 
 
 class Screen:
@@ -202,6 +204,7 @@ class Screen:
         """Our initialization for the screen class."""
         # String: type of screen - "readOnly", "subMenu", "editable"
         self.type = type
+        self.screenType = "GeneralScreen"
         # String: Line one on the LCD Screen
         self.title = title
         # String: line two on the LCD Screen
@@ -215,6 +218,9 @@ class Screen:
             self.navigation = self.navLine
         else:
             self.navigation = self.incrLine
+        self.underline_pos = 0
+        self.underline_width = 0
+        self.edit = False
 
     def initScreenList(self, screens):
         """Initialize the submenus for this screen."""
@@ -222,6 +228,8 @@ class Screen:
 
     def displayThis(self):
         """Draw our screen."""
+        global inView
+        inView = self
         draw_screen(self.title, self.value, self.navigation, 255, 0)
 
     def displayEdit(self, underline_pos, underline_width):
@@ -267,6 +275,7 @@ class NetworkScreen(Screen):
         """
         # String: type of screen - "readOnly", "subMenu", "editable"
         self.type = type
+        self.screenType = "NetworkScreen"
         # String: Line one on the LCD Screen
         self.title = title
         # String: line two on the LCD Screen
@@ -277,6 +286,8 @@ class NetworkScreen(Screen):
         self.value = self.formatAddr(str(addr0)) + "." + self.formatAddr(str(addr1)) + "." + self.formatAddr(str(addr2)) + "." + self.formatAddr(str(addr3))
         self.childIndex = 0
         self.valueLength = 11
+        self.edit = False
+
         # String: line Three on the LCD Screen
         # Can be either <--    Select    -->   OR   (-)    Select    (+)
         if(self.type == "readOnly"):
@@ -373,12 +384,15 @@ class StringScreen(Screen):
         """Our initialization for the screen stringclass."""
         # String: type of screen - "readOnly", "subMenu", "editable"
         self.type = type
+        self.screenType = "StringScreen"
         # String: Line one on the LCD Screen
         self.title = title
         # String: line two on the LCD Screen
         self.childIndex = 0
         self.value = value
         self.valueLength = 18
+        self.edit = False
+
         # String: line Three on the LCD Screen
         # Can be either <--    Select    -->   OR   (-)    Select    (+)
         if(self.type == "readOnly"):
@@ -402,6 +416,7 @@ class StringScreen(Screen):
         else:
             addAmt = 1
         charSetIndex = charSetIndex + addAmt
+
         char = charSet[charSetIndex]
         word = self.value
         word = word[:index] + char + word[index + 1:]
@@ -418,6 +433,8 @@ class DateTimeScreen(Screen):
         """Our initialization for the screen stringclass."""
         # String: type of screen - "readOnly", "subMenu", "editable"
         self.type = type
+        self.screenType = "DateTimeScreen"
+
         # String: Line one on the LCD Screen
         self.title = title
         # String: line two on the LCD Screen
@@ -431,6 +448,8 @@ class DateTimeScreen(Screen):
         self.hour = 0
         self.second = 0
         self.minute = 0
+        self.edit = False
+
         self.timeChange = tdelta(years=self.year, months=self.month, days=self.day, hours=self.hour, minutes=self.minute, seconds=self.second)
         # String: line Three on the LCD Screen
         # Can be either <--    Select    -->   OR   (-)    Select    (+)
@@ -440,40 +459,64 @@ class DateTimeScreen(Screen):
             self.navigation = self.navLine
         else:
             self.navigation = self.incrLine
+        self.print_some_times()
 
     def editVal(self, index, addorsub):
         global draw
+        self.edit = True
         if(index == 0):
             self.editYear(addorsub)
-            underline_pos = 0
-            underline_width = 24
+            self.underline_pos = 0
+            self.underline_width = 24
         elif(index == 1):
             self.editMonth(addorsub)
-            underline_pos = 2.5
-            underline_width = 12
+            self.underline_pos = 2.5
+            self.underline_width = 12
         elif(index == 2):
             self.editDay(addorsub)
-            underline_pos = 4
-            underline_width = 12
+            self.underline_pos = 4
+            self.underline_width = 12
         elif(index == 3):
             self.editHour(addorsub)
-            underline_pos = 5.5
-            underline_width = 12
+            self.underline_pos = 5.5
+            self.underline_width = 12
         elif(index == 4):
             self.editMinute(addorsub)
-            underline_pos = 7
-            underline_width = 12
+            self.underline_pos = 7
+            self.underline_width = 12
         elif(index == 5):
             self.editSecond(addorsub)
-            underline_pos = 8.5
-            underline_width = 12
+            self.underline_pos = 8.5
+            self.underline_width = 12
         self.timeChange = tdelta(years=self.year, months=self.month, days=self.day, hours=self.hour, minutes=self.minute, seconds=self.second)
         self.date = dt.now() + self.timeChange
         self.value = self.date.strftime("%Y-%m-%d %H:%M:%S")
-        self.displayEdit(underline_pos, underline_width)
+        self.displayEdit(self.underline_pos, self.underline_width)
+
+    def print_time(self):
+        """updates the value of the time screen print_some_times calls this every second."""
+        global timeScreen, masterList
+        self.print_some_times()
+        self.date = dt.now() + self.timeChange
+        self.value = self.date.strftime("%Y-%m-%d %H:%M:%S")
+        # If we are on the time screen, update the screen every second as well
+        if(inView.title == self.title):
+            if(self.edit == True):
+                self.displayEdit(self.underline_pos, self.underline_width)
+            else:
+                self.displayThis()
+
+    def print_some_times(self):
+        """This calls print_time every second."""
+        try:
+            t = Timer(1, self.print_time)
+            t.daemon = True
+            t.start()
+        except (KeyboardInterrupt, SystemExit):
+            print '\n! Received keyboard interrupt, quitting threads.\n'
+            return
 
     def editYear(self, addorsub):
-        print("got here")
         print(self.year)
         if(addorsub == 0):
             self.year = self.year - 1
@@ -524,14 +567,53 @@ class DateTimeScreen(Screen):
 
 # ------------------End of DateTimeScreen Class Definition ---------------------
 
+class BooleanScreen(Screen):
+    """Class for true/false options screens. Extends Screen."""
+
+    def __init__(self, type, title, value, val0, val1):
+        """Our initialization for the screen stringclass."""
+        # String: type of screen - "readOnly", "subMenu", "editable"
+        self.type = type
+        self.screenType = "BooleanScreen"
+        self.valueLength = 0
+        # String: Line one on the LCD Screen
+        self.title = title
+        # String: line two on the LCD Screen
+        self.childIndex = 0
+        self.value = value
+        self.val0 = val0
+        self.val1 = val1
+        self.editLine = self.val0 + "< OK >" +self.val1
+        if(self.type == "readOnly"):
+            self.navigation = self.navLine
+        elif(self.type == "subMenu"):
+            self.navigation = self.navLine
+        else:
+            self.navigation = self.incrLine
+
+    def editVal(self, index, addorsub):
+        if(addorsub == 0):
+            self.value = self.val0
+        elif(addorsub == 1):
+            self.value = self.val1
+        elif(addorsub == 2):
+            self.value = self.value
+        self.displayThis()
+
 
 # initialize screens
 ethScreen = Screen("subMenu", "eth0", " ")
 loScreen = Screen("subMenu", "Lo", " ")
 wifiCreds = Screen("subMenu", "WiFi Credentials", " ")
 timeScreen = Screen("subMenu", "Time and Date", " ")
+netOptions = Screen("subMenu", "Network Options", " ")
 # print_some_times()
 
+netOpt = BooleanScreen("editable", "Dynamic or Static", "Static", "Dynamic", "Static")
+netOpt2 = BooleanScreen("editable", "Wireless or Hardline", "Wireless", "Hardline", "Wireless")
+netOpt3 = BooleanScreen("editable", "Proxy Setting", "Use Proxy", "No Proxy", "Use Proxy")
+netOpt4 = BooleanScreen("editable", "WPA or WEP", "WPA", "WEP", "WPA")
+netOptions.initScreenList([netOpt, netOpt2, netOpt3, netOpt4])
 # initialize subscreens in eth0
 ethIP = NetworkScreen("editable", "Eth0 IP Address", 192, 168, 10, 234)
 ethIP2 = Screen("readOnly", "Eth0 IP Address 2", "test2")
@@ -559,12 +641,11 @@ wifiPass = StringScreen("editable", "wifiPass", "zestoPenguin")
 wifiCreds.initScreenList([wifiName, wifiPass])
 
 # list of all the top-level screen objects
-masterList = [ethScreen, loScreen, wifiCreds, timeScreen]
+masterList = [ethScreen, loScreen, wifiCreds, timeScreen, netOptions]
 
 # Set the number of menu items to the size of the list
 # Since the list counts from one, we must subtract one
 maxn = len(masterList) - 1
-
 
 def replaceChar(word, index, char):
     word = word[:index] + char + word[index + 1:]
@@ -574,11 +655,8 @@ def replaceChar(word, index, char):
 def draw_screen(s, line2, line3, fillNum, fillBg):
     """for drawing the next screen."""
     global disp, n, maxn, Image, ImageDraw, draw
-
-    disp.clear()
-
     # Draw a black filled box to clear the image.
-    draw.rectangle((0, 0, width, height), outline=0, fill=fillBg)
+    draw.rectangle((0, 0, width + 10, height + 10), outline=0, fill=fillBg)
 
     # Load default font.
     font = ImageFont.load_default()
@@ -590,14 +668,13 @@ def draw_screen(s, line2, line3, fillNum, fillBg):
     draw.text((x, top + 20), line3, font=font, fill=fillNum)
 
     disp.image(image.rotate(180))
+
     # disp.image(image)
     disp.display()
 
 def draw_screen_ul(s, line2, line3, fillNum, fillBg, underline_pos, underline_width):
     """for drawing the next screen."""
     global disp, n, maxn, Image, ImageDraw, draw
-
-    disp.clear()
 
     # Draw a black filled box to clear the image.
     draw.rectangle((0, 0, width, height), outline=0, fill=fillBg)
@@ -656,6 +733,7 @@ def draw_text(s):
     disp.image(image.rotate(180))
     # disp.image(image)
     disp.display()
+    time.sleep(0.1)
 
 
 def screen_chosen(screenNum):
