@@ -6,12 +6,15 @@ from PIL import ImageDraw
 from PIL import ImageFont
 import PIL.ImageOps
 import RPi.GPIO as GPIO
-import os
 import time
 from datetime import datetime as dt
 from dateutil.relativedelta import relativedelta as tdelta
 import charlieimage
+import getConfig
 from threading import Timer
+
+# URL that we are getting data from
+URL = "http://192.168.10.219/piNetConfig/current_settings.php"
 
 LOGO_DISPLAY_TIME = 1
 
@@ -23,10 +26,7 @@ charSetPass = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 
                '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
 charSetIndex = 0
-f = os.popen('ifconfig eth0 | grep "inet\ addr" | cut -d: -f2 | cut -d" " -f1')
-ff = os.popen('ifconfig lo | grep "inet\ addr" | cut -d: -f2 | cut -d" " -f1')
-ip = f.read()
-lo = ff.read()
+thisData = getConfig.getData(URL)
 inView = ""
 
 # global flag that determines level of "Directory" that we are on
@@ -55,7 +55,7 @@ while(not ready):
 
 
 def print_time():
-    """updates the value of the time screen print_some_times calls this every second."""
+    """update the value of the time screen print_some_times calls this every second."""
     global timeScreen
     print_some_times()
     timeScreen.value = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -66,7 +66,7 @@ def print_time():
 
 
 def print_some_times():
-    """This calls print_time every second."""
+    """call print_time every second."""
     try:
         t = Timer(1, print_time)
         t.daemon = True
@@ -600,48 +600,94 @@ class BooleanScreen(Screen):
             self.value = self.value
         self.displayThis()
 
+#  ******* Comment block denoting screen section
+# *
+# *
+#   *****  This is where we initialize all of our screens
+#        *
+#        *
+# *******
+lo = Screen("subMenu", "lo", " ")
+eth0 = Screen("subMenu", "eth0", " ")
+eth00 = Screen("subMenu", "eth0:0", " ")
+wlan0 = Screen("subMenu", "wlan0", " ")
+
+loMtu = Screen("readOnly", "mtu", thisData['lo']['mtu'])
+loQdisc = Screen("readOnly", "qdisc", thisData['lo']['qdisc'])
+loState = Screen("readOnly", "state", thisData['lo']['state'])
+loMode = Screen("readOnly", "Mode", thisData['lo']['mode'])
+loHwAddress = Screen("readOnly", "hwaddress", thisData['lo']['hwaddress'])
+loInetMethod = Screen("readOnly", "inet method", thisData['config']['lo']['protocol']['inet']['method'])
+loInetAddress = Screen("readOnly", "inet address", thisData['lo']['lo']['inet']['address'])
+loInetNetmask = Screen("readOnly", "inet netmask", thisData['lo']['lo']['inet']['netmask'])
+loInetScope = Screen("readOnly", "inet scope", thisData['lo']['lo']['inet']['scope'])
+
+eth0Mtu = Screen("readOnly", "mtu", thisData['eth0']['mtu'])
+eth0Qdisc = Screen("readOnly", "qdisc", thisData['eth0']['qdisc'])
+eth0State = Screen("readOnly", "state", thisData['eth0']['state'])
+eth0Mode = Screen("readOnly", "Mode", thisData['eth0']['mode'])
+eth0Qlen = Screen("readOnly", "Mode", thisData['eth0']['qlen'])
+eth0HwAddress = Screen("readOnly", "hwaddress", thisData['eth0']['hwaddress'])
+eth0InetMethod = Screen("readOnly", "inet method", thisData['config']['eth0']['protocol']['inet']['method'])
+eth0InetAddress = Screen("readOnly", "inet address", thisData['eth0']['eth0']['inet']['address'])
+eth0InetNetmask = Screen("readOnly", "inet netmask", thisData['eth0']['eth0']['inet']['netmask'])
+eth0InetScope = Screen("readOnly", "inet scope", thisData['eth0']['eth0']['inet']['scope'])
+
+eth00Mtu = Screen("readOnly", "mtu", thisData['eth0']['mtu'])
+eth00Qdisc = Screen("readOnly", "qdisc", thisData['eth0']['qdisc'])
+eth00State = Screen("readOnly", "state", thisData['eth0']['state'])
+eth00Mode = Screen("readOnly", "Mode", thisData['eth0']['mode'])
+eth00Qlen = Screen("readOnly", "Mode", thisData['eth0']['qlen'])
+eth00HwAddress = Screen("readOnly", "hwaddress", thisData['eth0']['hwaddress'])
+eth00InetMethod = Screen("readOnly", "inet method", thisData['config']['eth0:0']['protocol']['inet']['method'])
+eth00InetAddress = Screen("readOnly", "inet address", thisData['eth0']['eth0:0']['inet']['address'])
+eth00InetNetmask = Screen("readOnly", "inet netmask", thisData['eth0']['eth0:0']['inet']['netmask'])
+eth00InetScope = Screen("readOnly", "inet scope", thisData['eth0']['eth0:0']['inet']['scope'])
 
 # initialize screens
-ethScreen = Screen("subMenu", "eth0", " ")
-loScreen = Screen("subMenu", "Lo", " ")
-wifiCreds = Screen("subMenu", "WiFi Credentials", " ")
-timeScreen = Screen("subMenu", "Time and Date", " ")
-netOptions = Screen("subMenu", "Network Options", " ")
+# ethScreen = Screen("subMenu", "eth0", " ")
+# loScreen = Screen("subMenu", "Lo", " ")
+# wifiCreds = Screen("subMenu", "WiFi Credentials", " ")
+# timeScreen = Screen("subMenu", "Time and Date", " ")
+# netOptions = Screen("subMenu", "Network Options", " ")
 # print_some_times()
 
-netOpt = BooleanScreen("editable", "Dynamic or Static", "Static", "Dynamic", "Static")
-netOpt2 = BooleanScreen("editable", "Wireless or Hardline", "Wireless", "Hardline", "Wireless")
-netOpt3 = BooleanScreen("editable", "Proxy Setting", "Use Proxy", "No Proxy", "Use Proxy")
-netOpt4 = BooleanScreen("editable", "WPA or WEP", "WPA", "WEP", "WPA")
-netOptions.initScreenList([netOpt, netOpt2, netOpt3, netOpt4])
+# netOpt = BooleanScreen("editable", "Dynamic or Static", "Static", "Dynamic", "Static")
+# netOpt2 = BooleanScreen("editable", "Wireless or Hardline", "Wireless", "Hardline", "Wireless")
+# netOpt3 = BooleanScreen("editable", "Proxy Setting", "Use Proxy", "No Proxy", "Use Proxy")
+# netOpt4 = BooleanScreen("editable", "WPA or WEP", "WPA", "WEP", "WPA")
+# netOptions.initScreenList([netOpt, netOpt2, netOpt3, netOpt4])
 # initialize subscreens in eth0
-ethIP = NetworkScreen("editable", "Eth0 IP Address", 192, 168, 10, 234)
-ethIP2 = Screen("readOnly", "Eth0 IP Address 2", "test2")
-ethIP3 = Screen("readOnly", "Eth0 IP Address 3", "test3")
-ethIP4 = Screen("readOnly", "Eth0 IP Address 4", "test4")
+# ethIP = NetworkScreen("editable", "Eth0 IP Address", 192, 168, 10, 234)
+# ethIP2 = Screen("readOnly", "Eth0 IP Address 2", "test2")
+# ethIP3 = Screen("readOnly", "Eth0 IP Address 3", "test3")
+# ethIP4 = Screen("readOnly", "Eth0 IP Address 4", "test4")
 
-ethScreen.initScreenList([ethIP, ethIP2, ethIP3, ethIP4])
+# ethScreen.initScreenList([ethIP, ethIP2, ethIP3, ethIP4])
 
 # initialize subscreens in Lo
-loIP = Screen("readOnly", "Lo IP Address", lo)
-loIP2 = Screen("readOnly", "Lo IP Address", "screen 2")
-loIP3 = Screen("readOnly", "Lo IP Address", "screen 3")
+# loIP = Screen("readOnly", "Lo IP Address", "192.168.10.10")
+# loIP2 = Screen("readOnly", "Lo IP Address", "screen 2")
+# loIP3 = Screen("readOnly", "Lo IP Address", "screen 3")
 
-loScreen.initScreenList([loIP, loIP2, loIP3])
+# loScreen.initScreenList([loIP, loIP2, loIP3])
+lo.initScreenList([loMtu, loQdisc, loState, loMode, loHwAddress, loInetMethod, loInetAddress, loInetNetmask, loInetScope])
+eth0.initScreenList([eth0Mtu, eth0Qdisc, eth0State, eth0Mode, eth0HwAddress, eth0InetMethod, eth0InetAddress, eth0InetNetmask, eth0InetScope])
+eth00.initScreenList([eth00Mtu, eth00Qdisc, eth00State, eth00Mode, eth00HwAddress, eth00InetMethod, eth00InetAddress, eth00InetNetmask, eth00InetScope])
 
 # intialize time screens
-timeEdit = DateTimeScreen("editable", "Time Edit")
+# timeEdit = DateTimeScreen("editable", "Time Edit")
 
-timeScreen.initScreenList([timeEdit])
+# timeScreen.initScreenList([timeEdit])
 
 # initialize wifi credentials screens
-wifiName = StringScreen("editable", "wifiName", "aprsworld")
-wifiPass = StringScreen("editable", "wifiPass", "zestoPenguin")
+# wifiName = StringScreen("editable", "wifiName", "aprsworld")
+# wifiPass = StringScreen("editable", "wifiPass", "zestoPenguin")
 
-wifiCreds.initScreenList([wifiName, wifiPass])
+# wifiCreds.initScreenList([wifiName, wifiPass])
 
 # list of all the top-level screen objects
-masterList = [ethScreen, loScreen, wifiCreds, timeScreen, netOptions]
+masterList = [eth0, eth00, lo]
 
 # Set the number of menu items to the size of the list
 # Since the list counts from one, we must subtract one
@@ -763,4 +809,4 @@ except KeyboardInterrupt:
     draw_text('Interrupted...')
 
 GPIO.cleanup()		   # clean up GPIO on normal exit
-draw_text('Shutting down...')
+draw_screen('Program ended', "", "", 200, 0)
