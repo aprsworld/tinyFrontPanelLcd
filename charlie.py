@@ -14,7 +14,7 @@ import getConfig
 from threading import Timer
 
 # URL that we are getting data from
-URL = "http://192.168.10.219/piNetConfig/current_settings.php"
+URL = "http://cam.aprsworld.com:8888/piNetConfig/current_settings.php"
 
 LOGO_DISPLAY_TIME = 1
 
@@ -210,6 +210,7 @@ class Screen:
         # String: line two on the LCD Screen
         self.value = value
         self.childIndex = 0
+        self.screens = []
         # String: line Three on the LCD Screen
         # Can be either <--    Select    -->   OR   (-)    Select    (+)
         if(self.type == "readOnly"):
@@ -600,6 +601,8 @@ class BooleanScreen(Screen):
             self.value = self.value
         self.displayThis()
 
+# ------------------End of BooleanScreen Class Definition ---------------------
+
 #  ******* Comment block denoting screen section
 # *
 # *
@@ -607,11 +610,32 @@ class BooleanScreen(Screen):
 #        *
 #        *
 # *******
-lo = Screen("subMenu", "lo", " ")
-eth0 = Screen("subMenu", "eth0", " ")
-eth00 = Screen("subMenu", "eth0:0", " ")
-wlan0 = Screen("subMenu", "wlan0", " ")
 
+masterList = []
+
+def createTop2():
+    global masterList, thisData
+    count = 0
+    for blah, (k, v) in enumerate(thisData.iteritems(), 1):
+        if(k == "config"):
+            pass
+        else:
+            print k
+            masterList.append(Screen("subMenu", k, " "))
+            for count1, (k1, v1) in enumerate(thisData[k].iteritems()):
+                if isinstance(v1, dict):
+                    pass
+                else:
+                    masterList[count].screens.append(Screen("readOnly", k1, v1))
+            count = count + 1
+
+createTop2()
+# lo = Screen("subMenu", "lo", " ")
+# eth0 = Screen("subMenu", "eth0", " ")
+# eth00 = Screen("subMenu", "eth0:0", " ")
+# wlan0 = Screen("subMenu", "wlan0", " ")
+
+'''
 loMtu = Screen("readOnly", "mtu", thisData['lo']['mtu'])
 loQdisc = Screen("readOnly", "qdisc", thisData['lo']['qdisc'])
 loState = Screen("readOnly", "state", thisData['lo']['state'])
@@ -643,12 +667,12 @@ eth00InetMethod = Screen("readOnly", "inet method", thisData['config']['eth0:0']
 eth00InetAddress = Screen("readOnly", "inet address", thisData['eth0']['eth0:0']['inet']['address'])
 eth00InetNetmask = Screen("readOnly", "inet netmask", thisData['eth0']['eth0:0']['inet']['netmask'])
 eth00InetScope = Screen("readOnly", "inet scope", thisData['eth0']['eth0:0']['inet']['scope'])
-
+'''
 # initialize screens
 # ethScreen = Screen("subMenu", "eth0", " ")
 # loScreen = Screen("subMenu", "Lo", " ")
 # wifiCreds = Screen("subMenu", "WiFi Credentials", " ")
-# timeScreen = Screen("subMenu", "Time and Date", " ")
+timeScreen = Screen("subMenu", "Time and Date", " ")
 # netOptions = Screen("subMenu", "Network Options", " ")
 # print_some_times()
 
@@ -671,14 +695,14 @@ eth00InetScope = Screen("readOnly", "inet scope", thisData['eth0']['eth0:0']['in
 # loIP3 = Screen("readOnly", "Lo IP Address", "screen 3")
 
 # loScreen.initScreenList([loIP, loIP2, loIP3])
-lo.initScreenList([loMtu, loQdisc, loState, loMode, loHwAddress, loInetMethod, loInetAddress, loInetNetmask, loInetScope])
-eth0.initScreenList([eth0Mtu, eth0Qdisc, eth0State, eth0Mode, eth0HwAddress, eth0InetMethod, eth0InetAddress, eth0InetNetmask, eth0InetScope])
-eth00.initScreenList([eth00Mtu, eth00Qdisc, eth00State, eth00Mode, eth00HwAddress, eth00InetMethod, eth00InetAddress, eth00InetNetmask, eth00InetScope])
+# lo.initScreenList([loMtu, loQdisc, loState, loMode, loHwAddress, loInetMethod, loInetAddress, loInetNetmask, loInetScope])
+# eth0.initScreenList([eth0Mtu, eth0Qdisc, eth0State, eth0Mode, eth0HwAddress, eth0InetMethod, eth0InetAddress, eth0InetNetmask, eth0InetScope])
+# eth00.initScreenList([eth00Mtu, eth00Qdisc, eth00State, eth00Mode, eth00HwAddress, eth00InetMethod, eth00InetAddress, eth00InetNetmask, eth00InetScope])
 
 # intialize time screens
-# timeEdit = DateTimeScreen("editable", "Time Edit")
+timeEdit = DateTimeScreen("editable", "Time Edit")
 
-# timeScreen.initScreenList([timeEdit])
+timeScreen.initScreenList([timeEdit])
 
 # initialize wifi credentials screens
 # wifiName = StringScreen("editable", "wifiName", "aprsworld")
@@ -687,7 +711,7 @@ eth00.initScreenList([eth00Mtu, eth00Qdisc, eth00State, eth00Mode, eth00HwAddres
 # wifiCreds.initScreenList([wifiName, wifiPass])
 
 # list of all the top-level screen objects
-masterList = [eth0, eth00, lo]
+# masterList = [eth0, eth00, lo, timeScreen]
 
 # Set the number of menu items to the size of the list
 # Since the list counts from one, we must subtract one
