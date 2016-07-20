@@ -617,8 +617,49 @@ def createTop2():
     global masterList, thisData
     count = 0
     for blah, (k, v) in enumerate(thisData.iteritems(), 1):
-        if(k == "config"):
+        if(k == "config" or k == "lo"):
             pass
+        elif(k.startswith("eth")):
+            keyList = thisData[k].keys()
+            if any("eth" in s for s in keyList):
+                for k1, v1 in thisData[k].iteritems():
+                    if(k1.startswith("eth")):
+                        print k1
+                        masterList.append(Screen("subMenu", "Ethernet (" + k1 + ")", " "))
+                        for k2, v2 in thisData[k][k1]["inet"].iteritems():
+                            masterList[count].screens.append(Screen("readOnly", "inet " + k2, v2))
+                        for k2, v2 in thisData[k].iteritems():
+                            if(k2.startswith("eth")):
+                                pass
+                            else:
+                                masterList[count].screens.append(Screen("readOnly", k2, v2))
+                        count = count + 1
+            else:
+                masterList.append(Screen("subMenu", "Ethernet (" + k + ")", " "))
+                for k1, v1 in thisData[k].iteritems():
+                    masterList[count].screens.append(Screen("readOnly", k1, v1))
+                count = count + 1
+        elif(k.startswith("wlan")):
+            keyList = thisData[k].keys()
+            if any("wlan" in s for s in keyList):
+                for k1, v1 in thisData[k].iteritems():
+                    if(k1.startswith("wlan")):
+                        print k1
+                        masterList.append(Screen("subMenu", "wlan (" + k1 + ")", " "))
+                        for k2, v2 in thisData[k][k1].iteritems():
+                            for k3, v3 in thisData[k][k1][k2].iterItems():
+                                masterList[count].screens.append(Screen("readOnly", k3 + " " + k2, v2))
+                        for k2, v2 in thisData[k].iteritems():
+                            if(k2.startswith("wlan")):
+                                pass
+                            else:
+                                masterList[count].screens.append(Screen("readOnly", k2, v2))
+                        count = count + 1
+            else:
+                masterList.append(Screen("subMenu", "wlan (" + k + ")", " "))
+                for k1, v1 in thisData[k].iteritems():
+                    masterList[count].screens.append(Screen("readOnly", k1, v1))
+                count = count + 1
         else:
             print k
             masterList.append(Screen("subMenu", k, " "))
@@ -703,7 +744,7 @@ timeScreen = Screen("subMenu", "Time and Date", " ")
 timeEdit = DateTimeScreen("editable", "Time Edit")
 
 timeScreen.initScreenList([timeEdit])
-
+masterList.append(timeScreen)
 # initialize wifi credentials screens
 # wifiName = StringScreen("editable", "wifiName", "aprsworld")
 # wifiPass = StringScreen("editable", "wifiPass", "zestoPenguin")
