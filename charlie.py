@@ -14,7 +14,7 @@ import getConfig
 from threading import Timer
 
 # URL that we are getting data from
-URL = "http://cam.aprsworld.com:8888/piNetConfig/current_settings.php"
+URL = "http://cam.aprsworld.com/piNetConfig/current_settings.php"
 
 LOGO_DISPLAY_TIME = 1
 
