@@ -209,3 +209,47 @@ def validate_ip4(ip_s, netmask_s, gateway_s):
 
     # valid!
     return True
+
+
+def parse_ip4_address2string(a):
+    return '' + a[0] + '.' + a[1] + '.' + a[2] + '.' + a[3]
+
+
+def config_validate(config):
+    """validate entire config."""
+    for iface, ifconfig in config.iteritems():
+        for protocol, pconfig in ifconfig['protocol'].iteritems():
+            if not protocol == "inet":
+                # TODO log error on screen
+                return False
+            if "method" not in pconfig:
+                # TODO log error on screen
+                return False
+            method = pconfig['method']
+            if not method == "static" and not method == "dhcp" and not method == "loopback":
+                # TODO echo warning on screen
+                print "warning"
+            address = None
+            netmask = None
+            gateway = None
+            for option, value in pconfig.iteritems():
+                if option == 'method':
+                    continue
+                elif option == 'address':
+                    address = value
+                elif option == 'netmask':
+                    netmask = value
+                elif option == 'gateway':
+                    gateway = value
+                else:
+                    # TODO print warning to screen
+                    print "else block"
+            if address and netmask:
+                if not validate_ip4(address, netmask, gateway):
+                    # TODO print error to screen
+                    return False
+                elif method == "static":
+                    # TODO print error to screen
+                    return False
+    # valid
+    return True
