@@ -1,6 +1,7 @@
 """Validates config file before sending."""
 import re
 
+
 def parse_ip4_address(s):
     """parse an ip4 address."""
     # split string into octets
@@ -16,7 +17,7 @@ def parse_ip4_address(s):
     for octet in octets_s:
 
         # validate it's actually an integer
-        if(not re.search("/^[0-9]([0-9]([0-9])?)?$/", octet)):
+        if not octet.isdigit():
             return False
 
         # convert to integer
@@ -24,8 +25,7 @@ def parse_ip4_address(s):
 
         if intConvert < 0 or intConvert > 255:
             return False
-
-        octets[index]
+        octets.append(intConvert)
         index = index + 1
 
     # valid address
@@ -38,8 +38,11 @@ def parse_ip4_netmask(octets):
     index = 0
     for octet in octets:
         # ensure no gaps between octets
-        if not index * 8 == size and not octet == 0:
-            index = index + 1
+        print index * 8
+        print size * 8
+        print octet
+
+        if not index * 8 == size * 8 and not octet == 0:
             return False
         else:
             index = index + 1
@@ -66,7 +69,7 @@ def parse_ip4_netmask(octets):
             return False
 
     # valid
-    return size
+    return size * 8
 
 
 def parse_ip4_netsize2mask(size):
@@ -151,7 +154,6 @@ def validate_ip4(ip_s, netmask_s, gateway_s):
 
     # ip
     ip = parse_ip4_address(ip_s)
-
     # if our ip address is not a real address
     if not ip:
         return False
@@ -233,6 +235,7 @@ def config_validate(config):
             netmask = None
             gateway = None
             for option, value in pconfig.iteritems():
+                print option
                 if option == 'method':
                     continue
                 elif option == 'address':

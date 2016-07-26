@@ -11,13 +11,14 @@ from datetime import datetime as dt
 from dateutil.relativedelta import relativedelta as tdelta
 import charlieimage
 import getConfig
+import validate
 from threading import Timer
 
 # URL that we are getting data from
 URL = "http://cam.aprsworld.com/piNetConfig/current_settings.php"
 
 LOGO_DISPLAY_TIME = 1
-
+editableSet = ['gateway', 'address', 'netmask', 'brd', 'scope']
 charSet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
 
@@ -263,7 +264,7 @@ class Screen:
 class NetworkScreen(Screen):
     """A networking screen class. Extends Screen."""
 
-    def __init__(self, type, title, addr0, addr1, addr2, addr3):
+    def __init__(self, type, title, addr):
         """
         Our initialization for the screen class.
 
@@ -280,10 +281,11 @@ class NetworkScreen(Screen):
         # String: Line one on the LCD Screen
         self.title = title
         # String: line two on the LCD Screen
-        self.addr0 = addr0
-        self.addr1 = addr1
-        self.addr2 = addr2
-        self.addr3 = addr3
+        addr = addr.split(".")
+        self.addr0 = addr0 = int(addr[0])
+        self.addr1 = addr1 = int(addr[1])
+        self.addr2 = addr2 = int(addr[2])
+        self.addr3 = addr3 = int(addr[3])
         self.value = self.formatAddr(str(addr0)) + "." + self.formatAddr(str(addr1)) + "." + self.formatAddr(str(addr2)) + "." + self.formatAddr(str(addr3))
         self.childIndex = 0
         self.valueLength = 11
@@ -613,6 +615,23 @@ class BooleanScreen(Screen):
 
 masterList = []
 
+def determineScreenType(value, title):
+    ip = validate.parse_ip4_address(value)
+    print ip
+    screendict = {'type': 'none', 'editable': 'none'}
+    print screendict
+    if ip:
+        screendict['type'] = 'ip'
+    else:
+        screendict['type'] = 'str'
+    if title in editableSet:
+        screendict['editable'] = 'editable'
+    else:
+        screendict['editable'] = 'readOnly'
+
+    return screendict
+
+
 def createTop2():
     global masterList, thisData
     count = 0
@@ -627,12 +646,21 @@ def createTop2():
                         print k1
                         masterList.append(Screen("subMenu", "Ethernet (" + k1 + ")", " "))
                         for k2, v2 in thisData[k][k1]["inet"].iteritems():
-                            masterList[count].screens.append(Screen("readOnly", "inet " + k2, v2))
+                            screendict = determineScreenType(v2, k2)
+                            if screendict['type'] == 'str':
+                                masterList[count].screens.append(StringScreen(screendict['editable'], "inet " + k2, v2))
+                            elif screendict['type'] == 'ip':
+                                masterList[count].screens.append(NetworkScreen(screendict['editable'], "inet " + k2, str(v2)))
                         for k2, v2 in thisData[k].iteritems():
                             if(k2.startswith("eth")):
                                 pass
                             else:
-                                masterList[count].screens.append(Screen("readOnly", k2, v2))
+                                screendict = determineScreenType(v2, k2)
+                                if screendict['type'] == 'str':
+                                    masterList[count].screens.append(StringScreen(screendict['editable'], "inet " + k2, v2))
+                                elif screendict['type'] == 'ip':
+                                    masterList[count].screens.append(NetworkScreen(screendict['editable'], "inet " + k2, str(v2)))
+
                         count = count + 1
             else:
                 masterList.append(Screen("subMenu", "Ethernet (" + k + ")", " "))
