@@ -324,41 +324,22 @@ class NetworkScreen(Screen):
             addAmt = 0
         # ___.xxx.xxx.xxx
         if(addrNum <= 2):
-            '''self.addr0 = self.addr0 + addAmt
-            if(self.addr0 > 255):
-                ones = self.addr0 % 10
-                tens = self.addr0 % (100 + ones)
-                self.addr0 = 0
-            if(self.addr0 < 0):
-                self.addr0 = 255'''
             self.addr0 = configureOctet(self.addr0, addAmt)
             self.value = self.formatAddr(str(self.addr0)) + "." + self.formatAddr(str(self.addr1)) + "." + self.formatAddr(str(self.addr2)) + "." + self.formatAddr(str(self.addr3))
             self.displayEdit(addrNum, 6)
         # xxx.___.xxx.xxx
         elif(addrNum <= 5):
-            self.addr1 = self.addr1 + addAmt
-            if(self.addr1 > 255):
-                self.addr1 = 0
-            if(self.addr1 < 0):
-                self.addr1 = 255
+            self.addr1 = configureOctet(self.addr1, addAmt)
             self.value = self.formatAddr(str(self.addr0)) + "." + self.formatAddr(str(self.addr1)) + "." + self.formatAddr(str(self.addr2)) + "." + self.formatAddr(str(self.addr3))
             self.displayEdit(addrNum + 1, 6)
         # xxx.xxx.___.xxx
         elif(addrNum <= 8):
-            self.addr2 = self.addr2 + addAmt
-            if(self.addr2 > 255):
-                self.addr2 = 0
-            if(self.addr2 < 0):
-                self.addr2 = 255
+            self.addr2 = configureOctet(self.addr2, addAmt)
             self.value = self.formatAddr(str(self.addr0)) + "." + self.formatAddr(str(self.addr1)) + "." + self.formatAddr(str(self.addr2)) + "." + self.formatAddr(str(self.addr3))
             self.displayEdit(addrNum + 2, 6)
         # xxx.xxx.xxx.___
         elif(addrNum <= 11):
-            self.addr3 = self.addr3 + addAmt
-            if(self.addr3 > 255):
-                self.addr3 = 0
-            if(self.addr3 < 0):
-                self.addr3 = 255
+            self.addr3 = configureOctet(self.addr3, addAmt)
             self.value = self.formatAddr(str(self.addr0)) + "." + self.formatAddr(str(self.addr1)) + "." + self.formatAddr(str(self.addr2)) + "." + self.formatAddr(str(self.addr3))
             self.displayEdit(addrNum + 3, 6)
         # append everything into a network address string so that it can be shown on screen
@@ -702,88 +683,14 @@ def createTop2():
             count = count + 1
 
 createTop2()
-# lo = Screen("subMenu", "lo", " ")
-# eth0 = Screen("subMenu", "eth0", " ")
-# eth00 = Screen("subMenu", "eth0:0", " ")
-# wlan0 = Screen("subMenu", "wlan0", " ")
 
-'''
-loMtu = Screen("readOnly", "mtu", thisData['lo']['mtu'])
-loQdisc = Screen("readOnly", "qdisc", thisData['lo']['qdisc'])
-loState = Screen("readOnly", "state", thisData['lo']['state'])
-loMode = Screen("readOnly", "Mode", thisData['lo']['mode'])
-loHwAddress = Screen("readOnly", "hwaddress", thisData['lo']['hwaddress'])
-loInetMethod = Screen("readOnly", "inet method", thisData['config']['lo']['protocol']['inet']['method'])
-loInetAddress = Screen("readOnly", "inet address", thisData['lo']['lo']['inet']['address'])
-loInetNetmask = Screen("readOnly", "inet netmask", thisData['lo']['lo']['inet']['netmask'])
-loInetScope = Screen("readOnly", "inet scope", thisData['lo']['lo']['inet']['scope'])
-
-eth0Mtu = Screen("readOnly", "mtu", thisData['eth0']['mtu'])
-eth0Qdisc = Screen("readOnly", "qdisc", thisData['eth0']['qdisc'])
-eth0State = Screen("readOnly", "state", thisData['eth0']['state'])
-eth0Mode = Screen("readOnly", "Mode", thisData['eth0']['mode'])
-eth0Qlen = Screen("readOnly", "Mode", thisData['eth0']['qlen'])
-eth0HwAddress = Screen("readOnly", "hwaddress", thisData['eth0']['hwaddress'])
-eth0InetMethod = Screen("readOnly", "inet method", thisData['config']['eth0']['protocol']['inet']['method'])
-eth0InetAddress = Screen("readOnly", "inet address", thisData['eth0']['eth0']['inet']['address'])
-eth0InetNetmask = Screen("readOnly", "inet netmask", thisData['eth0']['eth0']['inet']['netmask'])
-eth0InetScope = Screen("readOnly", "inet scope", thisData['eth0']['eth0']['inet']['scope'])
-
-eth00Mtu = Screen("readOnly", "mtu", thisData['eth0']['mtu'])
-eth00Qdisc = Screen("readOnly", "qdisc", thisData['eth0']['qdisc'])
-eth00State = Screen("readOnly", "state", thisData['eth0']['state'])
-eth00Mode = Screen("readOnly", "Mode", thisData['eth0']['mode'])
-eth00Qlen = Screen("readOnly", "Mode", thisData['eth0']['qlen'])
-eth00HwAddress = Screen("readOnly", "hwaddress", thisData['eth0']['hwaddress'])
-eth00InetMethod = Screen("readOnly", "inet method", thisData['config']['eth0:0']['protocol']['inet']['method'])
-eth00InetAddress = Screen("readOnly", "inet address", thisData['eth0']['eth0:0']['inet']['address'])
-eth00InetNetmask = Screen("readOnly", "inet netmask", thisData['eth0']['eth0:0']['inet']['netmask'])
-eth00InetScope = Screen("readOnly", "inet scope", thisData['eth0']['eth0:0']['inet']['scope'])
-'''
-# initialize screens
-# ethScreen = Screen("subMenu", "eth0", " ")
-# loScreen = Screen("subMenu", "Lo", " ")
-# wifiCreds = Screen("subMenu", "WiFi Credentials", " ")
 timeScreen = Screen("subMenu", "Time and Date", " ")
-# netOptions = Screen("subMenu", "Network Options", " ")
-# print_some_times()
-
-# netOpt = BooleanScreen("editable", "Dynamic or Static", "Static", "Dynamic", "Static")
-# netOpt2 = BooleanScreen("editable", "Wireless or Hardline", "Wireless", "Hardline", "Wireless")
-# netOpt3 = BooleanScreen("editable", "Proxy Setting", "Use Proxy", "No Proxy", "Use Proxy")
-# netOpt4 = BooleanScreen("editable", "WPA or WEP", "WPA", "WEP", "WPA")
-# netOptions.initScreenList([netOpt, netOpt2, netOpt3, netOpt4])
-# initialize subscreens in eth0
-# ethIP = NetworkScreen("editable", "Eth0 IP Address", 192, 168, 10, 234)
-# ethIP2 = Screen("readOnly", "Eth0 IP Address 2", "test2")
-# ethIP3 = Screen("readOnly", "Eth0 IP Address 3", "test3")
-# ethIP4 = Screen("readOnly", "Eth0 IP Address 4", "test4")
-
-# ethScreen.initScreenList([ethIP, ethIP2, ethIP3, ethIP4])
-
-# initialize subscreens in Lo
-# loIP = Screen("readOnly", "Lo IP Address", "192.168.10.10")
-# loIP2 = Screen("readOnly", "Lo IP Address", "screen 2")
-# loIP3 = Screen("readOnly", "Lo IP Address", "screen 3")
-
-# loScreen.initScreenList([loIP, loIP2, loIP3])
-# lo.initScreenList([loMtu, loQdisc, loState, loMode, loHwAddress, loInetMethod, loInetAddress, loInetNetmask, loInetScope])
-# eth0.initScreenList([eth0Mtu, eth0Qdisc, eth0State, eth0Mode, eth0HwAddress, eth0InetMethod, eth0InetAddress, eth0InetNetmask, eth0InetScope])
-# eth00.initScreenList([eth00Mtu, eth00Qdisc, eth00State, eth00Mode, eth00HwAddress, eth00InetMethod, eth00InetAddress, eth00InetNetmask, eth00InetScope])
 
 # intialize time screens
 timeEdit = DateTimeScreen("editable", "Time Edit")
 
 timeScreen.initScreenList([timeEdit])
 masterList.append(timeScreen)
-# initialize wifi credentials screens
-# wifiName = StringScreen("editable", "wifiName", "aprsworld")
-# wifiPass = StringScreen("editable", "wifiPass", "zestoPenguin")
-
-# wifiCreds.initScreenList([wifiName, wifiPass])
-
-# list of all the top-level screen objects
-# masterList = [eth0, eth00, lo, timeScreen]
 
 # Set the number of menu items to the size of the list
 # Since the list counts from one, we must subtract one
