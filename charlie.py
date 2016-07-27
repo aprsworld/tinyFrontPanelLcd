@@ -324,11 +324,14 @@ class NetworkScreen(Screen):
             addAmt = 0
         # ___.xxx.xxx.xxx
         if(addrNum <= 2):
-            self.addr0 = self.addr0 + addAmt
+            '''self.addr0 = self.addr0 + addAmt
             if(self.addr0 > 255):
+                ones = self.addr0 % 10
+                tens = self.addr0 % (100 + ones)
                 self.addr0 = 0
             if(self.addr0 < 0):
-                self.addr0 = 255
+                self.addr0 = 255'''
+            self.addr0 = configureOctet(self.addr0, addAmt)
             self.value = self.formatAddr(str(self.addr0)) + "." + self.formatAddr(str(self.addr1)) + "." + self.formatAddr(str(self.addr2)) + "." + self.formatAddr(str(self.addr3))
             self.displayEdit(addrNum, 6)
         # xxx.___.xxx.xxx
@@ -785,6 +788,42 @@ masterList.append(timeScreen)
 # Set the number of menu items to the size of the list
 # Since the list counts from one, we must subtract one
 maxn = len(masterList) - 1
+
+def configureOctet(value, addAmt):
+    if(not value == 0):
+        hunds = value - (value%100)
+        ones = value % 100 % 10
+        if value < 100:
+            tens = (value % 100) - ones
+        else:
+            tens = value % (hunds + ones)
+    else:
+        hunds = 0
+        tens  = 0
+        ones = 0
+    print hunds, tens, ones
+    value = value + addAmt
+    if(value > 255):
+        if(addAmt == 100):
+            value = 0 + tens + ones
+        elif(addAmt == 10):
+            value = 0 + ones
+        else:
+            value = 0
+    elif(value < 0):
+        if(addAmt == -100):
+            value = 200 + tens + ones
+        elif(addAmt == -10):
+            if ones >= 5:
+                value = 250
+            else:
+                if(tens >= 50):
+                    value = 250 + ones
+                else:
+                    value = 200 + tens + ones
+        else:
+            value = 255
+    return value
 
 def replaceChar(word, index, char):
     word = word[:index] + char + word[index + 1:]
