@@ -42,34 +42,34 @@ def parse_ip4_netmask(octets):
         print size * 8
         print octet
 
-        if not index * 8 == size * 8 and not octet == 0:
+        if not index * 8 == size and not octet == 0:
             return False
         else:
             index = index + 1
 
         if octet == 255:
-            size = size + 1
+            size += 1
         elif octet == 254:
-            size = size + 1
+            size += 1
         elif octet == 252:
-            size = size + 1
+            size += 1
         elif octet == 248:
-            size = size + 1
+            size += 1
         elif octet == 240:
-            size = size + 1
+            size += 1
         elif octet == 224:
-            size = size + 1
+            size += 1
         elif octet == 192:
-            size = size + 1
+            size += 1
         elif octet == 128:
-            size = size + 1
+            size += 1
         elif octet == 0:
             break
         else:
             return False
 
     # valid
-    return size * 8
+    return size
 
 
 def parse_ip4_netsize2mask(size):

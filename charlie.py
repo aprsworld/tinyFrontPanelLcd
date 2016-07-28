@@ -15,7 +15,7 @@ import validate
 from threading import Timer
 
 # URL that we are getting data from
-URL = "http://cam.aprsworld.com/piNetConfig/current_settings.php"
+URL = "http://localhost/piNetConfig/current_settings.php"
 
 LOGO_DISPLAY_TIME = 1
 editableSet = ['gateway', 'address', 'netmask', 'brd', 'scope']
