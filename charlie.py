@@ -114,6 +114,18 @@ def button_callback(channel):
     """two threaded callback functions."""
     # allow access to our globals
     global action_up_now, action_select_now, action_down_now, n, maxn, masterList, level, charSetIndex
+    # if a button is already pressed, return out of callback
+    if action_up_now == True or action_select_now == True or action_down_now == True:
+        print "similtaneous press", channel
+        return
+
+    if(17 == channel):
+        action_up_now = True
+    elif(18 == channel):
+        action_down_now = True
+    elif(27 == channel):
+        action_select_now == True
+
     # level 1 in tree - we display the top level screens here
     if (level == 1):
         if (17 == channel):
@@ -182,6 +194,9 @@ def button_callback(channel):
                 this.navigation = this.incrLine
                 this.displayThis()
     print(channel)
+    action_up_now = False
+    action_select_now = False
+    action_down_now = False
     time.sleep(.05)
 
 # detect button falling edges
@@ -706,7 +721,7 @@ def configureOctet(value, addAmt):
             tens = value % (hunds + ones)
     else:
         hunds = 0
-        tens  = 0
+        tens = 0
         ones = 0
     print hunds, tens, ones
     value = value + addAmt
