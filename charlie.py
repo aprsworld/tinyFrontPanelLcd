@@ -12,7 +12,6 @@ from dateutil.relativedelta import relativedelta as tdelta
 import charlieimage
 import getConfig
 import validate
-import unicodedata
 from threading import Timer
 
 # URL that we are getting data from
@@ -202,8 +201,10 @@ def button_callback(channel):
     action_down_now = False
     time.sleep(.05)
 
+
 # detect button falling edges
 def detect_edges(callbackFn):
+    """designate threaded callbacks for all button presses."""
     GPIO.remove_event_detect(17)
     GPIO.remove_event_detect(18)
     GPIO.remove_event_detect(27)
@@ -253,6 +254,7 @@ class Screen:
         draw_screen(self.title, self.value, self.navigation, 255, 0)
 
     def displayEdit(self, underline_pos, underline_width):
+        """screen to display when editting value."""
         draw_screen_ul(self.title, self.value, self.navigation, 255, 0, underline_pos, underline_width)
 
     def colorInvert(self):
@@ -268,6 +270,10 @@ class Screen:
         draw_screen(self.title, self.value, self.navigation, 255, 0)
 
     def setChildIndex(self, value):
+        """set child index of screen.
+
+        Child index is used to determine what subscreen we are on
+        """
         self.childIndex = value
 
     def screenChosen(self):
@@ -325,7 +331,6 @@ class NetworkScreen(Screen):
         addrNum is the digit within the address that we are editing
         addorsub determines whether we are adding or subtracting
         """
-
         # find ammount we need to add based on index passed
         addAmt = 1
         print("addrnum: " + str(addrNum))
@@ -365,6 +370,7 @@ class NetworkScreen(Screen):
         print(self.value)
 
     def getVal(self, addrNum):
+        """get the val of the specified octet."""
         if(addrNum == 0):
             return self.addr0
         elif(addrNum == 1):
@@ -429,7 +435,6 @@ class StringScreen(Screen):
             addAmt = 1
         charSetIndex = charSetIndex + addAmt
 
-
         char = charSet[charSetIndex]
         word = self.value
         word = word[:index] + char + word[index + 1:]
@@ -475,6 +480,7 @@ class DateTimeScreen(Screen):
         self.print_some_times()
 
     def editVal(self, index, addorsub):
+        """edit val of screen with new data."""
         global draw
         self.edit = True
         if(index == 0):
@@ -507,20 +513,20 @@ class DateTimeScreen(Screen):
         self.displayEdit(self.underline_pos, self.underline_width)
 
     def print_time(self):
-        """updates the value of the time screen print_some_times calls this every second."""
+        """update the value of the time screen print_some_times calls this every second."""
         global timeScreen, masterList
         self.print_some_times()
         self.date = dt.now() + self.timeChange
         self.value = self.date.strftime("%Y-%m-%d %H:%M:%S")
         # If we are on the time screen, update the screen every second as well
         if(inView.title == self.title):
-            if(self.edit == True):
+            if(self.edit):
                 self.displayEdit(self.underline_pos, self.underline_width)
             else:
                 self.displayThis()
 
     def print_some_times(self):
-        """This calls print_time every second."""
+        """call print_time every second."""
         try:
             t = Timer(1, self.print_time)
             t.daemon = True
@@ -530,6 +536,7 @@ class DateTimeScreen(Screen):
             return
 
     def editYear(self, addorsub):
+        """edit year of value on screen."""
         print(self.year)
         if(addorsub == 0):
             self.year = self.year - 1
@@ -539,6 +546,7 @@ class DateTimeScreen(Screen):
             print('else')
 
     def editMonth(self, addorsub):
+        """edit month of value on screen."""
         if(addorsub == 0):
             self.month = self.month - 1
         elif(addorsub == 1):
@@ -547,6 +555,7 @@ class DateTimeScreen(Screen):
             print('else')
 
     def editDay(self, addorsub):
+        """edit day of value on screen."""
         if(addorsub == 0):
             self.day = self.day - 1
         elif(addorsub == 1):
@@ -555,6 +564,7 @@ class DateTimeScreen(Screen):
             print('else')
 
     def editHour(self, addorsub):
+        """edit hour of value on screen."""
         if(addorsub == 0):
             self.hour = self.hour - 1
         elif(addorsub == 1):
@@ -563,6 +573,7 @@ class DateTimeScreen(Screen):
             print('else')
 
     def editMinute(self, addorsub):
+        """edit minute of value on screen."""
         if(addorsub == 0):
             self.minute = self.minute - 1
         elif(addorsub == 1):
@@ -571,6 +582,7 @@ class DateTimeScreen(Screen):
             print('else')
 
     def editSecond(self, addorsub):
+        """edit Second of value on screen."""
         if(addorsub == 0):
             self.second = self.second - 1
         elif(addorsub == 1):
@@ -623,9 +635,17 @@ class BooleanScreen(Screen):
 #        *
 # *******
 
+# initializes the list that keeps track of top-level screens
 masterList = []
 
+
 def determineScreenType(value, title):
+    """Determine what type of screen.
+
+    takes in value and title of a screen. Value is parsed to check if it
+    is an ip4 address. if not, it is assumed it is a string.
+    TODO: check for boolean options.
+    """
     ip = validate.parse_ip4_address(value)
     print ip
     screendict = {'type': 'none', 'editable': 'none'}
@@ -846,14 +866,6 @@ def draw_text(s):
     # disp.image(image)
     disp.display()
     time.sleep(0.1)
-
-
-def screen_chosen(screenNum):
-    """For Chosen Screen."""
-    if (screenNum == 0):
-        draw_screen("YOU CHOSE", "", " Jim", 200, 0)
-    else:
-        draw_screen("YOU CHOSE", "", " Andrew", 200, 0)
 
 
 def screen_select(screenNum):
