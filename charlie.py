@@ -12,10 +12,11 @@ from dateutil.relativedelta import relativedelta as tdelta
 import charlieimage
 import getConfig
 import validate
+import unicodedata
 from threading import Timer
 
 # URL that we are getting data from
-URL = "http://localhost/piNetConfig/current_settings.php"
+URL = "http://cam.aprsworld.com/piNetConfig/current_settings.php"
 
 LOGO_DISPLAY_TIME = 1
 editableSet = ['gateway', 'address', 'netmask', 'brd', 'scope']
@@ -190,6 +191,8 @@ def button_callback(channel):
             else:
                 this.edit = False
                 this.childIndex = 0
+                if(this.interface):
+                    this.changeConfig()
                 level = 2
                 this.navigation = this.incrLine
                 this.displayThis()
@@ -279,7 +282,7 @@ class Screen:
 class NetworkScreen(Screen):
     """A networking screen class. Extends Screen."""
 
-    def __init__(self, type, title, addr):
+    def __init__(self, type, title, addr, interface):
         """
         Our initialization for the screen class.
 
@@ -305,6 +308,7 @@ class NetworkScreen(Screen):
         self.childIndex = 0
         self.valueLength = 11
         self.edit = False
+        self.interface = interface
 
         # String: line Three on the LCD Screen
         # Can be either <--    Select    -->   OR   (-)    Select    (+)
@@ -377,8 +381,14 @@ class NetworkScreen(Screen):
             address = " " + address
         return address
 
-# --------------------End of NetworkScreen Class Definition -----------------------
+    def changeConfig(self):
+        """Change the setting in the config so that we can send it to piNetConfig."""
+        global thisData
+        thisData['config'][self.interface]['protocol']['inet'][self.title] = self.value
+        print thisData['config']
 
+
+# --------------------End of NetworkScreen Class Definition -----------------------
 class StringScreen(Screen):
     """Class for a screen with a string value. Extends String."""
 
@@ -418,6 +428,7 @@ class StringScreen(Screen):
         else:
             addAmt = 1
         charSetIndex = charSetIndex + addAmt
+
 
         char = charSet[charSetIndex]
         word = self.value
@@ -567,8 +578,8 @@ class DateTimeScreen(Screen):
         else:
             print('else')
 
-# ------------------End of DateTimeScreen Class Definition ---------------------
 
+# ------------------End of DateTimeScreen Class Definition ---------------------
 class BooleanScreen(Screen):
     """Class for true/false options screens. Extends Screen."""
 
@@ -647,18 +658,18 @@ def createTop2():
                         for k2, v2 in thisData[k][k1]["inet"].iteritems():
                             screendict = determineScreenType(v2, k2)
                             if screendict['type'] == 'str':
-                                masterList[count].screens.append(StringScreen(screendict['editable'], "inet " + k2, v2))
+                                masterList[count].screens.append(StringScreen(screendict['editable'], k2, v2))
                             elif screendict['type'] == 'ip':
-                                masterList[count].screens.append(NetworkScreen(screendict['editable'], "inet " + k2, str(v2)))
+                                masterList[count].screens.append(NetworkScreen(screendict['editable'], k2, str(v2), k1))
                         for k2, v2 in thisData[k].iteritems():
                             if(k2.startswith("eth")):
                                 pass
                             else:
                                 screendict = determineScreenType(v2, k2)
                                 if screendict['type'] == 'str':
-                                    masterList[count].screens.append(StringScreen(screendict['editable'], "inet " + k2, v2))
+                                    masterList[count].screens.append(StringScreen(screendict['editable'], k2, v2))
                                 elif screendict['type'] == 'ip':
-                                    masterList[count].screens.append(NetworkScreen(screendict['editable'], "inet " + k2, str(v2)))
+                                    masterList[count].screens.append(NetworkScreen(screendict['editable'], k2, str(v2), k1))
 
                         count = count + 1
             else:
@@ -712,8 +723,9 @@ masterList.append(timeScreen)
 maxn = len(masterList) - 1
 
 def configureOctet(value, addAmt):
+    """chooses what to display in an ip address' octet."""
     if(not value == 0):
-        hunds = value - (value%100)
+        hunds = value - (value % 100)
         ones = value % 100 % 10
         if value < 100:
             tens = (value % 100) - ones
