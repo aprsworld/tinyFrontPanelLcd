@@ -37,34 +37,30 @@ def parse_ip4_netmask(octets):
     size = 0
     index = 0
     for octet in octets:
-        # ensure no gaps between octets
-        print index * 8
-        print size * 8
-        print octet
 
-        if not index * 8 == size and not octet == 0:
+        # ensure no gaps between octets
+        if index * 8 != size and octet != 0:
             return False
-        else:
-            index = index + 1
+	index += 1
 
         if octet == 255:
-            size += 1
+            size += 8
         elif octet == 254:
-            size += 1
+            size += 7
         elif octet == 252:
-            size += 1
+            size += 6
         elif octet == 248:
-            size += 1
+            size += 5
         elif octet == 240:
-            size += 1
+            size += 4
         elif octet == 224:
-            size += 1
+            size += 3
         elif octet == 192:
-            size += 1
+            size += 2
         elif octet == 128:
             size += 1
         elif octet == 0:
-            break
+	    size += 0
         else:
             return False
 
@@ -131,10 +127,11 @@ def validate_ip4_address(octets):
 
 def mask_ip4_address(ip, mask):
     """Mask the ip address."""
-    ret = []
+    ret = [None] * 4
     i = 0
     while i < 4:
         ret[i] = ip[i] & mask[i]
+	i += 1
 
     return ret
 
@@ -191,7 +188,7 @@ def validate_ip4(ip_s, netmask_s, gateway_s):
             return False
 
     # gateway and ip are not broadcast
-    broadcast = []
+    broadcast = [None] * 4
     i = 0
     while i < 4:
         broadcast[i] = ip_net[i] | (~netmask[i] & 0xFF)
@@ -214,7 +211,7 @@ def validate_ip4(ip_s, netmask_s, gateway_s):
 
 
 def parse_ip4_address2string(a):
-    return '' + a[0] + '.' + a[1] + '.' + a[2] + '.' + a[3]
+    return '' + str(a[0]) + '.' + str(a[1]) + '.' + str(a[2]) + '.' + str(a[3])
 
 
 def config_validate(config):
