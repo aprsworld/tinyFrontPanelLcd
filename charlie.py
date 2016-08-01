@@ -190,7 +190,7 @@ def button_callback(channel):
             else:
                 this.edit = False
                 this.childIndex = 0
-                if(this.interface):
+                if(hasattr(this, 'interface')):
                     this.changeConfig()
                 level = 2
                 this.navigation = this.incrLine
@@ -626,7 +626,40 @@ class BooleanScreen(Screen):
         self.displayThis()
 
 # ------------------End of BooleanScreen Class Definition ---------------------
+class MethodScreen(Screen):
+    """Class for true/false options screens. Extends Screen."""
 
+    def __init__(self, type, title, value, val0, val1):
+        """Our initialization for the screen stringclass."""
+        # String: type of screen - "readOnly", "subMenu", "editable"
+        self.type = type
+        self.screenType = "BooleanScreen"
+        self.valueLength = 0
+        # String: Line one on the LCD Screen
+        self.title = title
+        # String: line two on the LCD Screen
+        self.childIndex = 0
+        self.value = value
+        self.val0 = val0
+        self.val1 = val1
+        self.editLine = self.val0 + "< OK >" +self.val1
+        if(self.type == "readOnly"):
+            self.navigation = self.navLine
+        elif(self.type == "subMenu"):
+            self.navigation = self.navLine
+        else:
+            self.navigation = self.incrLine
+
+    def editVal(self, index, addorsub):
+        if(addorsub == 0):
+            self.value = self.val0
+        elif(addorsub == 1):
+            self.value = self.val1
+        elif(addorsub == 2):
+            self.value = self.value
+        self.displayThis()
+
+# ------------------End of BooleanScreen Class Definition ---------------------
 #  ******* Comment block denoting screen section
 # *
 # *
