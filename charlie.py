@@ -15,10 +15,10 @@ import validate
 from threading import Timer
 
 # URL that we are getting data from
-URL = "http://cam.aprsworld.com/piNetConfig/current_settings.php"
+URL = "http://192.168.10.219/piNetConfig/current_settings.php"
 
 LOGO_DISPLAY_TIME = 1
-editableSet = ['gateway', 'address', 'netmask', 'brd', 'scope']
+editableSet = ['gateway', 'address', 'netmask']
 charSet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
 
@@ -115,7 +115,7 @@ def button_callback(channel):
     # allow access to our globals
     global action_up_now, action_select_now, action_down_now, n, maxn, masterList, level, charSetIndex
     # if a button is already pressed, return out of callback
-    if action_up_now == True or action_select_now == True or action_down_now == True:
+    if action_up_now or action_select_now or action_down_now:
         print "similtaneous press", channel
         return
 
@@ -124,7 +124,7 @@ def button_callback(channel):
     elif(18 == channel):
         action_down_now = True
     elif(27 == channel):
-        action_select_now == True
+        action_select_now = True
 
     # level 1 in tree - we display the top level screens here
     if (level == 1):
@@ -639,7 +639,7 @@ class BooleanScreen(Screen):
 masterList = []
 
 
-def determineScreenType(value, title):
+def determineScreenType(value, title, method):
     """Determine what type of screen.
 
     takes in value and title of a screen. Value is parsed to check if it
@@ -654,7 +654,7 @@ def determineScreenType(value, title):
         screendict['type'] = 'ip'
     else:
         screendict['type'] = 'str'
-    if title in editableSet:
+    if title in editableSet and method == "static":
         screendict['editable'] = 'editable'
     else:
         screendict['editable'] = 'readOnly'
@@ -675,8 +675,10 @@ def createTop2():
                     if(k1.startswith("eth")):
                         print k1
                         masterList.append(Screen("subMenu", "Ethernet (" + k1 + ")", " "))
+                        method = thisData["config"][k1]["protocol"]["inet"]["method"]
+                        masterList[count].screens.append(BooleanScreen("editable", "method", method, "static", "dhcp"))
                         for k2, v2 in thisData[k][k1]["inet"].iteritems():
-                            screendict = determineScreenType(v2, k2)
+                            screendict = determineScreenType(v2, k2, method)
                             if screendict['type'] == 'str':
                                 masterList[count].screens.append(StringScreen(screendict['editable'], k2, v2))
                             elif screendict['type'] == 'ip':
@@ -685,7 +687,7 @@ def createTop2():
                             if(k2.startswith("eth")):
                                 pass
                             else:
-                                screendict = determineScreenType(v2, k2)
+                                screendict = determineScreenType(v2, k2, method)
                                 if screendict['type'] == 'str':
                                     masterList[count].screens.append(StringScreen(screendict['editable'], k2, v2))
                                 elif screendict['type'] == 'ip':
@@ -698,6 +700,7 @@ def createTop2():
                     masterList[count].screens.append(Screen("readOnly", k1, v1))
                 count = count + 1
         elif(k.startswith("wlan")):
+            '''
             keyList = thisData[k].keys()
             if any("wlan" in s for s in keyList):
                 for k1, v1 in thisData[k].iteritems():
@@ -718,6 +721,7 @@ def createTop2():
                 for k1, v1 in thisData[k].iteritems():
                     masterList[count].screens.append(Screen("readOnly", k1, v1))
                 count = count + 1
+                '''
         else:
             print k
             masterList.append(Screen("subMenu", k, " "))
