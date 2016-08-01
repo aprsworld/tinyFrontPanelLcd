@@ -127,10 +127,11 @@ def validate_ip4_address(octets):
 
 def mask_ip4_address(ip, mask):
     """Mask the ip address."""
-    ret = []
+    ret = [None] * 4
     i = 0
     while i < 4:
         ret[i] = ip[i] & mask[i]
+	i += 1
 
     return ret
 
@@ -187,7 +188,7 @@ def validate_ip4(ip_s, netmask_s, gateway_s):
             return False
 
     # gateway and ip are not broadcast
-    broadcast = []
+    broadcast = [None] * 4
     i = 0
     while i < 4:
         broadcast[i] = ip_net[i] | (~netmask[i] & 0xFF)
@@ -252,6 +253,3 @@ def config_validate(config):
                     return False
     # valid
     return True
-
-
-print validate_ip4("192.168.0.13", "255.255.0.0", "192.168.0.1")
