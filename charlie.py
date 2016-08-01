@@ -15,7 +15,7 @@ import validate
 from threading import Timer
 
 # URL that we are getting data from
-URL = "http://192.168.10.219/piNetConfig/current_settings.php"
+URL = "http://localhost/piNetConfig/current_settings.php"
 
 LOGO_DISPLAY_TIME = 1
 editableSet = ['gateway', 'address', 'netmask']
@@ -188,6 +188,7 @@ def button_callback(channel):
                 this.editVal(this.childIndex, 2)
                 charSetIndex = 0
             else:
+                print "test"
                 this.edit = False
                 this.childIndex = 0
                 if(hasattr(this, 'interface')):
@@ -281,6 +282,10 @@ class Screen:
         print("screenChosen " + self.title)
         self.childIndex = 0
         self.screens[self.childIndex].displayThis()
+
+    def changeType(self, type, navigation):
+        self.type = type
+        self.navigation = navigation
 
 # --------------------End of Screen Class Definition -----------------------
 
@@ -651,15 +656,38 @@ class MethodScreen(Screen):
             self.navigation = self.incrLine
 
     def editVal(self, index, addorsub):
+        print ":test"
         if(addorsub == 0):
             self.value = self.val0
+            for childScreen in masterList[n].screens:
+                if childScreen.screenType == 'NetworkScreen' and childScreen.title in editableSet:
+                    print childScreen.type
+                    if(self.value == self.val0):
+                        childScreen.changeType("editable", self.incrLine)
+                    elif(self.value == self.val1):
+                        childScreen.changeType("editable", self.navLine)
+                    print childScreen.type
+
         elif(addorsub == 1):
             self.value = self.val1
+            for childScreen in masterList[n].screens:
+                if childScreen.screenType == 'NetworkScreen' and childScreen.title in editableSet:
+                    print childScreen.type
+
+                    if(self.value == self.val0):
+                        childScreen.changeType("editable", self.incrLine)
+                    elif(self.value == self.val1):
+                        childScreen.changeType("editable", self.navLine)
+
+                    print childScreen.type
+
         elif(addorsub == 2):
             self.value = self.value
+            print self.value
+
         self.displayThis()
 
-# ------------------End of BooleanScreen Class Definition ---------------------
+# ------------------End of MethodScreen Class Definition ---------------------
 #  ******* Comment block denoting screen section
 # *
 # *
@@ -708,8 +736,11 @@ def createTop2():
                     if(k1.startswith("eth")):
                         print k1
                         masterList.append(Screen("subMenu", "Ethernet (" + k1 + ")", " "))
-                        method = thisData["config"][k1]["protocol"]["inet"]["method"]
-                        masterList[count].screens.append(BooleanScreen("editable", "method", method, "static", "dhcp"))
+                        if hasattr(thisData["config"][k1]["protocol"]["inet"], "method"):
+                            method = thisData["config"][k1]["protocol"]["inet"]["method"]
+                        else:
+                            method = "dhcp"
+                        masterList[count].screens.append(MethodScreen("editable", "method", method, "static", "dhcp"))
                         for k2, v2 in thisData[k][k1]["inet"].iteritems():
                             screendict = determineScreenType(v2, k2, method)
                             if screendict['type'] == 'str':
