@@ -93,6 +93,8 @@ width = disp.width
 height = disp.height
 image = Image.new('1', (width, height))
 draw = ImageDraw.Draw(image)
+# Load default font.
+font = ImageFont.load_default()
 GPIO.setmode(GPIO.BCM)
 
 # allow access to GPIO as input and turn on pull up resistors
@@ -172,6 +174,8 @@ def button_callback(channel):
                     masterList[n].screens[masterList[n].childIndex].setChildIndex(0)
                     masterList[n].screens[masterList[n].childIndex].navigation = masterList[n].screens[masterList[n].childIndex].editLine
                     masterList[n].screens[masterList[n].childIndex].displayEdit(masterList[n].screens[masterList[n].childIndex].childIndex, 6)
+                else:
+                    draw_warning("This Screen cannot be", " editted. ", 255, 0, masterList[n].screens[masterList[n].childIndex])
         else:
             print(masterList[n].type)
     elif (level == 3):
@@ -188,14 +192,14 @@ def button_callback(channel):
                 this.editVal(this.childIndex, 2)
                 charSetIndex = 0
             else:
-                print "test"
                 this.edit = False
                 this.childIndex = 0
                 if(hasattr(this, 'interface')):
                     this.changeConfig()
                 level = 2
                 this.navigation = this.incrLine
-                this.displayThis()
+                # this.displayThis()
+                draw_confirmation(this.title + " has", "been saved to config", 255, 0, this)
     print(channel)
     action_up_now = False
     action_select_now = False
@@ -613,7 +617,7 @@ class BooleanScreen(Screen):
         self.value = value
         self.val0 = val0
         self.val1 = val1
-        self.editLine = self.val0 + "< OK >" +self.val1
+        self.editLine = self.val0 + "< OK >" + self.val1
         if(self.type == "readOnly"):
             self.navigation = self.navLine
         elif(self.type == "subMenu"):
@@ -677,7 +681,7 @@ class MethodScreen(Screen):
                     if(self.value == self.val0):
                         childScreen.changeType("editable", self.incrLine)
                     elif(self.value == self.val1):
-                        childScreen.changeType("editable", self.navLine)
+                        childScreen.changeType("readOnly", self.navLine)
 
                     print childScreen.type
 
@@ -847,19 +851,52 @@ def configureOctet(value, addAmt):
             value = 255
     return value
 
+
 def replaceChar(word, index, char):
     word = word[:index] + char + word[index + 1:]
     return word
 
+def draw_warning(line2, line3, fillNum, fillBg, currentScreen):
+    """for drawing an error."""
+    global disp, n, maxn, Image, ImageDraw, draw, font
+    # Draw a black filled fox to clear the image.
+    draw.rectangle((0, 0, width + 10, height + 10), outline=0, fill=fillBg)
+
+    x = 0
+    top = 2
+    draw.text((x, top), "Alert", font=font, fill=fillNum)
+    draw.text((x, top + 10), line2, font=font, fill=fillNum)
+    draw.text((x, top + 20), line3, font=font, fill=fillNum)
+    disp.image(image.rotate(180))
+
+    disp.display()
+    time.sleep(2)
+    currentScreen.displayThis()
+
+
+def draw_confirmation(line2, line3, fillNum, fillBg, currentScreen):
+    """for drawing an error."""
+    global disp, n, maxn, Image, ImageDraw, draw, font
+    # Draw a black filled fox to clear the image.
+    draw.rectangle((0, 0, width + 10, height + 10), outline=0, fill=fillBg)
+
+    x = 0
+    top = 2
+    draw.text((x, top), "S A V E D", font=font, fill=fillNum)
+    draw.text((x, top + 10), line2, font=font, fill=fillNum)
+    draw.text((x, top + 20), line3, font=font, fill=fillNum)
+    disp.image(image.rotate(180))
+
+    disp.display()
+    time.sleep(2)
+    currentScreen.displayThis()
+
 
 def draw_screen(s, line2, line3, fillNum, fillBg):
     """for drawing the next screen."""
-    global disp, n, maxn, Image, ImageDraw, draw
+    global disp, n, maxn, Image, ImageDraw, draw, font
     # Draw a black filled box to clear the image.
     draw.rectangle((0, 0, width + 10, height + 10), outline=0, fill=fillBg)
-
-    # Load default font.
-    font = ImageFont.load_default()
 
     x = 0
     top = 2
@@ -872,15 +909,13 @@ def draw_screen(s, line2, line3, fillNum, fillBg):
     # disp.image(image)
     disp.display()
 
+
 def draw_screen_ul(s, line2, line3, fillNum, fillBg, underline_pos, underline_width):
     """for drawing the next screen."""
     global disp, n, maxn, Image, ImageDraw, draw
 
     # Draw a black filled box to clear the image.
     draw.rectangle((0, 0, width, height), outline=0, fill=fillBg)
-
-    # Load default font.
-    font = ImageFont.load_default()
 
     x = 0
     top = 2
