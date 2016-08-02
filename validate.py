@@ -37,30 +37,34 @@ def parse_ip4_netmask(octets):
     size = 0
     index = 0
     for octet in octets:
-
         # ensure no gaps between octets
-        if index * 8 != size and octet != 0:
+        print index * 8
+        print size * 8
+        print octet
+
+        if not index * 8 == size and not octet == 0:
             return False
-	index += 1
+        else:
+            index = index + 1
 
         if octet == 255:
-            size += 8
+            size += 1
         elif octet == 254:
-            size += 7
+            size += 1
         elif octet == 252:
-            size += 6
+            size += 1
         elif octet == 248:
-            size += 5
+            size += 1
         elif octet == 240:
-            size += 4
+            size += 1
         elif octet == 224:
-            size += 3
+            size += 1
         elif octet == 192:
-            size += 2
+            size += 1
         elif octet == 128:
             size += 1
         elif octet == 0:
-	    size += 0
+            break
         else:
             return False
 
@@ -127,11 +131,10 @@ def validate_ip4_address(octets):
 
 def mask_ip4_address(ip, mask):
     """Mask the ip address."""
-    ret = [None] * 4
+    ret = []
     i = 0
     while i < 4:
         ret[i] = ip[i] & mask[i]
-	i += 1
 
     return ret
 
@@ -188,7 +191,7 @@ def validate_ip4(ip_s, netmask_s, gateway_s):
             return False
 
     # gateway and ip are not broadcast
-    broadcast = [None] * 4
+    broadcast = []
     i = 0
     while i < 4:
         broadcast[i] = ip_net[i] | (~netmask[i] & 0xFF)
@@ -211,7 +214,7 @@ def validate_ip4(ip_s, netmask_s, gateway_s):
 
 
 def parse_ip4_address2string(a):
-    return '' + str(a[0]) + '.' + str(a[1]) + '.' + str(a[2]) + '.' + str(a[3])
+    return '' + a[0] + '.' + a[1] + '.' + a[2] + '.' + a[3]
 
 
 def config_validate(config):
@@ -219,11 +222,9 @@ def config_validate(config):
     for iface, ifconfig in config.iteritems():
         for protocol, pconfig in ifconfig['protocol'].iteritems():
             if not protocol == "inet":
-                # TODO log error on screen
-                return False
+                return {'res': False, 'message': 'protocol not equal to inet'}
             if "method" not in pconfig:
-                # TODO log error on screen
-                return False
+                return {'res': False, 'message': ifconfig + ' lacks method'}
             method = pconfig['method']
             if not method == "static" and not method == "dhcp" and not method == "loopback":
                 # TODO echo warning on screen
@@ -242,14 +243,11 @@ def config_validate(config):
                 elif option == 'gateway':
                     gateway = value
                 else:
-                    # TODO print warning to screen
                     print "else block"
             if address and netmask:
                 if not validate_ip4(address, netmask, gateway):
-                    # TODO print error to screen
-                    return False
-                elif method == "static":
-                    # TODO print error to screen
-                    return False
+                    return {'res': False, 'message': 'network address invalid'}
+            elif method == "static":
+                return {'res': False, 'message': iface+' + '+protocol+' invalid'}
     # valid
     return True

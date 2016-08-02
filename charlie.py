@@ -191,6 +191,8 @@ def button_callback(channel):
                 this.childIndex = this.childIndex + 1
                 this.editVal(this.childIndex, 2)
                 charSetIndex = 0
+            elif "confScreen" == this.screenType:
+                pass
             else:
                 this.edit = False
                 this.childIndex = 0
@@ -634,6 +636,7 @@ class BooleanScreen(Screen):
             self.value = self.value
         self.displayThis()
 
+
 # ------------------End of BooleanScreen Class Definition ---------------------
 class MethodScreen(Screen):
     """Class for true/false options screens. Extends Screen."""
@@ -692,6 +695,52 @@ class MethodScreen(Screen):
         self.displayThis()
 
 # ------------------End of MethodScreen Class Definition ---------------------
+
+
+class confSend(Screen):
+    """Class for true/false options screens. Extends Screen."""
+
+    def __init__(self, type, title, value):
+        """Our initialization for the screen stringclass."""
+        # String: type of screen - "readOnly", "subMenu", "editable"
+        self.type = type
+        self.screenType = "confScreen"
+        self.valueLength = 0
+        # String: Line one on the LCD Screen
+        self.title = title
+        # String: line two on the LCD Screen
+        self.childIndex = 0
+        self.value = value
+        self.val0 = "Yes"
+        self.val1 = "No"
+        self.incrLine = "<-- Send -->"
+        self.editLine = self.val0 + "< Are you sure? >" + self.val1
+        if(self.type == "readOnly"):
+            self.navigation = self.navLine
+        elif(self.type == "subMenu"):
+            self.navigation = self.navLine
+        else:
+            self.navigation = self.incrLine
+
+    def editVal(self, index, addorsub):
+        global level
+        if(addorsub == 0):
+            result = validate.config_validate(thisData['config'])
+            print result
+            if result is True:
+                level = 1
+                draw_confirmation("Config Valid", "Config Sent", 255, 0, masterList[n])
+            else:
+                level = 1
+                print result
+                draw_warning(result['message'], ' ', 255, 0, masterList[n])
+        elif(addorsub == 1):
+            level = 1
+            draw_warning('canceled', 'Returning to main menu', 255, 0, masterList[n])
+        elif(addorsub == 2):
+            self.displayThis()
+
+
 #  ******* Comment block denoting screen section
 # *
 # *
@@ -723,7 +772,6 @@ def determineScreenType(value, title, method):
         screendict['editable'] = 'editable'
     else:
         screendict['editable'] = 'readOnly'
-
     return screendict
 
 
@@ -803,13 +851,18 @@ def createTop2():
 createTop2()
 
 timeScreen = Screen("subMenu", "Time and Date", " ")
-
 # intialize time screens
 timeEdit = DateTimeScreen("editable", "Time Edit")
 
 timeScreen.initScreenList([timeEdit])
 masterList.append(timeScreen)
 
+configurationScreen = Screen("subMenu", "Configurations", " ")
+# initialize configuration screens
+configSend = confSend("editable", "Validate/send Configuration", "")
+
+configurationScreen.initScreenList([configSend])
+masterList.append(configurationScreen)
 # Set the number of menu items to the size of the list
 # Since the list counts from one, we must subtract one
 maxn = len(masterList) - 1
@@ -958,11 +1011,6 @@ def draw_text(s):
     underline_width = 6
 
     draw.line([underline_pos * underline_width, 22, (underline_pos + 1) * underline_width - 1, 22], fill=255)
-
-    # draw.text((x, top),    'IP: 192.168.200.201',  font=font, fill=255)
-    # draw.text((x, top),    'IP: ' + IP,  font=font, fill=255)
-    # draw.text((x, top+10), 'MA: 255.255.255.0', font=font, fill=255)
-    # draw.text((x, top+20), 'GW: 192.168.200.1', font=font, fill=255)
 
     # Display image.
     disp.image(image.rotate(180))
