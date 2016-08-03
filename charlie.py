@@ -175,7 +175,7 @@ def button_callback(channel):
                     masterList[n].screens[masterList[n].childIndex].navigation = masterList[n].screens[masterList[n].childIndex].editLine
                     masterList[n].screens[masterList[n].childIndex].displayEdit(masterList[n].screens[masterList[n].childIndex].childIndex, 6)
                 else:
-                    draw_warning("This Screen cannot be", " editted. ", 255, 0, masterList[n].screens[masterList[n].childIndex])
+                    draw_warning("This Screen ", "cannot be editted. ", 255, 0, masterList[n].screens[masterList[n].childIndex])
         else:
             print(masterList[n].type)
     elif (level == 3):
@@ -201,7 +201,7 @@ def button_callback(channel):
                 level = 2
                 this.navigation = this.incrLine
                 # this.displayThis()
-                draw_confirmation(this.title + " has", "been saved to config", 255, 0, this)
+                draw_confirmation(this.title + " has been", "saved to config", 255, 0, this)
     print(channel)
     action_up_now = False
     action_select_now = False
@@ -217,7 +217,7 @@ def detect_edges(callbackFn):
     GPIO.remove_event_detect(27)
     GPIO.add_event_detect(17, GPIO.FALLING, callback=callbackFn, bouncetime=300)
     GPIO.add_event_detect(18, GPIO.FALLING, callback=callbackFn, bouncetime=300)
-    GPIO.add_event_detect(27, GPIO.FALLING, callback=callbackFn, bouncetime=500)
+    GPIO.add_event_detect(27, GPIO.FALLING, callback=callbackFn, bouncetime=300)
 
 
 class Screen:
@@ -619,7 +619,7 @@ class BooleanScreen(Screen):
         self.value = value
         self.val0 = val0
         self.val1 = val1
-        self.editLine = self.val0 + "< OK >" + self.val1
+        self.editLine = self.val0 + "< Confirm >" + self.val1
         if(self.type == "readOnly"):
             self.navigation = self.navLine
         elif(self.type == "subMenu"):
@@ -654,7 +654,7 @@ class MethodScreen(Screen):
         self.value = value
         self.val0 = val0
         self.val1 = val1
-        self.editLine = self.val0 + "< OK >" +self.val1
+        self.editLine = self.val0 + "< Confirm >" + self.val1
         if(self.type == "readOnly"):
             self.navigation = self.navLine
         elif(self.type == "subMenu"):
@@ -909,41 +909,47 @@ def replaceChar(word, index, char):
     word = word[:index] + char + word[index + 1:]
     return word
 
+
 def draw_warning(line2, line3, fillNum, fillBg, currentScreen):
     """for drawing an error."""
     global disp, n, maxn, Image, ImageDraw, draw, font
     # Draw a black filled fox to clear the image.
-    draw.rectangle((0, 0, width + 10, height + 10), outline=0, fill=fillBg)
+
+    draw.rectangle((0, 0, width - 1, height - 1), outline=1, fill=fillBg)
 
     x = 0
     top = 2
-    draw.text((x, top), "Alert", font=font, fill=fillNum)
-    draw.text((x, top + 10), line2, font=font, fill=fillNum)
-    draw.text((x, top + 20), line3, font=font, fill=fillNum)
+    draw.rectangle((1, 0, width - 1, top + 9), outline=1, fill=fillNum)
+    draw.text((center_text('A L E R T', 0), top), "A L E R T", font=font, fill=fillBg)
+    draw.text((center_text(line2, 0), top + 9), line2, font=font, fill=fillNum)
+    draw.text((center_text(line3, 0), top + 18), line3, font=font, fill=fillNum)
     disp.image(image.rotate(180))
 
     disp.display()
     time.sleep(2)
     currentScreen.displayThis()
-
 
 def draw_confirmation(line2, line3, fillNum, fillBg, currentScreen):
     """for drawing an error."""
     global disp, n, maxn, Image, ImageDraw, draw, font
     # Draw a black filled fox to clear the image.
-    draw.rectangle((0, 0, width + 10, height + 10), outline=0, fill=fillBg)
+    draw.rectangle((0, 0, width-1, height-1), outline=1, fill=fillBg)
 
     x = 0
     top = 2
-    draw.text((x, top), "S A V E D", font=font, fill=fillNum)
-    draw.text((x, top + 10), line2, font=font, fill=fillNum)
-    draw.text((x, top + 20), line3, font=font, fill=fillNum)
+
+    draw.text((center_text("S A V E D", 0), top), "S A V E D", font=font, fill=fillNum)
+    draw.text((center_text(line2, 0), top + 9), line2, font=font, fill=fillNum)
+    draw.text((center_text(line3, 0), top + 18), line3, font=font, fill=fillNum)
     disp.image(image.rotate(180))
 
     disp.display()
     time.sleep(2)
     currentScreen.displayThis()
 
+def center_text(text, borderWidth):
+    strlen = len(str(text)) * 6
+    return (128 + borderWidth - strlen) / 2
 
 def draw_screen(s, line2, line3, fillNum, fillBg):
     """for drawing the next screen."""
