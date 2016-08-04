@@ -735,6 +735,9 @@ class confSend(Screen):
             result = validate.config_validate(thisData['config'])
             print result
             if result is True:
+                # TEMPORARY
+                with open("Output.txt", "w") as text_file:
+                    text_file.write("Data: {0}".format(thisData['config']))
                 level = 1
                 self.navigation = self.incrLine
                 draw_confirmation("Config Valid", "Config Sent", 255, 0, masterList[n])
@@ -749,6 +752,7 @@ class confSend(Screen):
             draw_warning('canceled', 'Returning to main menu', 255, 0, masterList[n])
         elif(addorsub == 2):
             self.displayThis()
+
     def displayEdit(self, underline_pos, underline_width):
         """screen to display when editting value."""
         draw_screen_ul(self.title, "Are You Sure?", self.navigation, 255, 0, 0, 0)
