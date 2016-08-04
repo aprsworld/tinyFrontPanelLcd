@@ -734,7 +734,7 @@ class confSend(Screen):
         self.value = value
         self.val0 = "Yes"
         self.val1 = "No"
-        self.incrLine = "<-- Send -->"
+        self.incrLine = "<--    Send    -->"
         self.editLine = self.val0 + "<       >" + self.val1
         if(self.type == "readOnly"):
             self.navigation = self.navLine
@@ -763,6 +763,7 @@ class confSend(Screen):
                 draw_warning2(result['message'], 255, 0, masterList[n])
         elif(addorsub == 1):
             level = 4
+            self.navigation = self.incrLine
             draw_warning('canceled', 'Returning to main menu', 255, 0, masterList[n])
         elif(addorsub == 2):
             self.displayThis()
