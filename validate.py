@@ -253,5 +253,3 @@ def config_validate(config):
                 return {'res': False, 'message': iface+' + '+protocol+' invalid'}
     # valid
     return True
-
-print validate_ip4('192.168.10.244', '255.255.255.0', '192.168.10.1')

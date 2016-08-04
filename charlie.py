@@ -107,19 +107,20 @@ GPIO.setup(27, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 action_up_now = False
 action_select_now = False
 action_down_now = False
-
+disable = False
 n = 0
 
 
 # now we'll define two threaded callback functions
 # these will run in another thread when our events are detected
 def button_callback(channel):
-    print level
     """two threaded callback functions."""
     # allow access to our globals
-    global action_up_now, action_select_now, action_down_now, n, maxn, masterList, level, charSetIndex
+    global disable, action_up_now, action_select_now, action_down_now, n, maxn, masterList, level, charSetIndex
+    print "level: ", level
+
     # if a button is already pressed, return out of callback
-    if action_up_now or action_select_now or action_down_now:
+    if action_up_now or action_select_now or action_down_now or disable:
         print "similtaneous press", channel
         return
 
@@ -178,6 +179,7 @@ def button_callback(channel):
                     masterList[n].screens[masterList[n].childIndex].displayEdit(masterList[n].screens[masterList[n].childIndex].childIndex, 6)
                 else:
                     draw_warning("This Screen ", "cannot be editted. ", 255, 0, masterList[n].screens[masterList[n].childIndex])
+                    level = 4
         else:
             print(masterList[n].type)
     elif (level == 3):
@@ -200,15 +202,27 @@ def button_callback(channel):
                 this.childIndex = 0
                 if(hasattr(this, 'interface')):
                     this.changeConfig()
-                level = 2
                 this.navigation = this.incrLine
-                # this.displayThis()
-                draw_confirmation(this.title + " has been", "saved to config", 255, 0, this)
+                this.displayThis()
+                disable = True
+                draw_confirmation(this.title + " has been", "saved to config", 255, 0, masterList[n].screens[masterList[n].childIndex])
+                disable = False
+                level = 4
+    elif(level == 4):
+        print "got here"
+        this = masterList[n].screens[masterList[n].childIndex]
+        level = 2
+        if(channel == 17):
+            this.displayThis()
+        elif(channel == 18):
+            this.displayThis()
+        elif(channel == 27):
+            this.displayThis()
+
     print(channel)
     action_up_now = False
     action_select_now = False
     action_down_now = False
-    time.sleep(.05)
 
 
 # detect button falling edges
@@ -219,7 +233,7 @@ def detect_edges(callbackFn):
     GPIO.remove_event_detect(27)
     GPIO.add_event_detect(17, GPIO.FALLING, callback=callbackFn, bouncetime=300)
     GPIO.add_event_detect(18, GPIO.FALLING, callback=callbackFn, bouncetime=300)
-    GPIO.add_event_detect(27, GPIO.FALLING, callback=callbackFn, bouncetime=400)
+    GPIO.add_event_detect(27, GPIO.FALLING, callback=callbackFn, bouncetime=300)
 
 
 class Screen:
@@ -738,17 +752,17 @@ class confSend(Screen):
                 # TEMPORARY
                 with open("Output.txt", "w") as text_file:
                     text_file.write("Data: {0}".format(thisData['config']))
-                level = 1
+                level = 4
                 self.navigation = self.incrLine
                 draw_confirmation("Config Valid", "Config Sent", 255, 0, masterList[n])
                 print thisData['config']
             else:
-                level = 1
+                level = 4
                 print result
                 self.navigation = self.incrLine
                 draw_warning2(result['message'], 255, 0, masterList[n])
         elif(addorsub == 1):
-            level = 1
+            level = 4
             draw_warning('canceled', 'Returning to main menu', 255, 0, masterList[n])
         elif(addorsub == 2):
             self.displayThis()
@@ -943,8 +957,6 @@ def draw_warning(line2, line3, fillNum, fillBg, currentScreen):
     disp.image(image.rotate(180))
 
     disp.display()
-    time.sleep(2)
-    currentScreen.displayThis()
 
 def draw_warning2(line2, fillNum, fillBg, currentScreen):
     """for drawing an error."""
@@ -972,8 +984,6 @@ def draw_warning2(line2, fillNum, fillBg, currentScreen):
     disp.image(image.rotate(180))
 
     disp.display()
-    time.sleep(2)
-    currentScreen.displayThis()
 
 
 def draw_confirmation(line2, line3, fillNum, fillBg, currentScreen):
@@ -991,8 +1001,6 @@ def draw_confirmation(line2, line3, fillNum, fillBg, currentScreen):
     disp.image(image.rotate(180))
 
     disp.display()
-    time.sleep(2)
-    currentScreen.displayThis()
 
 def center_text(text, borderWidth):
     strlen = len(str(text)) * 6
