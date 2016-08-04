@@ -5,6 +5,7 @@ from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
 import PIL.ImageOps
+import math
 import RPi.GPIO as GPIO
 import time
 from datetime import datetime as dt
@@ -113,6 +114,7 @@ n = 0
 # now we'll define two threaded callback functions
 # these will run in another thread when our events are detected
 def button_callback(channel):
+    print level
     """two threaded callback functions."""
     # allow access to our globals
     global action_up_now, action_select_now, action_down_now, n, maxn, masterList, level, charSetIndex
@@ -192,7 +194,7 @@ def button_callback(channel):
                 this.editVal(this.childIndex, 2)
                 charSetIndex = 0
             elif "confScreen" == this.screenType:
-                pass
+                this.navigation = this.incrLine
             else:
                 this.edit = False
                 this.childIndex = 0
@@ -217,7 +219,7 @@ def detect_edges(callbackFn):
     GPIO.remove_event_detect(27)
     GPIO.add_event_detect(17, GPIO.FALLING, callback=callbackFn, bouncetime=300)
     GPIO.add_event_detect(18, GPIO.FALLING, callback=callbackFn, bouncetime=300)
-    GPIO.add_event_detect(27, GPIO.FALLING, callback=callbackFn, bouncetime=300)
+    GPIO.add_event_detect(27, GPIO.FALLING, callback=callbackFn, bouncetime=400)
 
 
 class Screen:
@@ -227,11 +229,12 @@ class Screen:
     incrLine = "<--    Edit    -->"
     editLine = "(-)     Next     (+)"
 
-    def __init__(self, type, title, value):
+    def __init__(self, type, title, value, interface):
         """Our initialization for the screen class."""
         # String: type of screen - "readOnly", "subMenu", "editable"
         self.type = type
         self.screenType = "GeneralScreen"
+        self.interfaceType = interface
         # String: Line one on the LCD Screen
         self.title = title
         # String: line two on the LCD Screen
@@ -401,7 +404,7 @@ class NetworkScreen(Screen):
     def changeConfig(self):
         """Change the setting in the config so that we can send it to piNetConfig."""
         global thisData
-        thisData['config'][self.interface]['protocol']['inet'][self.title] = self.value
+        thisData['config'][self.interface]['protocol']['inet'][self.title] = str(self.addr0)+"."+str(self.addr1)+"."+str(self.addr2)+"."+str(self.addr3)
         print thisData['config']
 
 
@@ -666,6 +669,7 @@ class MethodScreen(Screen):
         print ":test"
         if(addorsub == 0):
             self.value = self.val0
+            thisData['config'][masterList[n].interfaceType]['protocol']['inet']['method'] = self.value
             for childScreen in masterList[n].screens:
                 if childScreen.screenType == 'NetworkScreen' and childScreen.title in editableSet:
                     print childScreen.type
@@ -677,6 +681,7 @@ class MethodScreen(Screen):
 
         elif(addorsub == 1):
             self.value = self.val1
+            thisData['config'][masterList[n].interfaceType]['protocol']['inet']['method'] = self.value
             for childScreen in masterList[n].screens:
                 if childScreen.screenType == 'NetworkScreen' and childScreen.title in editableSet:
                     print childScreen.type
@@ -689,6 +694,8 @@ class MethodScreen(Screen):
                     print childScreen.type
 
         elif(addorsub == 2):
+            thisData['config'][masterList[n].interfaceType]['protocol']['inet']['method'] = self.value
+            print thisData['config'][masterList[n].interfaceType]['protocol']['inet']['method']
             self.value = self.value
             print self.value
 
@@ -714,7 +721,7 @@ class confSend(Screen):
         self.val0 = "Yes"
         self.val1 = "No"
         self.incrLine = "<-- Send -->"
-        self.editLine = self.val0 + "< Are you sure? >" + self.val1
+        self.editLine = self.val0 + "<       >" + self.val1
         if(self.type == "readOnly"):
             self.navigation = self.navLine
         elif(self.type == "subMenu"):
@@ -729,16 +736,22 @@ class confSend(Screen):
             print result
             if result is True:
                 level = 1
+                self.navigation = self.incrLine
                 draw_confirmation("Config Valid", "Config Sent", 255, 0, masterList[n])
+                print thisData['config']
             else:
                 level = 1
                 print result
-                draw_warning(result['message'], ' ', 255, 0, masterList[n])
+                self.navigation = self.incrLine
+                draw_warning2(result['message'], 255, 0, masterList[n])
         elif(addorsub == 1):
             level = 1
             draw_warning('canceled', 'Returning to main menu', 255, 0, masterList[n])
         elif(addorsub == 2):
             self.displayThis()
+    def displayEdit(self, underline_pos, underline_width):
+        """screen to display when editting value."""
+        draw_screen_ul(self.title, "Are You Sure?", self.navigation, 255, 0, 0, 0)
 
 
 #  ******* Comment block denoting screen section
@@ -787,7 +800,7 @@ def createTop2():
                 for k1, v1 in thisData[k].iteritems():
                     if(k1.startswith("eth")):
                         print k1
-                        masterList.append(Screen("subMenu", "Ethernet (" + k1 + ")", " "))
+                        masterList.append(Screen("subMenu", "Ethernet (" + k1 + ")", " ", k1))
                         if hasattr(thisData["config"][k1]["protocol"]["inet"], "method"):
                             method = thisData["config"][k1]["protocol"]["inet"]["method"]
                         else:
@@ -811,7 +824,7 @@ def createTop2():
 
                         count = count + 1
             else:
-                masterList.append(Screen("subMenu", "Ethernet (" + k + ")", " "))
+                masterList.append(Screen("subMenu", "Ethernet (" + k + ")", " ", k1, k1))
                 for k1, v1 in thisData[k].iteritems():
                     masterList[count].screens.append(Screen("readOnly", k1, v1))
                 count = count + 1
@@ -845,21 +858,21 @@ def createTop2():
                 if isinstance(v1, dict):
                     pass
                 else:
-                    masterList[count].screens.append(Screen("readOnly", k1, v1))
+                    masterList[count].screens.append(Screen("readOnly", k1, v1, k1))
             count = count + 1
 
 createTop2()
 
-timeScreen = Screen("subMenu", "Time and Date", " ")
+timeScreen = Screen("subMenu", "Time and Date", " ", 'time')
 # intialize time screens
 timeEdit = DateTimeScreen("editable", "Time Edit")
 
 timeScreen.initScreenList([timeEdit])
 masterList.append(timeScreen)
 
-configurationScreen = Screen("subMenu", "Configurations", " ")
+configurationScreen = Screen("subMenu", "Configurations", " ", "config")
 # initialize configuration screens
-configSend = confSend("editable", "Validate/send Configuration", "")
+configSend = confSend("editable", "Validate/Send Config", "")
 
 configurationScreen.initScreenList([configSend])
 masterList.append(configurationScreen)
@@ -929,6 +942,36 @@ def draw_warning(line2, line3, fillNum, fillBg, currentScreen):
     time.sleep(2)
     currentScreen.displayThis()
 
+def draw_warning2(line2, fillNum, fillBg, currentScreen):
+    """for drawing an error."""
+    global disp, n, maxn, Image, ImageDraw, draw, font
+    # Draw a black filled fox to clear the image.
+
+    draw.rectangle((0, 0, width - 1, height - 1), outline=1, fill=fillBg)
+
+    x = 0
+    top = 2
+    draw.rectangle((1, 0, width - 1, top + 9), outline=1, fill=fillNum)
+    draw.text((center_text('A L E R T', 0), top), "A L E R T", font=font, fill=fillBg)
+    if len(line2) * 6 > 21:
+        chunks = line2.split(" ")
+        length1 = math.floor(len(chunks) / 2)
+        length2 = len(chunks)
+        print length1, length2
+        lineone = ' '.join(chunks[int(0):int(length1 + 1)])
+        linetwo = ' '.join(chunks[int(length1 + 1):int(length2 + 1)])
+        draw.text((center_text(line2, 0), top + 9), lineone, font=font, fill=fillNum)
+        draw.text((center_text(line2, 0), top + 18), linetwo, font=font, fill=fillNum)
+    else:
+        draw.text((center_text(line2, 0), top + 9), line2, font=font, fill=fillNum)
+
+    disp.image(image.rotate(180))
+
+    disp.display()
+    time.sleep(2)
+    currentScreen.displayThis()
+
+
 def draw_confirmation(line2, line3, fillNum, fillBg, currentScreen):
     """for drawing an error."""
     global disp, n, maxn, Image, ImageDraw, draw, font
@@ -937,8 +980,8 @@ def draw_confirmation(line2, line3, fillNum, fillBg, currentScreen):
 
     x = 0
     top = 2
-
-    draw.text((center_text("S A V E D", 0), top), "S A V E D", font=font, fill=fillNum)
+    draw.rectangle((1, 0, width - 1, top + 9), outline=1, fill=fillNum)
+    draw.text((center_text("S A V E D", 0), top), "S A V E D", font=font, fill=fillBg)
     draw.text((center_text(line2, 0), top + 9), line2, font=font, fill=fillNum)
     draw.text((center_text(line3, 0), top + 18), line3, font=font, fill=fillNum)
     disp.image(image.rotate(180))
