@@ -1013,9 +1013,7 @@ def draw_warning(line2, line3, fillNum, fillBg, currentScreen):
     """for drawing an error."""
     global disp, n, maxn, Image, ImageDraw, draw, font
     # Draw a black filled fox to clear the image.
-    GPIO.remove_event_detect(27)
-    GPIO.remove_event_detect(17)
-    GPIO.remove_event_detect(18)
+
     draw.rectangle((0, 0, width - 1, height - 1), outline=1, fill=fillBg)
 
     x = 0
@@ -1027,6 +1025,9 @@ def draw_warning(line2, line3, fillNum, fillBg, currentScreen):
     disp.image(image.rotate(180))
 
     disp.display()
+    GPIO.remove_event_detect(27)
+    GPIO.remove_event_detect(17)
+    GPIO.remove_event_detect(18)
     t = Timer(2.5, drawAndEnable, [currentScreen])
     t.start()
 
@@ -1041,9 +1042,6 @@ def draw_warning2(line2, fillNum, fillBg, currentScreen):
     """for drawing an error."""
     global disp, n, maxn, Image, ImageDraw, draw, font
     # Draw a black filled fox to clear the image.
-    GPIO.remove_event_detect(27)
-    GPIO.remove_event_detect(17)
-    GPIO.remove_event_detect(18)
 
     draw.rectangle((0, 0, width - 1, height - 1), outline=1, fill=fillBg)
 
@@ -1066,6 +1064,10 @@ def draw_warning2(line2, fillNum, fillBg, currentScreen):
     disp.image(image.rotate(180))
 
     disp.display()
+    GPIO.remove_event_detect(27)
+    GPIO.remove_event_detect(17)
+    GPIO.remove_event_detect(18)
+
     t = Timer(2.5, drawAndEnable, [currentScreen])
     t.start()
 
