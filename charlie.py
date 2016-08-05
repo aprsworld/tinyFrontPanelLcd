@@ -1074,12 +1074,9 @@ def draw_confirmation(line2, line3, fillNum, fillBg, currentScreen):
     """for drawing an error."""
     global disp, n, maxn, Image, ImageDraw, draw, font
     # Draw a black filled fox to clear the image.
-    GPIO.remove_event_detect(27)
-    GPIO.remove_event_detect(17)
-    GPIO.remove_event_detect(18)
-    draw.rectangle((0, 0, width-1, height-1), outline=1, fill=fillBg)
 
-    x = 0
+    draw.rectangle((0, 0, width - 1, height - 1), outline=1, fill=fillBg)
+
     top = 2
     draw.rectangle((1, 0, width - 1, top + 9), outline=1, fill=fillNum)
     draw.text((center_text("S A V E D", 0), top), "S A V E D", font=font, fill=fillBg)
@@ -1088,12 +1085,18 @@ def draw_confirmation(line2, line3, fillNum, fillBg, currentScreen):
     disp.image(image.rotate(180))
 
     disp.display()
+    GPIO.remove_event_detect(27)
+    GPIO.remove_event_detect(17)
+    GPIO.remove_event_detect(18)
     t = Timer(2.5, drawAndEnable, [currentScreen])
     t.start()
 
+
 def center_text(text, borderWidth):
+    """Center text on the LCD Screen."""
     strlen = len(str(text)) * 6
     return (128 + borderWidth - strlen) / 2
+
 
 def draw_screen(s, line2, line3, fillNum, fillBg):
     """for drawing the next screen."""
