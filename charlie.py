@@ -903,7 +903,7 @@ def createTop2():
                     masterList[count].screens.append(Screen("readOnly", k1, v1))
                 count = count + 1
         elif(k.startswith("wlan")):
-             '''
+            # '''
             keyList = thisData[k].keys()
             if any("wlan" in s for s in keyList):
                 for k1, v1 in thisData[k].iteritems():
@@ -912,12 +912,20 @@ def createTop2():
                         masterList.append(Screen("subMenu", "wlan (" + k1 + ")", " ", k1))
                         for k2, v2 in thisData[k][k1].iteritems():
                             for k3, v3 in thisData[k][k1][k2].iterItems():
-                                masterList[count].screens.append(Screen("readOnly", k3 + " " + k2, v2))
+                                screendict = determineScreenType(v2, k2, method)
+                                if screendict['type'] == 'str':
+                                    masterList[count].screens.append(StringScreen(screendict['editable'], k3, v3))
+                                elif screendict['type'] == 'ip':
+                                    masterList[count].screens.append(NetworkScreen(screendict['editable'], k3, str(v3), k2))
                         for k2, v2 in thisData[k].iteritems():
                             if(k2.startswith("wlan")):
                                 pass
                             else:
-                                masterList[count].screens.append(Screen("readOnly", k2, v2))
+                                screendict = determineScreenType(v2, k2, method)
+                                if screendict['type'] == 'str':
+                                    masterList[count].screens.append(StringScreen(screendict['editable'], k2, v2))
+                                elif screendict['type'] == 'ip':
+                                    masterList[count].screens.append(NetworkScreen(screendict['editable'], k2, str(v2), k1))
                         count = count + 1
             else:
                 masterList.append(Screen("subMenu", "wlan (" + k + ")", " "))
