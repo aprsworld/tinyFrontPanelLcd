@@ -255,8 +255,9 @@ def detect_edges(callbackFn):
 class Screen:
     """Our screen class."""
 
-    navLine = "<--    Select    -->"
-    incrLine = "<--    Edit    -->"
+    dirLine = "<--    Select    -->"
+    navLine = "<--              -->"
+    incrLine = "<--     Edit     -->"
     editLine = "(-)     Next     (+)"
 
     def __init__(self, type, title, value, interface):
@@ -281,7 +282,7 @@ class Screen:
         if(self.type == "readOnly"):
             self.navigation = self.navLine
         elif(self.type == "subMenu"):
-            self.navigation = self.navLine
+            self.navigation = self.dirLine
         else:
             self.navigation = self.incrLine
         self.underline_pos = 0
@@ -947,7 +948,7 @@ createTop2()
 
 timeScreen = Screen("subMenu", "Time and Date", " ", 'time')
 # intialize time screens
-timeEdit = DateTimeScreen("editable", "Time Edit")
+timeEdit = DateTimeScreen("editable", "Current Time")
 
 timeScreen.initScreenList([timeEdit])
 masterList.append(timeScreen)
