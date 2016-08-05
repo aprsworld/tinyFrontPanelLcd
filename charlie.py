@@ -27,6 +27,25 @@ charSetPass = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 
                'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
                '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
+humanTranslations = {
+    'method': 'Addressing Method',
+    'dhcp': 'DHCP',
+    'static': 'Static',
+    'brd': 'Broadcast',
+    'broadcast': 'Broadcast',
+    'netmask': 'Netmask',
+    'gateway': 'Gateway',
+    'address': 'inet Address',
+    'scope': 'Address Scope',
+    'hwaddress': 'Hardware Address',
+    'mtu': 'Maximum Trans Unit',
+    'state': 'State',
+    'mode': 'Mode',
+    'qlen': 'Transmit Queue Length',
+    'qdisc': 'Queueing Discipline',
+    'group': 'Group'
+}
+
 charSetIndex = 0
 thisData = getConfig.getData(URL)
 inView = ""
@@ -107,7 +126,6 @@ GPIO.setup(27, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 action_up_now = False
 action_select_now = False
 action_down_now = False
-disable = False
 n = 0
 
 
@@ -120,7 +138,7 @@ def button_callback(channel):
     print "level: ", level
 
     # if a button is already pressed, return out of callback
-    if action_up_now or action_select_now or action_down_now or disable:
+    if action_up_now or action_select_now or action_down_now:
         print "similtaneous press", channel
         return
 
@@ -204,9 +222,7 @@ def button_callback(channel):
                     this.changeConfig()
                 this.navigation = this.incrLine
                 this.displayThis()
-                disable = True
-                draw_confirmation(this.title + " has been", "saved to config", 255, 0, masterList[n].screens[masterList[n].childIndex])
-                disable = False
+                draw_confirmation(this.title + " has", "been saved to config", 255, 0, masterList[n].screens[masterList[n].childIndex])
                 level = 4
     elif(level == 4):
         print "got here"
@@ -246,11 +262,16 @@ class Screen:
     def __init__(self, type, title, value, interface):
         """Our initialization for the screen class."""
         # String: type of screen - "readOnly", "subMenu", "editable"
+        global humanTranslations
         self.type = type
         self.screenType = "GeneralScreen"
         self.interfaceType = interface
         # String: Line one on the LCD Screen
-        self.title = title
+        if title in humanTranslations:
+            self.title = humanTranslations[title]
+        else:
+            self.title = title
+        self.dataName = title
         # String: line two on the LCD Screen
         self.value = value
         self.childIndex = 0
@@ -328,10 +349,15 @@ class NetworkScreen(Screen):
            This is done so that the network address can easilly be editted
         """
         # String: type of screen - "readOnly", "subMenu", "editable"
+        global humanTranslations
         self.type = type
         self.screenType = "NetworkScreen"
         # String: Line one on the LCD Screen
-        self.title = title
+        if title in humanTranslations:
+            self.title = humanTranslations[title]
+        else:
+            self.title = title
+        self.dataName = title
         # String: line two on the LCD Screen
         addr = addr.split(".")
         self.addr0 = addr0 = int(addr[0])
@@ -429,10 +455,16 @@ class StringScreen(Screen):
     def __init__(self, type, title, value):
         """Our initialization for the screen stringclass."""
         # String: type of screen - "readOnly", "subMenu", "editable"
+        global humanTranslations
         self.type = type
         self.screenType = "StringScreen"
         # String: Line one on the LCD Screen
-        self.title = title
+        if title in humanTranslations:
+            self.title = humanTranslations[title]
+        else:
+            self.title = title
+        self.dataName = title
+
         # String: line two on the LCD Screen
         self.childIndex = 0
         self.value = value
@@ -478,11 +510,16 @@ class DateTimeScreen(Screen):
     def __init__(self, type, title):
         """Our initialization for the screen stringclass."""
         # String: type of screen - "readOnly", "subMenu", "editable"
+        global humanTranslations
         self.type = type
         self.screenType = "DateTimeScreen"
 
         # String: Line one on the LCD Screen
-        self.title = title
+        if title in humanTranslations:
+            self.title = humanTranslations[title]
+        else:
+            self.title = title
+        self.dataName = title
         # String: line two on the LCD Screen
         self.childIndex = 0
         self.date = dt.now()
@@ -626,11 +663,17 @@ class BooleanScreen(Screen):
     def __init__(self, type, title, value, val0, val1):
         """Our initialization for the screen stringclass."""
         # String: type of screen - "readOnly", "subMenu", "editable"
+        global humanTranslations
         self.type = type
         self.screenType = "BooleanScreen"
         self.valueLength = 0
         # String: Line one on the LCD Screen
-        self.title = title
+        if title in humanTranslations:
+            self.title = humanTranslations[title]
+        else:
+            self.title = title
+        self.dataName = title
+
         # String: line two on the LCD Screen
         self.childIndex = 0
         self.value = value
@@ -661,11 +704,17 @@ class MethodScreen(Screen):
     def __init__(self, type, title, value, val0, val1):
         """Our initialization for the screen stringclass."""
         # String: type of screen - "readOnly", "subMenu", "editable"
+        global humanTranslations
         self.type = type
         self.screenType = "BooleanScreen"
         self.valueLength = 0
         # String: Line one on the LCD Screen
-        self.title = title
+        if title in humanTranslations:
+            self.title = humanTranslations[title]
+        else:
+            self.title = title
+        self.dataName = title
+
         # String: line two on the LCD Screen
         self.childIndex = 0
         self.value = value
@@ -685,7 +734,7 @@ class MethodScreen(Screen):
             self.value = self.val0
             thisData['config'][masterList[n].interfaceType]['protocol']['inet']['method'] = self.value
             for childScreen in masterList[n].screens:
-                if childScreen.screenType == 'NetworkScreen' and childScreen.title in editableSet:
+                if childScreen.screenType == 'NetworkScreen' and childScreen.dataName in editableSet:
                     print childScreen.type
                     if(self.value == self.val0):
                         childScreen.changeType("editable", self.incrLine)
@@ -728,14 +777,20 @@ class confSend(Screen):
         self.screenType = "confScreen"
         self.valueLength = 0
         # String: Line one on the LCD Screen
-        self.title = title
+        global humanTranslations
+        if title in humanTranslations:
+            self.title = humanTranslations[title]
+        else:
+            self.title = title
+        self.dataName = title
+
         # String: line two on the LCD Screen
         self.childIndex = 0
         self.value = value
         self.val0 = "Yes"
         self.val1 = "No"
         self.incrLine = "<--    Send    -->"
-        self.editLine = self.val0 + "<       >" + self.val1
+        self.editLine = self.val0 + "          " + self.val1
         if(self.type == "readOnly"):
             self.navigation = self.navLine
         elif(self.type == "subMenu"):
@@ -848,13 +903,13 @@ def createTop2():
                     masterList[count].screens.append(Screen("readOnly", k1, v1))
                 count = count + 1
         elif(k.startswith("wlan")):
-            '''
+             '''
             keyList = thisData[k].keys()
             if any("wlan" in s for s in keyList):
                 for k1, v1 in thisData[k].iteritems():
                     if(k1.startswith("wlan")):
                         print k1
-                        masterList.append(Screen("subMenu", "wlan (" + k1 + ")", " "))
+                        masterList.append(Screen("subMenu", "wlan (" + k1 + ")", " ", k1))
                         for k2, v2 in thisData[k][k1].iteritems():
                             for k3, v3 in thisData[k][k1][k2].iterItems():
                                 masterList[count].screens.append(Screen("readOnly", k3 + " " + k2, v2))
@@ -869,7 +924,7 @@ def createTop2():
                 for k1, v1 in thisData[k].iteritems():
                     masterList[count].screens.append(Screen("readOnly", k1, v1))
                 count = count + 1
-                '''
+            # '''
         else:
             print k
             masterList.append(Screen("subMenu", k, " "))
@@ -1015,9 +1070,11 @@ def draw_screen(s, line2, line3, fillNum, fillBg):
 
     x = 0
     top = 2
-    draw.text((x, top), s, font=font, fill=fillNum)
+    draw.rectangle((1, 0, width - 1, top + 9), outline=1, fill=fillNum)
+
+    draw.text((center_text(s, 0), top), s, font=font, fill=fillBg)
     draw.text((x, top + 10), line2, font=font, fill=fillNum)
-    draw.text((x, top + 20), line3, font=font, fill=fillNum)
+    draw.text((center_text(line3, 0), top + 20), line3, font=font, fill=fillNum)
 
     disp.image(image.rotate(180))
 
@@ -1034,9 +1091,10 @@ def draw_screen_ul(s, line2, line3, fillNum, fillBg, underline_pos, underline_wi
 
     x = 0
     top = 2
-    draw.text((x, top), s, font=font, fill=fillNum)
+    draw.rectangle((1, 0, width - 1, top + 9), outline=1, fill=fillNum)
+    draw.text((center_text(s, 0), top), s, font=font, fill=fillBg)
     draw.text((x, top + 10), line2, font=font, fill=fillNum)
-    draw.text((x, top + 20), line3, font=font, fill=fillNum)
+    draw.text((center_text(line3, 0), top + 20), line3, font=font, fill=fillNum)
 
     draw.line([underline_pos * underline_width, 22, (underline_pos + 1) * underline_width - 1, 22], fill=255)
 
