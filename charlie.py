@@ -197,7 +197,7 @@ def button_callback(channel):
                     masterList[n].screens[masterList[n].childIndex].displayEdit(masterList[n].screens[masterList[n].childIndex].childIndex, 6)
                 else:
                     draw_warning("This Screen ", "cannot be editted. ", 255, 0, masterList[n].screens[masterList[n].childIndex])
-                    level = 4
+                    # level = 4
         else:
             print(masterList[n].type)
     elif (level == 3):
@@ -223,7 +223,9 @@ def button_callback(channel):
                 this.navigation = this.incrLine
                 this.displayThis()
                 draw_confirmation(this.title + " has", "been saved to config", 255, 0, masterList[n].screens[masterList[n].childIndex])
-                level = 4
+                level = 2
+                # level = 4
+                '''
     elif(level == 4):
         print "got here"
         this = masterList[n].screens[masterList[n].childIndex]
@@ -234,6 +236,7 @@ def button_callback(channel):
             this.displayThis()
         elif(channel == 27):
             this.displayThis()
+            '''
 
     print(channel)
     action_up_now = False
@@ -1010,7 +1013,9 @@ def draw_warning(line2, line3, fillNum, fillBg, currentScreen):
     """for drawing an error."""
     global disp, n, maxn, Image, ImageDraw, draw, font
     # Draw a black filled fox to clear the image.
-
+    GPIO.remove_event_detect(27)
+    GPIO.remove_event_detect(17)
+    GPIO.remove_event_detect(18)
     draw.rectangle((0, 0, width - 1, height - 1), outline=1, fill=fillBg)
 
     x = 0
@@ -1022,11 +1027,23 @@ def draw_warning(line2, line3, fillNum, fillBg, currentScreen):
     disp.image(image.rotate(180))
 
     disp.display()
+    t = Timer(2.5, drawAndEnable, [currentScreen])
+    t.start()
+
+
+def drawAndEnable(currentScreen):
+    detect_edges(button_callback)
+    currentScreen.displayThis()
+    print currentScreen.title
+
 
 def draw_warning2(line2, fillNum, fillBg, currentScreen):
     """for drawing an error."""
     global disp, n, maxn, Image, ImageDraw, draw, font
     # Draw a black filled fox to clear the image.
+    GPIO.remove_event_detect(27)
+    GPIO.remove_event_detect(17)
+    GPIO.remove_event_detect(18)
 
     draw.rectangle((0, 0, width - 1, height - 1), outline=1, fill=fillBg)
 
@@ -1049,12 +1066,17 @@ def draw_warning2(line2, fillNum, fillBg, currentScreen):
     disp.image(image.rotate(180))
 
     disp.display()
+    t = Timer(2.5, drawAndEnable, [currentScreen])
+    t.start()
 
 
 def draw_confirmation(line2, line3, fillNum, fillBg, currentScreen):
     """for drawing an error."""
     global disp, n, maxn, Image, ImageDraw, draw, font
     # Draw a black filled fox to clear the image.
+    GPIO.remove_event_detect(27)
+    GPIO.remove_event_detect(17)
+    GPIO.remove_event_detect(18)
     draw.rectangle((0, 0, width-1, height-1), outline=1, fill=fillBg)
 
     x = 0
@@ -1066,6 +1088,8 @@ def draw_confirmation(line2, line3, fillNum, fillBg, currentScreen):
     disp.image(image.rotate(180))
 
     disp.display()
+    t = Timer(2.5, drawAndEnable, [currentScreen])
+    t.start()
 
 def center_text(text, borderWidth):
     strlen = len(str(text)) * 6
