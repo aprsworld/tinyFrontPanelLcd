@@ -247,9 +247,6 @@ def button_callback(channel):
 # detect button falling edges
 def detect_edges(callbackFn):
     """designate threaded callbacks for all button presses."""
-    GPIO.remove_event_detect(17)
-    GPIO.remove_event_detect(18)
-    GPIO.remove_event_detect(27)
     GPIO.add_event_detect(17, GPIO.FALLING, callback=callbackFn, bouncetime=300)
     GPIO.add_event_detect(18, GPIO.FALLING, callback=callbackFn, bouncetime=300)
     GPIO.add_event_detect(27, GPIO.FALLING, callback=callbackFn, bouncetime=300)
