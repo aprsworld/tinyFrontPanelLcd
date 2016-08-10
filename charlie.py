@@ -14,12 +14,32 @@ import charlieimage
 import getConfig
 import validate
 from threading import Timer
+from collections import defaultdict
+
+# define tree data structure to make our life easier
+class AutoVivification(dict):
+    """Implementation of perl's autovivification feature."""
+    def __getitem__(self, item):
+        try:
+            return dict.__getitem__(self, item)
+        except KeyError:
+            print 'key error lolololo'
+            value = self[item] = type(self)()
+            return value
+
+
+def autoVivify(d):
+    print d
+    if isinstance(d, dict):
+        d = AutoVivification({k: autoVivify(v) for k, v in d.iteritems()})
+    return d
+
 
 # URL that we are getting data from
-URL = "http://localhost/piNetConfig/current_settings.php"
+URL = "http://192.168.10.160/piNetConfig/current_settings.php"
 
 LOGO_DISPLAY_TIME = 1
-editableSet = ['gateway', 'address', 'netmask']
+editableSet = ['gateway', 'address', 'netmask', 'ESSID', 'Extended SSID']
 charSet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
 
@@ -43,11 +63,20 @@ humanTranslations = {
     'mode': 'Mode',
     'qlen': 'Transmit Queue Length',
     'qdisc': 'Queueing Discipline',
-    'group': 'Group'
+    'group': 'Group',
+    'ESSID': 'Extended SSID',
+    'RTS thr': 'RTS Threshold',
+    'Framgent thr': 'Fragment Threshold',
+
 }
 
 charSetIndex = 0
-thisData = getConfig.getData(URL)
+thisData = AutoVivification()
+# thisData = getConfig.getData(URL)
+thisData.update(getConfig.getData(URL))
+thisData['config'] = autoVivify(thisData['config'])
+
+print thisData
 inView = ""
 
 # global flag that determines level of "Directory" that we are on
@@ -733,7 +762,13 @@ class MethodScreen(Screen):
         print ":test"
         if(addorsub == 0):
             self.value = self.val0
+            val = masterList[n].interfaceType.encode('ascii')
+            print isinstance(thisData['config'], AutoVivification)
+            print type(thisData['config'])
+            print thisData['config']
             thisData['config'][masterList[n].interfaceType]['protocol']['inet']['method'] = self.value
+            print thisData
+            # thisData['config'][masterList[n].interfaceType]['protocol']['inet'].update({'method': self.value})
             for childScreen in masterList[n].screens:
                 if childScreen.screenType == 'NetworkScreen' and childScreen.dataName in editableSet:
                     print childScreen.type
@@ -876,8 +911,9 @@ def createTop2():
                     if(k1.startswith("eth")):
                         print k1
                         masterList.append(Screen("subMenu", "Ethernet (" + k1 + ")", " ", k1))
-                        if hasattr(thisData["config"][k1]["protocol"]["inet"], "method"):
-                            method = thisData["config"][k1]["protocol"]["inet"]["method"]
+                        if(thisData["config"].get(k1, False) is not False):
+                            print thisData["config"][k1]["protocol"]["inet"].get("method", "dhcp")
+                            method = thisData["config"][k1]["protocol"]["inet"].get("method", "dhcp")
                         else:
                             method = "dhcp"
                         masterList[count].screens.append(MethodScreen("editable", "method", method, "static", "dhcp"))
@@ -910,14 +946,55 @@ def createTop2():
                 for k1, v1 in thisData[k].iteritems():
                     if(k1.startswith("wlan")):
                         print k1
-                        masterList.append(Screen("subMenu", "wlan (" + k1 + ")", " ", k1))
-                        for k2, v2 in thisData[k][k1].iteritems():
-                            for k3, v3 in thisData[k][k1][k2].iterItems():
+                        masterList.append(Screen("subMenu", "Wireless (" + k1 + ")", " ", k1))
+                        if(thisData["config"].get(k1, False) is not False):
+                            print thisData["config"][k1]["protocol"]["inet"].get("method", "dhcp")
+                            method = thisData["config"][k1]["protocol"]["inet"].get("method", "dhcp")
+                        else:
+                            method = "dhcp"
+                        masterList[count].screens.append(MethodScreen("editable", "method", method, "static", "dhcp"))
+                        for k2, v2 in thisData[k][k1]["inet"].iteritems():
+                            screendict = determineScreenType(v2, k2, method)
+                            if screendict['type'] == 'str':
+                                masterList[count].screens.append(StringScreen(screendict['editable'], k2, v2))
+                            elif screendict['type'] == 'ip':
+                                masterList[count].screens.append(NetworkScreen(screendict['editable'], k2, str(v2), k1))
+                        for k2, v2 in thisData[k].iteritems():
+                            print k2
+                            if(k2.startswith("wlan")):
+                                pass
+                            elif(k2.startswith("wireless")):
+                                for k3, v3 in thisData[k][k2].iteritems():
+                                    if(isinstance(v3, dict)):
+                                        for k4, v4, in thisData[k][k2][k3].iteritems():
+                                            masterList[count].screens.append(StringScreen(screendict['editable'], k4, v4))
+                                    else:
+                                        masterList[count].screens.append(StringScreen(screendict['editable'], k3, v3))
+                            else:
                                 screendict = determineScreenType(v2, k2, method)
                                 if screendict['type'] == 'str':
-                                    masterList[count].screens.append(StringScreen(screendict['editable'], k3, v3))
+                                    masterList[count].screens.append(StringScreen(screendict['editable'], k2, v2))
                                 elif screendict['type'] == 'ip':
-                                    masterList[count].screens.append(NetworkScreen(screendict['editable'], k3, str(v3), k2))
+                                    masterList[count].screens.append(NetworkScreen(screendict['editable'], k2, str(v2), k1))
+
+                        count = count + 1
+                        '''
+                        masterList.append(Screen("subMenu", "wlan (" + k1 + ")", " ", k1))
+                        for k2, v2 in thisData[k][k1].iteritems():
+                            if isinstance(v2, dict):
+                                for k3, v3 in thisData[k][k1][k2].iterItems():
+                                    print v3
+                                    screendict = determineScreenType(v2, k2, method)
+                                    if screendict['type'] == 'str':
+                                        masterList[count].screens.append(StringScreen(screendict['editable'], k3, v3))
+                                    elif screendict['type'] == 'ip':
+                                        masterList[count].screens.append(NetworkScreen(screendict['editable'], k3, str(v3), k2))
+                            else:
+                                screendict = determineScreenType(v2, k2, method)
+                                if screendict['type'] == 'str':
+                                    masterList[count].screens.append(StringScreen(screendict['editable'], k2, v2))
+                                elif screendict['type'] == 'ip':
+                                    masterList[count].screens.append(NetworkScreen(screendict['editable'], k2, str(v2), k1))
                         for k2, v2 in thisData[k].iteritems():
                             if(k2.startswith("wlan")):
                                 pass
@@ -928,10 +1005,11 @@ def createTop2():
                                 elif screendict['type'] == 'ip':
                                     masterList[count].screens.append(NetworkScreen(screendict['editable'], k2, str(v2), k1))
                         count = count + 1
+                        '''
             else:
-                masterList.append(Screen("subMenu", "wlan (" + k + ")", " "))
+                masterList.append(Screen("subMenu", "wlan (" + k + ")", " ", k))
                 for k1, v1 in thisData[k].iteritems():
-                    masterList[count].screens.append(Screen("readOnly", k1, v1))
+                    masterList[count].screens.append(Screen("readOnly", k1, v1, k1))
                 count = count + 1
             # '''
         else:
@@ -1107,9 +1185,9 @@ def draw_screen(s, line2, line3, fillNum, fillBg):
     top = 2
     draw.rectangle((1, 0, width - 1, top + 9), outline=1, fill=fillNum)
 
-    draw.text((center_text(s, 0), top), s, font=font, fill=fillBg)
-    draw.text((x, top + 10), line2, font=font, fill=fillNum)
-    draw.text((center_text(line3, 0), top + 20), line3, font=font, fill=fillNum)
+    draw.text((center_text(s, 0), top), str(s), font=font, fill=fillBg)
+    draw.text((x, top + 10), str(line2), font=font, fill=fillNum)
+    draw.text((center_text(line3, 0), top + 20), str(line3), font=font, fill=fillNum)
 
     disp.image(image.rotate(180))
 
