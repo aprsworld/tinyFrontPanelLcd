@@ -226,7 +226,6 @@ def button_callback(channel):
                     masterList[n].screens[masterList[n].childIndex].displayEdit(masterList[n].screens[masterList[n].childIndex].childIndex, 6)
                 else:
                     draw_warning("This Screen ", "cannot be editted. ", 255, 0, masterList[n].screens[masterList[n].childIndex])
-                    # level = 4
         else:
             print(masterList[n].type)
     elif (level == 3):
@@ -843,17 +842,17 @@ class confSend(Screen):
                 # TEMPORARY
                 with open("Output.txt", "w") as text_file:
                     text_file.write("Data: {0}".format(thisData['config']))
-                level = 4
+                level = 1
                 self.navigation = self.incrLine
                 draw_confirmation("Config Valid", "Config Sent", 255, 0, masterList[n])
                 print thisData['config']
             else:
-                level = 4
+                level = 1
                 print result
                 self.navigation = self.incrLine
                 draw_warning2(result['message'], 255, 0, masterList[n])
         elif(addorsub == 1):
-            level = 4
+            level = 1
             self.navigation = self.incrLine
             draw_warning('canceled', 'Returning to main menu', 255, 0, masterList[n])
         elif(addorsub == 2):
@@ -942,6 +941,7 @@ def createTop2():
         elif(k.startswith("wlan")):
             # '''
             keyList = thisData[k].keys()
+            print "KEYLIST", keyList
             if any("wlan" in s for s in keyList):
                 for k1, v1 in thisData[k].iteritems():
                     if(k1.startswith("wlan")):
@@ -978,38 +978,20 @@ def createTop2():
                                     masterList[count].screens.append(NetworkScreen(screendict['editable'], k2, str(v2), k1))
 
                         count = count + 1
-                        '''
-                        masterList.append(Screen("subMenu", "wlan (" + k1 + ")", " ", k1))
-                        for k2, v2 in thisData[k][k1].iteritems():
-                            if isinstance(v2, dict):
-                                for k3, v3 in thisData[k][k1][k2].iterItems():
-                                    print v3
-                                    screendict = determineScreenType(v2, k2, method)
-                                    if screendict['type'] == 'str':
-                                        masterList[count].screens.append(StringScreen(screendict['editable'], k3, v3))
-                                    elif screendict['type'] == 'ip':
-                                        masterList[count].screens.append(NetworkScreen(screendict['editable'], k3, str(v3), k2))
-                            else:
-                                screendict = determineScreenType(v2, k2, method)
-                                if screendict['type'] == 'str':
-                                    masterList[count].screens.append(StringScreen(screendict['editable'], k2, v2))
-                                elif screendict['type'] == 'ip':
-                                    masterList[count].screens.append(NetworkScreen(screendict['editable'], k2, str(v2), k1))
-                        for k2, v2 in thisData[k].iteritems():
-                            if(k2.startswith("wlan")):
-                                pass
-                            else:
-                                screendict = determineScreenType(v2, k2, method)
-                                if screendict['type'] == 'str':
-                                    masterList[count].screens.append(StringScreen(screendict['editable'], k2, v2))
-                                elif screendict['type'] == 'ip':
-                                    masterList[count].screens.append(NetworkScreen(screendict['editable'], k2, str(v2), k1))
-                        count = count + 1
-                        '''
+
             else:
                 masterList.append(Screen("subMenu", "wlan (" + k + ")", " ", k))
                 for k1, v1 in thisData[k].iteritems():
-                    masterList[count].screens.append(Screen("readOnly", k1, v1, k1))
+                    if(k1.startswith("wireless")):
+                        for k2, v2 in thisData[k][k1].iteritems():
+                            if(isinstance(v2, dict)):
+                                for k3, v3, in thisData[k][k1][k2].iteritems():
+                                    masterList[count].screens.append(StringScreen('readOnly', k3, v3))
+                            else:
+                                masterList[count].screens.append(StringScreen('readOnly', k2, v2))
+                    else:
+                        masterList[count].screens.append(Screen("readOnly", k1, v1, k1))
+
                 count = count + 1
             # '''
         else:
