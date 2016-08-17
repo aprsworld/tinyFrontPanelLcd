@@ -66,8 +66,7 @@ humanTranslations = {
     'group': 'Group',
     'ESSID': 'Extended SSID',
     'RTS thr': 'RTS Threshold',
-    'Framgent thr': 'Fragment Threshold',
-
+    'Framgent thr': 'Fragment Threshold'
 }
 
 charSetIndex = 0
@@ -79,7 +78,10 @@ thisData['config'] = autoVivify(thisData['config'])
 
 print thisData
 inView = ""
-
+# global array of interface objects
+interfaces = AutoVivification()
+# global dictionary for updating network screen values
+dataUpdateDict = AutoVivification()
 # global flag that determines level of "Directory" that we are on
 level = 1
 
@@ -126,6 +128,47 @@ def print_some_times():
         print '\n! Received keyboard interrupt, quitting threads.\n'
         return
 
+
+def update_vals():
+    """Update the values of DHCP interfaces."""
+    global thisData, interfaces
+    newData = getConfig.getData(URL)
+    print 136, interfaces
+    for name, interfaceObject in interfaces.iteritems():
+        method = thisData['config'][name]['protocol']['inet'].get('method', False)
+        if not method or not method == 'static':
+            if ":" in name:
+                parts = name.split(":")
+                thisData[parts[0]][name]['inet']['brd'] = newData[parts[0]][name]['inet']['brd']
+                dataUpdateDict[name+"_"+'brd'].updateValue(thisData[parts[0]][name]['inet']['brd'])
+                thisData[parts[0]][name]['inet']['netmask'] = newData[parts[0]][name]['inet']['netmask']
+                dataUpdateDict[name+"_"+'netmask'].updateValue(thisData[parts[0]][name]['inet']['netmask'])
+                thisData[parts[0]][name]['inet']['gateway'] = newData[parts[0]][name]['inet']['gateway']
+                dataUpdateDict[name+"_"+'gateway'].updateValue(thisData[parts[0]][name]['inet']['gateway'])
+                thisData[parts[0]][name]['inet']['address'] = newData[parts[0]][name]['inet']['address']
+                dataUpdateDict[name+"_"+'address'].updateValue(thisData[parts[0]][name]['inet']['address'])
+            else:
+                print 151, thisData[name]
+                thisData[name][name]['inet']['brd'] = newData[name][name]['inet']['brd']
+                dataUpdateDict[name+"_"+'brd'].updateValue(thisData[name][name]['inet']['brd'])
+                thisData[name][name]['inet']['netmask'] = newData[name][name]['inet']['netmask']
+                dataUpdateDict[name+"_"+'netmask'].updateValue(thisData[name][name]['inet']['netmask'])
+                thisData[name][name]['inet']['gateway'] = newData[name][name]['inet']['gateway']
+                dataUpdateDict[name+"_"+'gateway'].updateValue(thisData[name][name]['inet']['gateway'])
+                thisData[name][name]['inet']['address'] = newData[name][name]['inet']['address']
+                dataUpdateDict[name+"_"+'address'].updateValue(thisData[name][name]['inet']['address'])
+    dhcpUpdateTimer()
+
+
+def dhcpUpdateTimer():
+    """Set up timer for updating DHCP values."""
+    try:
+        t = Timer(10, update_vals)
+        t.daemon = True
+        t.start()
+    except (KeyboardInterrupt, SystemExit):
+        print '\n! Received keyboard interrupt, quitting threads.\n'
+        return
 
 # OLED I2C display, 128x32 pixels
 RST = 24
@@ -379,7 +422,7 @@ class NetworkScreen(Screen):
            This is done so that the network address can easilly be editted
         """
         # String: type of screen - "readOnly", "subMenu", "editable"
-        global humanTranslations
+        global humanTranslations, dataUpdateDict
         self.type = type
         self.screenType = "NetworkScreen"
         # String: Line one on the LCD Screen
@@ -400,7 +443,7 @@ class NetworkScreen(Screen):
         self.valueLength = 11
         self.edit = False
         self.interface = interface
-
+        dataUpdateDict[self.interface + "_" + self.dataName] = self
         # String: line Three on the LCD Screen
         # Can be either <--    Select    -->   OR   (-)    Select    (+)
         if(self.type == "readOnly"):
@@ -454,6 +497,15 @@ class NetworkScreen(Screen):
         # append everything into a network address string so that it can be shown on screen
         print(self.value)
 
+    def updateValue(self, newValue):
+        addr = newValue.split(".")
+        self.addr0 = int(addr[0])
+        self.addr1 = int(addr[1])
+        self.addr2 = int(addr[2])
+        self.addr3 = int(addr[3])
+        self.value = newValue
+        print self.value
+
     def getVal(self, addrNum):
         """get the val of the specified octet."""
         if(addrNum == 0):
@@ -481,7 +533,7 @@ class NetworkScreen(Screen):
 
 # --------------------End of NetworkScreen Class Definition -----------------------
 class StringScreen(Screen):
-    """Class for a screen with a string value. Extends String."""
+    """Class for a screen with a string value. Extends Screen class."""
 
     def __init__(self, type, title, value):
         """Our initialization for the screen stringclass."""
@@ -918,6 +970,8 @@ def createTop2():
                 for k1, v1 in thisData[k].iteritems():
                     if(k1.startswith("eth")):
                         print k1
+                        # add interface to array so that we may change it later
+                        interfaces[k1] = v1
                         masterList.append(Screen("subMenu", "Ethernet (" + k1 + ")", " ", k1))
                         if(thisData["config"].get(k1, False) is not False):
                             print thisData["config"][k1]["protocol"]["inet"].get("method", "dhcp")
@@ -955,6 +1009,8 @@ def createTop2():
                 for k1, v1 in thisData[k].iteritems():
                     if(k1.startswith("wlan")):
                         print k1
+                        # add interface to array so that we may change it later
+                        interfaces[k1] = v1
                         masterList.append(Screen("subMenu", "Wireless (" + k1 + ")", " ", k1))
                         if(thisData["config"].get(k1, False) is not False):
                             print thisData["config"][k1]["protocol"]["inet"].get("method", "dhcp")
@@ -1253,6 +1309,7 @@ def screen_select(screenNum):
 detect_edges(button_callback)
 # startup text
 screen_select(n)
+dhcpUpdateTimer()
 
 try:
     raw_input("Press Enter to quit\n>")
