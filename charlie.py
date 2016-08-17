@@ -74,6 +74,7 @@ charSetIndex = 0
 thisData = AutoVivification()
 # thisData = getConfig.getData(URL)
 thisData.update(getConfig.getData(URL))
+print thisData
 thisData['config'] = autoVivify(thisData['config'])
 
 print thisData
@@ -382,6 +383,7 @@ class NetworkScreen(Screen):
         self.type = type
         self.screenType = "NetworkScreen"
         # String: Line one on the LCD Screen
+        self.titleOrig = title
         if title in humanTranslations:
             self.title = humanTranslations[title]
         else:
@@ -473,7 +475,7 @@ class NetworkScreen(Screen):
     def changeConfig(self):
         """Change the setting in the config so that we can send it to piNetConfig."""
         global thisData
-        thisData['config'][self.interface]['protocol']['inet'][self.title] = str(self.addr0)+"."+str(self.addr1)+"."+str(self.addr2)+"."+str(self.addr3)
+        thisData['config'][self.interface]['protocol']['inet'][self.titleOrig] = str(self.addr0)+"."+str(self.addr1)+"."+str(self.addr2)+"."+str(self.addr3)
         print thisData['config']
 
 
@@ -779,6 +781,7 @@ class MethodScreen(Screen):
         elif(addorsub == 1):
             self.value = self.val1
             thisData['config'][masterList[n].interfaceType]['protocol']['inet']['method'] = self.value
+            resetFromStatic(masterList[n].interfaceType)
             for childScreen in masterList[n].screens:
                 if childScreen.screenType == 'NetworkScreen' and childScreen.title in editableSet:
                     print childScreen.type
@@ -875,10 +878,11 @@ masterList = []
 
 def resetFromStatic(interface):
     """Reset values when method changed from DHCP to Static"""
+    global thisData
     thisData['config'][interface]['protocol']['inet'].pop('address', None)
     thisData['config'][interface]['protocol']['inet'].pop('netmask', None)
     thisData['config'][interface]['protocol']['inet'].pop('gateway', None)
-
+    print thisData['config']
 
 def determineScreenType(value, title, method):
     """Determine what type of screen.
