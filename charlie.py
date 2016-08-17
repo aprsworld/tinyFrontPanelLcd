@@ -23,14 +23,14 @@ class AutoVivification(dict):
         try:
             return dict.__getitem__(self, item)
         except KeyError:
-            print 'key error lolololo'
             value = self[item] = type(self)()
             return value
 
 
 def autoVivify(d):
-    print d
+    """Turn a regular dictionary into an AutoVivification dict."""
     if isinstance(d, dict):
+        # recursive adaptation of child dictionary elements
         d = AutoVivification({k: autoVivify(v) for k, v in d.iteritems()})
     return d
 
@@ -761,7 +761,6 @@ class MethodScreen(Screen):
         print ":test"
         if(addorsub == 0):
             self.value = self.val0
-            val = masterList[n].interfaceType.encode('ascii')
             print isinstance(thisData['config'], AutoVivification)
             print type(thisData['config'])
             print thisData['config']
@@ -874,6 +873,12 @@ class confSend(Screen):
 # initializes the list that keeps track of top-level screens
 masterList = []
 
+def resetFromStatic(interface):
+    """Reset values when method changed from DHCP to Static"""
+    thisData['config'][interface]['protocol']['inet'].pop('address', None)
+    thisData['config'][interface]['protocol']['inet'].pop('netmask', None)
+    thisData['config'][interface]['protocol']['inet'].pop('gateway', None)
+
 
 def determineScreenType(value, title, method):
     """Determine what type of screen.
@@ -882,7 +887,7 @@ def determineScreenType(value, title, method):
     is an ip4 address. if not, it is assumed it is a string.
     TODO: check for boolean options.
     """
-    ip = validate.parse_ip4_address(value)
+    ip = validate.parse_ip4_addressNoVal(value)
     print ip
     screendict = {'type': 'none', 'editable': 'none'}
     print screendict

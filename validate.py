@@ -2,6 +2,33 @@
 import re
 
 
+def parse_ip4_addressNoVal(s):
+    """parse an ip4 address."""
+    # split string into octets
+    octets_s = s.split(".")
+    octets = []
+
+    # more than four octets?
+    if (len(octets_s) != 4):
+        return False
+
+    index = 0
+    # validate each octet
+    for octet in octets_s:
+
+        # validate it's actually an integer
+        if not octet.isdigit():
+            return False
+
+        # convert to integer
+        intConvert = int(octet)
+
+        octets.append(intConvert)
+        index = index + 1
+
+    return octets
+
+
 def parse_ip4_address(s):
     """parse an ip4 address."""
     # split string into octets
