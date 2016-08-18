@@ -37,7 +37,7 @@ def autoVivify(d):
 
 # URL that we are getting data from
 URL = "http://192.168.10.160/piNetConfig/current_settings.php"
-
+URL2 = "http://192.168.10.160/piNetConfig/netconfig-write.php"
 LOGO_DISPLAY_TIME = 1
 editableSet = ['gateway', 'address', 'netmask', 'ESSID', 'Extended SSID']
 charSet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
@@ -137,26 +137,35 @@ def update_vals():
     for name, interfaceObject in interfaces.iteritems():
         method = thisData['config'][name]['protocol']['inet'].get('method', False)
         if not method or not method == 'static':
+            # virtual interfaces
             if ":" in name:
                 parts = name.split(":")
-                thisData[parts[0]][name]['inet']['brd'] = newData[parts[0]][name]['inet']['brd']
-                dataUpdateDict[name+"_"+'brd'].updateValue(thisData[parts[0]][name]['inet']['brd'])
-                thisData[parts[0]][name]['inet']['netmask'] = newData[parts[0]][name]['inet']['netmask']
-                dataUpdateDict[name+"_"+'netmask'].updateValue(thisData[parts[0]][name]['inet']['netmask'])
-                thisData[parts[0]][name]['inet']['gateway'] = newData[parts[0]][name]['inet']['gateway']
-                dataUpdateDict[name+"_"+'gateway'].updateValue(thisData[parts[0]][name]['inet']['gateway'])
-                thisData[parts[0]][name]['inet']['address'] = newData[parts[0]][name]['inet']['address']
-                dataUpdateDict[name+"_"+'address'].updateValue(thisData[parts[0]][name]['inet']['address'])
+                if newData[parts[0]][name]['inet'].get('brd', False):
+                    thisData[parts[0]][name]['inet']['brd'] = newData[parts[0]][name]['inet']['brd']
+                    dataUpdateDict[name + "_" + 'brd'].updateValue(thisData[parts[0]][name]['inet']['brd'])
+                if newData[parts[0]][name]['inet'].get('netmask', False):
+                    thisData[parts[0]][name]['inet']['netmask'] = newData[parts[0]][name]['inet']['netmask']
+                    dataUpdateDict[name + "_" + 'netmask'].updateValue(thisData[parts[0]][name]['inet']['netmask'])
+                if newData[parts[0]][name]['inet'].get('gateway', False):
+                    thisData[parts[0]][name]['inet']['gateway'] = newData[parts[0]][name]['inet']['gateway']
+                    dataUpdateDict[name + "_" + 'gateway'].updateValue(thisData[parts[0]][name]['inet']['gateway'])
+                if newData[parts[0]][name]['inet'].get('address', False):
+                    thisData[parts[0]][name]['inet']['address'] = newData[parts[0]][name]['inet']['address']
+                    dataUpdateDict[name + "_" + 'address'].updateValue(thisData[parts[0]][name]['inet']['address'])
             else:
                 print 151, thisData[name]
-                thisData[name][name]['inet']['brd'] = newData[name][name]['inet']['brd']
-                dataUpdateDict[name+"_"+'brd'].updateValue(thisData[name][name]['inet']['brd'])
-                thisData[name][name]['inet']['netmask'] = newData[name][name]['inet']['netmask']
-                dataUpdateDict[name+"_"+'netmask'].updateValue(thisData[name][name]['inet']['netmask'])
-                thisData[name][name]['inet']['gateway'] = newData[name][name]['inet']['gateway']
-                dataUpdateDict[name+"_"+'gateway'].updateValue(thisData[name][name]['inet']['gateway'])
-                thisData[name][name]['inet']['address'] = newData[name][name]['inet']['address']
-                dataUpdateDict[name+"_"+'address'].updateValue(thisData[name][name]['inet']['address'])
+                if newData[name][name]['inet'].get('brd', False):
+                    thisData[name][name]['inet']['brd'] = newData[name][name]['inet']['brd']
+                    dataUpdateDict[name + "_" + 'brd'].updateValue(thisData[name][name]['inet']['brd'])
+                if newData[name][name]['inet'].get('netmask', False):
+                    thisData[name][name]['inet']['netmask'] = newData[name][name]['inet']['netmask']
+                    dataUpdateDict[name + "_" + 'netmask'].updateValue(thisData[name][name]['inet']['netmask'])
+                if newData[name][name]['inet'].get('gateway', False):
+                    thisData[name][name]['inet']['gateway'] = newData[name][name]['inet']['gateway']
+                    dataUpdateDict[name + "_" + 'gateway'].updateValue(thisData[name][name]['inet']['gateway'])
+                if newData[name][name]['inet'].get('address', False):
+                    thisData[name][name]['inet']['address'] = newData[name][name]['inet']['address']
+                    dataUpdateDict[name + "_" + 'address'].updateValue(thisData[name][name]['inet']['address'])
     dhcpUpdateTimer()
 
 
@@ -894,8 +903,9 @@ class confSend(Screen):
             print result
             if result is True:
                 # TEMPORARY
-                with open("Output.txt", "w") as text_file:
-                    text_file.write("Data: {0}".format(thisData['config']))
+                # with open("Output.txt", "w") as text_file:
+                #     text_file.write("Data: {0}".format(thisData['config']))
+                getConfig.sendConfig(URL2, thisData['config'])
                 level = 1
                 self.navigation = self.incrLine
                 draw_confirmation("Config Valid", "Config Sent", 255, 0, masterList[n])
@@ -943,6 +953,7 @@ def determineScreenType(value, title, method):
     is an ip4 address. if not, it is assumed it is a string.
     TODO: check for boolean options.
     """
+    print value
     ip = validate.parse_ip4_addressNoVal(value)
     print ip
     screendict = {'type': 'none', 'editable': 'none'}
