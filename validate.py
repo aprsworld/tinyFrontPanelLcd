@@ -274,7 +274,7 @@ def config_validate(config):
             if address and netmask:
                 print address, netmask, gateway
                 print validate_ip4(address, netmask, gateway)
-                if validate_ip4(address, netmask, gateway) == False:
+                if validate_ip4(address, netmask, gateway) is False:
                     return {'res': False, 'message': 'network address invalid'}
             elif method == "static":
                 return {'res': False, 'message': iface+' + '+protocol+' invalid'}
