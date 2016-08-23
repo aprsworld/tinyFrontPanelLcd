@@ -140,45 +140,46 @@ def update_vals():
     newData = getConfig.getData(URL)
     # print 136, interfaces
     print 137, thisData['config']
-    for name, interfaceObject in interfaces.iteritems():
-        if name in thisData['config']:
-            method = thisData['config'][name]['protocol']['inet'].get('method', False)
-            if not method or not method == 'static':
-                # virtual interfaces
-                if ":" in name:
-                    parts = name.split(":")
-                    if newData[parts[0]][name]['inet'].get('brd', False):
-                        thisData[parts[0]][name]['inet']['brd'] = newData[parts[0]][name]['inet']['brd']
-                        dataUpdateDict[name + "_" + 'brd'].updateValue(thisData[parts[0]][name]['inet']['brd'])
-                    if newData[parts[0]][name]['inet'].get('broadcast', False):
-                        thisData[parts[0]][name]['inet']['broadcast'] = newData[parts[0]][name]['inet']['broadcast']
-                        dataUpdateDict[name + "_" + 'broadcast'].updateValue(thisData[parts[0]][name]['inet']['broadcast'])
-                    if newData[parts[0]][name]['inet'].get('netmask', False):
-                        thisData[parts[0]][name]['inet']['netmask'] = newData[parts[0]][name]['inet']['netmask']
-                        dataUpdateDict[name + "_" + 'netmask'].updateValue(thisData[parts[0]][name]['inet']['netmask'])
-                    if newData[parts[0]][name]['inet'].get('gateway', False):
-                        thisData[parts[0]][name]['inet']['gateway'] = newData[parts[0]][name]['inet']['gateway']
-                        dataUpdateDict[name + "_" + 'gateway'].updateValue(thisData[parts[0]][name]['inet']['gateway'])
-                    if newData[parts[0]][name]['inet'].get('address', False):
-                        thisData[parts[0]][name]['inet']['address'] = newData[parts[0]][name]['inet']['address']
-                        dataUpdateDict[name + "_" + 'address'].updateValue(thisData[parts[0]][name]['inet']['address'])
-                else:
-                    print 151, thisData[name]
-                    if newData[name][name]['inet'].get('brd', False):
-                        thisData[name][name]['inet']['brd'] = newData[name][name]['inet']['brd']
-                        dataUpdateDict[name + "_" + 'brd'].updateValue(thisData[name][name]['inet']['brd'])
-                    if newData[name][name]['inet'].get('broadcast', False):
-                        thisData[name][name]['inet']['broadcast'] = newData[name][name]['inet']['broadcast']
-                        dataUpdateDict[name + "_" + 'broadcast'].updateValue(thisData[name][name]['inet']['broadcast'])
-                    if newData[name][name]['inet'].get('netmask', False):
-                        thisData[name][name]['inet']['netmask'] = newData[name][name]['inet']['netmask']
-                        dataUpdateDict[name + "_" + 'netmask'].updateValue(thisData[name][name]['inet']['netmask'])
-                    if newData[name][name]['inet'].get('gateway', False):
-                        thisData[name][name]['inet']['gateway'] = newData[name][name]['inet']['gateway']
-                        dataUpdateDict[name + "_" + 'gateway'].updateValue(thisData[name][name]['inet']['gateway'])
-                    if newData[name][name]['inet'].get('address', False):
-                        thisData[name][name]['inet']['address'] = newData[name][name]['inet']['address']
-                        dataUpdateDict[name + "_" + 'address'].updateValue(thisData[name][name]['inet']['address'])
+    if not level == 3:
+        for name, interfaceObject in interfaces.iteritems():
+            if name in thisData['config']:
+                method = thisData['config'][name]['protocol']['inet'].get('method', False)
+                if not method or not method == 'static':
+                    # virtual interfaces
+                    if ":" in name:
+                        parts = name.split(":")
+                        if newData[parts[0]][name]['inet'].get('brd', False):
+                            thisData[parts[0]][name]['inet']['brd'] = newData[parts[0]][name]['inet']['brd']
+                            dataUpdateDict[name + "_" + 'brd'].updateValue(thisData[parts[0]][name]['inet']['brd'])
+                        if newData[parts[0]][name]['inet'].get('broadcast', False):
+                            thisData[parts[0]][name]['inet']['broadcast'] = newData[parts[0]][name]['inet']['broadcast']
+                            dataUpdateDict[name + "_" + 'broadcast'].updateValue(thisData[parts[0]][name]['inet']['broadcast'])
+                        if newData[parts[0]][name]['inet'].get('netmask', False):
+                            thisData[parts[0]][name]['inet']['netmask'] = newData[parts[0]][name]['inet']['netmask']
+                            dataUpdateDict[name + "_" + 'netmask'].updateValue(thisData[parts[0]][name]['inet']['netmask'])
+                        if newData[parts[0]][name]['inet'].get('gateway', False):
+                            thisData[parts[0]][name]['inet']['gateway'] = newData[parts[0]][name]['inet']['gateway']
+                            dataUpdateDict[name + "_" + 'gateway'].updateValue(thisData[parts[0]][name]['inet']['gateway'])
+                        if newData[parts[0]][name]['inet'].get('address', False):
+                            thisData[parts[0]][name]['inet']['address'] = newData[parts[0]][name]['inet']['address']
+                            dataUpdateDict[name + "_" + 'address'].updateValue(thisData[parts[0]][name]['inet']['address'])
+                    else:
+                        print 151, thisData[name]
+                        if newData[name][name]['inet'].get('brd', False):
+                            thisData[name][name]['inet']['brd'] = newData[name][name]['inet']['brd']
+                            dataUpdateDict[name + "_" + 'brd'].updateValue(thisData[name][name]['inet']['brd'])
+                        if newData[name][name]['inet'].get('broadcast', False):
+                            thisData[name][name]['inet']['broadcast'] = newData[name][name]['inet']['broadcast']
+                            dataUpdateDict[name + "_" + 'broadcast'].updateValue(thisData[name][name]['inet']['broadcast'])
+                        if newData[name][name]['inet'].get('netmask', False):
+                            thisData[name][name]['inet']['netmask'] = newData[name][name]['inet']['netmask']
+                            dataUpdateDict[name + "_" + 'netmask'].updateValue(thisData[name][name]['inet']['netmask'])
+                        if newData[name][name]['inet'].get('gateway', False):
+                            thisData[name][name]['inet']['gateway'] = newData[name][name]['inet']['gateway']
+                            dataUpdateDict[name + "_" + 'gateway'].updateValue(thisData[name][name]['inet']['gateway'])
+                        if newData[name][name]['inet'].get('address', False):
+                            thisData[name][name]['inet']['address'] = newData[name][name]['inet']['address']
+                            dataUpdateDict[name + "_" + 'address'].updateValue(thisData[name][name]['inet']['address'])
     print 137, thisData['config']
     dhcpUpdateTimer()
 
@@ -1442,7 +1443,7 @@ try:
 
 except KeyboardInterrupt:
     GPIO.cleanup()	   # clean up GPIO on CTRL+C exit
-    draw_text('Interrupted...')
 
+print "done"
 GPIO.cleanup()		   # clean up GPIO on normal exit
 draw_screen('Program ended', "", "", 200, 0)
