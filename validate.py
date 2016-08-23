@@ -251,7 +251,7 @@ def config_validate(config):
             if not protocol == "inet":
                 return {'res': False, 'message': 'protocol not equal to inet'}
             if "method" not in pconfig:
-                return {'res': False, 'message': pconfig + ' lacks method'}
+                return {'res': False, 'message': protocol + ' lacks method'}
             method = pconfig['method']
             if not method == "static" and not method == "dhcp" and not method == "loopback":
                 # TODO echo warning on screen

@@ -16,9 +16,11 @@ import validate
 from threading import Timer
 from collections import defaultdict
 
+
 # define tree data structure to make our life easier
 class AutoVivification(dict):
     """Implementation of perl's autovivification feature."""
+
     def __getitem__(self, item):
         try:
             return dict.__getitem__(self, item)
@@ -37,9 +39,12 @@ def autoVivify(d):
 
 # URL that we are getting data from
 URL = "http://192.168.10.160/piNetConfig/current_settings.php"
+# URL = "http://localhost/piNetConfig/current_settings.php"
 URL2 = "http://192.168.10.160/piNetConfig/netconfig-write.php"
+# URL2 = "http://localhost/piNetConfig/netconfig-write.php"
+
 LOGO_DISPLAY_TIME = 1
-editableSet = ['gateway', 'address', 'netmask', 'ESSID', 'Extended SSID']
+editableSet = ['gateway', 'address', 'netmask', 'ESSID', 'Extended SSID', 'mtu', 'Maximum Trans Unit']
 charSet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
 
@@ -133,39 +138,48 @@ def update_vals():
     """Update the values of DHCP interfaces."""
     global thisData, interfaces
     newData = getConfig.getData(URL)
-    print 136, interfaces
+    # print 136, interfaces
+    print 137, thisData['config']
     for name, interfaceObject in interfaces.iteritems():
-        method = thisData['config'][name]['protocol']['inet'].get('method', False)
-        if not method or not method == 'static':
-            # virtual interfaces
-            if ":" in name:
-                parts = name.split(":")
-                if newData[parts[0]][name]['inet'].get('brd', False):
-                    thisData[parts[0]][name]['inet']['brd'] = newData[parts[0]][name]['inet']['brd']
-                    dataUpdateDict[name + "_" + 'brd'].updateValue(thisData[parts[0]][name]['inet']['brd'])
-                if newData[parts[0]][name]['inet'].get('netmask', False):
-                    thisData[parts[0]][name]['inet']['netmask'] = newData[parts[0]][name]['inet']['netmask']
-                    dataUpdateDict[name + "_" + 'netmask'].updateValue(thisData[parts[0]][name]['inet']['netmask'])
-                if newData[parts[0]][name]['inet'].get('gateway', False):
-                    thisData[parts[0]][name]['inet']['gateway'] = newData[parts[0]][name]['inet']['gateway']
-                    dataUpdateDict[name + "_" + 'gateway'].updateValue(thisData[parts[0]][name]['inet']['gateway'])
-                if newData[parts[0]][name]['inet'].get('address', False):
-                    thisData[parts[0]][name]['inet']['address'] = newData[parts[0]][name]['inet']['address']
-                    dataUpdateDict[name + "_" + 'address'].updateValue(thisData[parts[0]][name]['inet']['address'])
-            else:
-                print 151, thisData[name]
-                if newData[name][name]['inet'].get('brd', False):
-                    thisData[name][name]['inet']['brd'] = newData[name][name]['inet']['brd']
-                    dataUpdateDict[name + "_" + 'brd'].updateValue(thisData[name][name]['inet']['brd'])
-                if newData[name][name]['inet'].get('netmask', False):
-                    thisData[name][name]['inet']['netmask'] = newData[name][name]['inet']['netmask']
-                    dataUpdateDict[name + "_" + 'netmask'].updateValue(thisData[name][name]['inet']['netmask'])
-                if newData[name][name]['inet'].get('gateway', False):
-                    thisData[name][name]['inet']['gateway'] = newData[name][name]['inet']['gateway']
-                    dataUpdateDict[name + "_" + 'gateway'].updateValue(thisData[name][name]['inet']['gateway'])
-                if newData[name][name]['inet'].get('address', False):
-                    thisData[name][name]['inet']['address'] = newData[name][name]['inet']['address']
-                    dataUpdateDict[name + "_" + 'address'].updateValue(thisData[name][name]['inet']['address'])
+        if name in thisData['config']:
+            method = thisData['config'][name]['protocol']['inet'].get('method', False)
+            if not method or not method == 'static':
+                # virtual interfaces
+                if ":" in name:
+                    parts = name.split(":")
+                    if newData[parts[0]][name]['inet'].get('brd', False):
+                        thisData[parts[0]][name]['inet']['brd'] = newData[parts[0]][name]['inet']['brd']
+                        dataUpdateDict[name + "_" + 'brd'].updateValue(thisData[parts[0]][name]['inet']['brd'])
+                    if newData[parts[0]][name]['inet'].get('broadcast', False):
+                        thisData[parts[0]][name]['inet']['broadcast'] = newData[parts[0]][name]['inet']['broadcast']
+                        dataUpdateDict[name + "_" + 'broadcast'].updateValue(thisData[parts[0]][name]['inet']['broadcast'])
+                    if newData[parts[0]][name]['inet'].get('netmask', False):
+                        thisData[parts[0]][name]['inet']['netmask'] = newData[parts[0]][name]['inet']['netmask']
+                        dataUpdateDict[name + "_" + 'netmask'].updateValue(thisData[parts[0]][name]['inet']['netmask'])
+                    if newData[parts[0]][name]['inet'].get('gateway', False):
+                        thisData[parts[0]][name]['inet']['gateway'] = newData[parts[0]][name]['inet']['gateway']
+                        dataUpdateDict[name + "_" + 'gateway'].updateValue(thisData[parts[0]][name]['inet']['gateway'])
+                    if newData[parts[0]][name]['inet'].get('address', False):
+                        thisData[parts[0]][name]['inet']['address'] = newData[parts[0]][name]['inet']['address']
+                        dataUpdateDict[name + "_" + 'address'].updateValue(thisData[parts[0]][name]['inet']['address'])
+                else:
+                    print 151, thisData[name]
+                    if newData[name][name]['inet'].get('brd', False):
+                        thisData[name][name]['inet']['brd'] = newData[name][name]['inet']['brd']
+                        dataUpdateDict[name + "_" + 'brd'].updateValue(thisData[name][name]['inet']['brd'])
+                    if newData[name][name]['inet'].get('broadcast', False):
+                        thisData[name][name]['inet']['broadcast'] = newData[name][name]['inet']['broadcast']
+                        dataUpdateDict[name + "_" + 'broadcast'].updateValue(thisData[name][name]['inet']['broadcast'])
+                    if newData[name][name]['inet'].get('netmask', False):
+                        thisData[name][name]['inet']['netmask'] = newData[name][name]['inet']['netmask']
+                        dataUpdateDict[name + "_" + 'netmask'].updateValue(thisData[name][name]['inet']['netmask'])
+                    if newData[name][name]['inet'].get('gateway', False):
+                        thisData[name][name]['inet']['gateway'] = newData[name][name]['inet']['gateway']
+                        dataUpdateDict[name + "_" + 'gateway'].updateValue(thisData[name][name]['inet']['gateway'])
+                    if newData[name][name]['inet'].get('address', False):
+                        thisData[name][name]['inet']['address'] = newData[name][name]['inet']['address']
+                        dataUpdateDict[name + "_" + 'address'].updateValue(thisData[name][name]['inet']['address'])
+    print 137, thisData['config']
     dhcpUpdateTimer()
 
 
@@ -416,6 +430,96 @@ class Screen:
 # --------------------End of Screen Class Definition -----------------------
 
 
+class IntScreen(Screen):
+    """A number screen class. Extends Screen."""
+    def __init__(self, type, title, value, interface):
+        """
+        initialization for the intScreen subclass.
+
+        """
+
+        global humanTranslations
+        self.type = type
+        self.screenType = "IntScreen"
+        self.titleOrig = title
+        self.interface = interface
+        if title in humanTranslations:
+            self.title = humanTranslations[title]
+        else:
+            self.title = title
+        self.dataName = title
+        self.valueLength = len(str(value)) - 1
+        self.value = self.formatVal(value)
+        if(self.type == "readOnly"):
+            self.navigation = self.navLine
+        elif(self.type == "subMenu"):
+            self.navigation = self.navLine
+        else:
+            self.navigation = self.incrLine
+
+    def editVal(self, index, addorsub):
+        """Edits the integer value of this screen."""
+        if index is 0:
+            addAmt = 1000
+        elif index is 1:
+            addAmt = 100
+        elif index is 2:
+            addAmt = 10
+        elif index is 3:
+            addAmt = 1
+
+        if(addorsub == 0):
+            addAmt = addAmt * -1
+        if(addorsub == 2):
+            addAmt = 0
+        value = int(self.value)
+        if(not value == 0):
+            if(int(value) > 9999):
+                print value
+                value = value % 1000
+            thous = (value / 1000) * 1000
+            hunds = ((value - thous) / 100) * 100
+            tens = ((value - thous - hunds) / 10) * 10
+            ones = ((value - thous - hunds - tens) / 1) * 1
+        else:
+            hunds = 0
+            tens = 0
+            ones = 0
+        print hunds, tens, ones
+        value = value + addAmt
+        if(value > 9999):
+            if(addAmt == 1000):
+                value = 0 + hunds + tens + ones
+            if(addAmt == 100):
+                value = 0 + tens + ones
+            elif(addAmt == 10):
+                value = 0 + ones
+            else:
+                value = 0
+        elif(value < 0):
+            if(addAmt == -1000):
+                value = 9000 + hunds + tens + ones
+            elif(addAmt == -100):
+                value = 9000 + tens + ones
+            elif(addAmt == -10):
+                value = 9000 + ones
+        self.value = self.formatVal(str(value))
+        self.displayEdit(index, 6)
+
+    def changeConfig(self):
+        """Change the setting in the config so that we can send it to piNetConfig."""
+        global thisData
+        print thisData['config']
+        thisData['config'][self.interface]['protocol']['inet'][self.titleOrig] = str(self.value)
+        print thisData['config']
+
+    def formatVal(self, val):
+        """append spaces on to beginning of addresses."""
+        length = len(val)
+        for x in range(length, 4):
+            val = " " + val
+        return val
+
 class NetworkScreen(Screen):
     """A networking screen class. Extends Screen."""
 
@@ -536,6 +640,7 @@ class NetworkScreen(Screen):
     def changeConfig(self):
         """Change the setting in the config so that we can send it to piNetConfig."""
         global thisData
+        print thisData['config']
         thisData['config'][self.interface]['protocol']['inet'][self.titleOrig] = str(self.addr0)+"."+str(self.addr1)+"."+str(self.addr2)+"."+str(self.addr3)
         print thisData['config']
 
@@ -594,8 +699,6 @@ class StringScreen(Screen):
         self.displayEdit(index, 6)
 
 # --------------------End of StringScreen Class Definition -----------------------
-
-
 class DateTimeScreen(Screen):
     """Class for dateTime screens. Extends Screen."""
 
@@ -831,12 +934,12 @@ class MethodScreen(Screen):
             print thisData
             # thisData['config'][masterList[n].interfaceType]['protocol']['inet'].update({'method': self.value})
             for childScreen in masterList[n].screens:
-                if childScreen.screenType == 'NetworkScreen' and childScreen.dataName in editableSet:
+                if (childScreen.screenType == 'NetworkScreen' or childScreen.screenType == 'IntScreen') and childScreen.dataName in editableSet:
                     print childScreen.type
                     if(self.value == self.val0):
                         childScreen.changeType("editable", self.incrLine)
                     elif(self.value == self.val1):
-                        childScreen.changeType("editable", self.navLine)
+                        childScreen.changeType("readOnly", self.navLine)
                     print childScreen.type
 
         elif(addorsub == 1):
@@ -844,7 +947,7 @@ class MethodScreen(Screen):
             thisData['config'][masterList[n].interfaceType]['protocol']['inet']['method'] = self.value
             resetFromStatic(masterList[n].interfaceType)
             for childScreen in masterList[n].screens:
-                if childScreen.screenType == 'NetworkScreen' and childScreen.title in editableSet:
+                if (childScreen.screenType == 'NetworkScreen' or childScreen.screenType == 'IntScreen') and childScreen.title in editableSet:
                     print childScreen.type
 
                     if(self.value == self.val0):
@@ -899,6 +1002,7 @@ class confSend(Screen):
     def editVal(self, index, addorsub):
         global level
         if(addorsub == 0):
+            print thisData['config']
             result = validate.config_validate(thisData['config'])
             print result
             if result is True:
@@ -908,8 +1012,8 @@ class confSend(Screen):
                 getConfig.sendConfig(URL2, thisData['config'])
                 level = 1
                 self.navigation = self.incrLine
-                draw_confirmation("Config Valid", "Config Sent", 255, 0, masterList[n])
-                print thisData['config']
+                draw_confirmation("Sent valid config", "RESTARTING", 255, 0, masterList[n])
+                # print thisData['config']
             else:
                 level = 1
                 print result
@@ -955,11 +1059,14 @@ def determineScreenType(value, title, method):
     """
     print value
     ip = validate.parse_ip4_addressNoVal(value)
+    isNumeric = value.isnumeric()
     print ip
     screendict = {'type': 'none', 'editable': 'none'}
     print screendict
     if ip:
         screendict['type'] = 'ip'
+    elif isNumeric:
+        screendict['type'] = 'num'
     else:
         screendict['type'] = 'str'
     if title in editableSet and method == "static":
@@ -996,6 +1103,8 @@ def createTop2():
                                 masterList[count].screens.append(StringScreen(screendict['editable'], k2, v2))
                             elif screendict['type'] == 'ip':
                                 masterList[count].screens.append(NetworkScreen(screendict['editable'], k2, str(v2), k1))
+                            elif screendict['type'] == 'num':
+                                masterList[count].screens.append(IntScreen(screendict['editable'], k2, str(v2), k1))
                         for k2, v2 in thisData[k].iteritems():
                             if(k2.startswith("eth")):
                                 pass
@@ -1005,6 +1114,8 @@ def createTop2():
                                     masterList[count].screens.append(StringScreen(screendict['editable'], k2, v2))
                                 elif screendict['type'] == 'ip':
                                     masterList[count].screens.append(NetworkScreen(screendict['editable'], k2, str(v2), k1))
+                                elif screendict['type'] == 'num':
+                                    masterList[count].screens.append(IntScreen(screendict['editable'], k2, str(v2), k1))
 
                         count = count + 1
             else:
@@ -1035,6 +1146,8 @@ def createTop2():
                                 masterList[count].screens.append(StringScreen(screendict['editable'], k2, v2))
                             elif screendict['type'] == 'ip':
                                 masterList[count].screens.append(NetworkScreen(screendict['editable'], k2, str(v2), k1))
+                            elif screendict['type'] == 'num':
+                                masterList[count].screens.append(IntScreen(screendict['editable'], k2, str(v2), k1))
                         for k2, v2 in thisData[k].iteritems():
                             print k2
                             if(k2.startswith("wlan")):
@@ -1052,6 +1165,8 @@ def createTop2():
                                     masterList[count].screens.append(StringScreen(screendict['editable'], k2, v2))
                                 elif screendict['type'] == 'ip':
                                     masterList[count].screens.append(NetworkScreen(screendict['editable'], k2, str(v2), k1))
+                                elif screendict['type'] == 'num':
+                                    masterList[count].screens.append(IntScreen(screendict['editable'], k2, str(v2), k1))
 
                         count = count + 1
 
