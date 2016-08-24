@@ -45,12 +45,13 @@ URL2 = "http://localhost/piNetConfig/netconfig.php"
 
 LOGO_DISPLAY_TIME = 1
 editableSet = ['gateway', 'address', 'netmask', 'ESSID', 'Extended SSID', 'mtu', 'Maximum Trans Unit']
-charSet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+charSetPass = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
 
-charSetPass = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-               'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-               '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+charSet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+           'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+           '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '$', '@', '^', '`', '|', '%', ';', '.', '~', '(', ')', '/', '{', '}',
+           ':', '?', '[', ']', '=', '-', '+', '_', '#', '!']
 
 humanTranslations = {
     'method': 'Addressing Method',
@@ -678,6 +679,11 @@ class StringScreen(Screen):
 
     def editVal(self, index, addorsub):
         global charSet, charSetIndex
+        word = self.value
+        print "|"+word[index - 1:index]+"|"
+        if(word[index - 1:index] == ''):
+            self.childIndex = self.valueLength
+            return
         if(charSetIndex > len(charSet) - 1):
             charSetIndex = 0
         if(charSetIndex < 0):
@@ -689,10 +695,12 @@ class StringScreen(Screen):
             return
         else:
             addAmt = 1
-        charSetIndex = charSetIndex + addAmt
-        print 'test'
+
+        try:
+            charSetIndex = charSet.index(word[index]) + addAmt
+        except:
+            charSetIndex = 0 + addAmt
         char = charSet[charSetIndex]
-        word = self.value
         word = word[:index] + char + word[index + 1:]
         self.value = word
         self.displayEdit(index, 6)
