@@ -690,7 +690,7 @@ class StringScreen(Screen):
         else:
             addAmt = 1
         charSetIndex = charSetIndex + addAmt
-
+        print 'test'
         char = charSet[charSetIndex]
         word = self.value
         word = word[:index] + char + word[index + 1:]
