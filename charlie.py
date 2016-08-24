@@ -1141,6 +1141,7 @@ def iterateWireless(key):
     print topKeys
     if len(topKeys) > 0:
         for interface in topKeys:
+            interfaces[interface] = thisData[key][interface]
             # interfaces[interface] = thisData[key][interface]
             masterList.append(Screen("subMenu", "wlan (" + interface + ")", " ", interface))
             # get inet method
@@ -1164,19 +1165,33 @@ def iterateWireless(key):
                 else:
                     masterList[screenCreationCnt].screens.append(StringScreen('readOnly', setting, value))
             # add global wlan settings
+            for generalSetting in thisData[key]:
+                if isinstance(thisData[key][generalSetting], AutoVivification):
+                    pass
+                elif isinstance(thisData[key][generalSetting], dict):
+                    pass
+                else:
+                    masterList[screenCreationCnt].screens.append(StringScreen('readOnly', generalSetting, thisData[key][generalSetting]))
             screenCreationCnt += 1
     else:
         masterList.append(Screen("subMenu", "wlan (" + key + ")", " ", key))
-        masterList[screenCreationCnt].screens.append(MethodScreen("editable", "method", "dhcp", "static", "dhcp"))
+        masterList[screenCreationCnt].screens.append(MethodScreen("editable", "method", "Not Set", "static", "dhcp"))
         masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "address", "0.0.0.0", key))
         masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "netmask", "0.0.0.0", key))
         masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "gateway", "0.0.0.0", key))
         # add settings screens from wireless block
         for setting in thisData[key]['wireless']['settings']:
             if setting.lower() == 'essid':
-                masterList[screenCreationCnt].screens.append(StringScreen('readOnly', setting, thisData[key]['wireless']['settings'][setting]))
+                masterList[screenCreationCnt].screens.append(StringScreen('editable', setting, thisData[key]['wireless']['settings'][setting]))
             else:
                 masterList[screenCreationCnt].screens.append(StringScreen('readOnly', setting, thisData[key]['wireless']['settings'][setting]))
+        for generalSetting in thisData[key]:
+            if isinstance(thisData[key][generalSetting], AutoVivification):
+                pass
+            elif isinstance(thisData[key][generalSetting], dict):
+                pass
+            else:
+                masterList[screenCreationCnt].screens.append(StringScreen('readOnly', generalSetting, thisData[key][generalSetting]))
         screenCreationCnt += 1
 
 
@@ -1186,6 +1201,7 @@ def iterateEthernet(key):
     blacklistSet = ['address', 'gateway', 'netmask']
     if len(topKeys) > 0:
         for interface in topKeys:
+            interfaces[interface] = thisData[key][interface]
             # interfaces[interface] = thisData[key][interface]
             masterList.append(Screen("subMenu", "Ethernet (" + interface + ")", " ", interface))
             # get inet method
