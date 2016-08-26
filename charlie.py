@@ -107,6 +107,7 @@ def setReady():
 # timer to change screen once device is ready
 Timer(LOGO_DISPLAY_TIME, setReady).start()
 charlieimage.dispLogo()
+ssidList = getConfig.getID_List(URL3)
 
 # pauses program while stuff is being set up
 while(not ready):
@@ -1414,7 +1415,7 @@ wlanVirtCount = 0
 ethVirtCount = 0
 
 def iterateWireless(key):
-    global masterList, thisData, screenCreationCnt, logicalCandidates, virtualCandidates, wlanVirtCount
+    global masterList, thisData, screenCreationCnt, logicalCandidates, virtualCandidates, wlanVirtCount, ssidListGlobal
     topKeys = list(k for k, v in thisData[key].iteritems() if 'wlan' in k.lower())
     print topKeys
     # add ability to create a virtual interface using
@@ -1433,10 +1434,14 @@ def iterateWireless(key):
             masterList[screenCreationCnt].screens.append(MethodScreen("editable", "method", method, "static", "dhcp"))
             # get rest of inet settings
             # if statement format is:
-            # create screen with json data        if     statement data exists     else      create screen with default data
+            # create screen with json data        if     statement data exists     else      create screen with default dat
+
             masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "address", thisData[key][interface]["inet"]["address"], interface)) if thisData[key][interface]["inet"].get("address", False) else masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "address", "0.0.0.0", interface))
             masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "gateway", thisData[key][interface]["inet"]["gateway"], interface)) if thisData[key][interface]["inet"].get("gateway", False) else masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "gateway", "0.0.0.0", interface))
             masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "netmask", thisData[key][interface]["inet"]["netmask"], interface)) if thisData[key][interface]["inet"].get("netmask", False) else masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "netmask", "0.0.0.0", interface))
+            masterList[screenCreationCnt].screens.append(SsidChooser('editable', 'wpa-ssid', ssidListGlobal, thisData[key][interface]["inet"]["wpa-ssid"], interface)) if thisData[key][interface]["inet"].get("wpa-ssid", False) else masterList[screenCreationCnt].screens.append(SsidChooser('editable', 'wpa-ssid', ssidList, interface))
+            masterList[screenCreationCnt].screens.append(WifiCreds('editable', 'wpa-psk', 'zestopenguim', thisData[key][interface]["inet"]["wpa-psk"], interface)) if thisData[key][interface]["inet"].get("wpa-psk", False) else masterList[screenCreationCnt].screens.append(WifiCreds('editable', 'wpa-psk', 'zestopenguim', interface))
+
             # masterList[screenCreationCnt].screens.append(StringScreen('readOnly', "scope", thisData[key][interface]["inet"]["scope"], interface)) if thisData[key][interface]["inet"].get("netmask", False) else masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "scope", "Unknown", interface))
 
             # add settings screens from wireless block
