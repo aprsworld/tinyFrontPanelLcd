@@ -138,10 +138,11 @@ def print_some_times():
 
 def update_vals():
     """Update the values of DHCP interfaces."""
-    global thisData, interfaces
+    global thisData, interfaces, ssidListGlobal, URL3
     newData = getConfig.getData(URL)
     # print 136, interfaces
     if not level == 3:
+        '''
         for name, interfaceObject in interfaces.iteritems():
             if name in thisData['config']:
                 method = thisData['config'][name]['protocol']['inet'].get('method', False)
@@ -181,6 +182,9 @@ def update_vals():
                         if newData[name][name]['inet'].get('address', False):
                             thisData[name][name]['inet']['address'] = newData[name][name]['inet']['address']
                             dataUpdateDict[name + "_" + 'address'].updateValue(thisData[name][name]['inet']['address'])
+    '''
+    ssidListGlobal = getConfig.getID_List(URL3)
+    print ssidListGlobal
     dhcpUpdateTimer()
 
 
@@ -1024,9 +1028,18 @@ class SsidChooser(ListScreen):
             self.navigation = self.navLine
         else:
             self.navigation = self.incrLine
+
     def changeConfig(self):
         global thisData
         thisData['config'][self.interface]['protocol']['inet'][self.titleOrig] = self.value
+
+    def screenChosen(self):
+        """Screen is chosen - sets child index to zero and displays first child."""
+        print("screenChosen " + self.title)
+        self.valsList = ssidListGlobal
+        self.valueLength = len(ssidListGlobal)
+        self.childIndex = 0
+        self.screens[self.childIndex].displayThis()
 
 class VirtualInterfaceAdd(ListScreen):
     def changeConfig(self):

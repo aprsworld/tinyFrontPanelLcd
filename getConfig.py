@@ -17,8 +17,16 @@ def sendConfig(url, data):
     response = urllib2.urlopen(req, json.dumps({"config":data}))
     print response.read()
 
+def getAllID(url):
+    """gets list of current ssids."""
+    data = urllib.urlopen(url).read()
+    output = json.loads(data)
+    return output
+
 def getID_List(url):
     """gets list of current ssids."""
     data = urllib.urlopen(url).read()
     output = json.loads(data)
     return output[output.keys()[0]].keys()
+
+print getAllID("http://localhost/piNetConfig/netconfig-scan.php")
