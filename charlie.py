@@ -304,16 +304,18 @@ def button_callback(channel):
         elif(channel == 18):
             this.editVal(this.childIndex, 0)
         elif(channel == 27):
-            if(curIndex < this.valueLength and "BooleanScreen" != this.screenType):
+            print this.childIndex, this.valueLength
+            if(curIndex < this.valueLength and "BooleanScreen" != this.screenType and "ListScreen" != this.screenType):
                 this.childIndex = this.childIndex + 1
                 this.editVal(this.childIndex, 2)
                 charSetIndex = 0
             elif "confScreen" == this.screenType:
                 this.navigation = this.incrLine
             else:
+
                 this.edit = False
                 this.childIndex = 0
-                if(hasattr(this, 'interface')):
+                if(hasattr(this, 'interface') or this.screenType == "ListScreen") or this.screenType == "StringScreen":
                     this.changeConfig()
                 this.navigation = this.incrLine
                 this.displayThis()
@@ -388,6 +390,10 @@ class Screen:
         """Initialize the submenus for this screen."""
         self.screens = screens
 
+    def prependScreenList(self, screen):
+        "add screen to beginning of screen list"
+        self.screens.insert(0, screen)
+
     def displayThis(self):
         """Draw our screen."""
         global inView
@@ -422,6 +428,8 @@ class Screen:
         print("screenChosen " + self.title)
         self.childIndex = 0
         self.screens[self.childIndex].displayThis()
+    def getTitle(self):
+        return self.interfaceType
 
     def changeType(self, type, navigation):
         self.type = type
@@ -681,7 +689,7 @@ class StringScreen(Screen):
         global charSet, charSetIndex
         word = self.value
         print "|"+word[index - 1:index]+"|"
-        if(word[index - 1:index] == ''):
+        if(word[index - 1:index] == '' and index != 0):
             self.childIndex = self.valueLength
             return
         if(charSetIndex > len(charSet) - 1):
@@ -695,7 +703,6 @@ class StringScreen(Screen):
             return
         else:
             addAmt = 1
-
         try:
             charSetIndex = charSet.index(word[index]) + addAmt
         except:
@@ -704,6 +711,43 @@ class StringScreen(Screen):
         word = word[:index] + char + word[index + 1:]
         self.value = word
         self.displayEdit(index, 6)
+
+class WifiCreds(StringScreen):
+    def __init__(self, type, title, value, interface):
+        """Our initialization for the screen stringclass."""
+        # String: type of screen - "readOnly", "subMenu", "editable"
+        global humanTranslations
+        self.type = type
+        self.screenType = "StringScreen"
+        # String: Line one on the LCD Screen
+        if title in humanTranslations:
+            self.title = humanTranslations[title]
+        else:
+            self.title = title
+        self.dataName = title
+
+        # String: line two on the LCD Screen
+        self.childIndex = 0
+        self.value = value
+        self.valueLength = 18
+        self.edit = False
+        self.interface = interface
+        self.titleOrig = title
+        # String: line Three on the LCD Screen
+        # Can be either <--    Select    -->   OR   (-)    Select    (+)
+        if(self.type == "readOnly"):
+            self.navigation = self.navLine
+        elif(self.type == "subMenu"):
+            self.navigation = self.navLine
+        else:
+            self.navigation = self.incrLine
+
+    def changeConfig(self):
+        """Change the setting in the config so that we can send it to piNetConfig."""
+        global thisData
+        print thisData['config']
+        thisData['config'][self.interface]['protocol']['inet'][self.titleOrig] = '\"'+self.value+'\"'
+        print thisData['config']
 
 # --------------------End of StringScreen Class Definition -----------------------
 class DateTimeScreen(Screen):
@@ -857,26 +901,221 @@ class DateTimeScreen(Screen):
         else:
             print('else')
 
+class ListScreen(Screen):
+    """Class for more than two options. extends screen."""
 
-# ------------------End of DateTimeScreen Class Definition ---------------------
-class BooleanScreen(Screen):
-    """Class for true/false options screens. Extends Screen."""
-
-    def __init__(self, type, title, value, val0, val1):
-        """Our initialization for the screen stringclass."""
-        # String: type of screen - "readOnly", "subMenu", "editable"
+    def __init__(self, type, title, valsList):
+        """Our initialization for the screen list class."""
         global humanTranslations
         self.type = type
-        self.screenType = "BooleanScreen"
+        self.screenType = "ListScreen"
         self.valueLength = 0
-        # String: Line one on the LCD Screen
         if title in humanTranslations:
             self.title = humanTranslations[title]
         else:
             self.title = title
         self.dataName = title
 
-        # String: line two on the LCD Screen
+        self.childIndex = 0
+        self.value = valsList[self.childIndex]
+        self.valList = valsList
+        self.editLine = "Prev   Choose   Next"
+        if(self.type == "readOnly"):
+            self.navigation = self.navLine
+        elif(self.type == "subMenu"):
+            self.navigation = self.navLine
+        else:
+            self.navigation = self.incrLine
+
+    def editVal(self, index, addorsub):
+        print self.valList, self.childIndex, addorsub, len(self.valList)
+        if(addorsub == 0):
+            self.childIndex += -1
+            if(self.childIndex < 0):
+                self.childIndex = len(self.valList) - 1
+        elif(addorsub == 1):
+            self.childIndex += 1
+            if(self.childIndex > len(self.valList) - 1):
+                self.childIndex = 0
+        elif(addorsub == 2):
+            # create interface
+            pass
+        print self.valList, self.childIndex
+
+        self.value = self.valList[self.childIndex]
+
+        self.displayEdit(index, 6)
+
+
+class LogicalInterfaceAdd(ListScreen):
+    def changeConfig(self):
+        global masterList, screenCreationCnt, maxn, wlanVirtCount, ethVirtCount
+        """Change the setting in the config so that we can send it to piNetConfig."""
+        global thisData
+        print thisData['config']
+        if self.value == 'Go back to main menu':
+            pass
+        else:
+            if(self.value.startswith("wlan")):
+                thisname = self.value
+                thisData['config'][thisname]['protocol']['inet']['method'] = "dhcp"
+                thisData['config'][thisname]['allow'] = ["auto", "hotplug"]
+                thisData['config'][thisname]['protocol']['inet']['wpa-scan-ssid'] = "1"
+                thisData['config'][thisname]['protocol']['inet']['wpa-ap-scan'] = "1"
+
+                newMethod = MethodScreen("editable", "method", "dhcp", "static", "dhcp")
+                newAddress = NetworkScreen('readOnly', "address", "0.0.0.0", thisname)
+                newNetmask = NetworkScreen('readOnly', "netmask", "0.0.0.0", thisname)
+                newGateway = NetworkScreen('readOnly', "gateway", "0.0.0.0", thisname)
+                newSSID = WifiCreds('editable', 'wpa-ssid', 'aprsworlc', self.value)
+                newPSK = WifiCreds('editable', 'wpa-psk', 'zestopenguim', self.value)
+
+                try:
+                    for i, entry in enumerate(masterList):
+                        print i, entry.getTitle()
+                        if(entry.getTitle() == self.value):
+                            entry.prependScreenList(newMethod)
+                            entry.prependScreenList(newAddress)
+                            entry.prependScreenList(newNetmask)
+                            entry.prependScreenList(newGateway)
+                            entry.prependScreenList(newSSID)
+                            entry.prependScreenList(newPSK)
+                            maxn = len(masterList) - 1
+                except KeyError:
+                    pass
+                # wlanVirtCount += 1
+
+            elif(self.value.startswith("eth")):
+                thisname = self.value + ":" + str(ethVirtCount)
+                thisData['config'][thisname]['protocol']['inet']['method'] = "static"
+                thisData['config'][thisname]['allow'] = ["auto", "hotplug"]
+                newInterface = Screen("subMenu", "Ethernet (" + thisname + ")", " ", thisname)
+                newMethod = MethodScreen("editable", "method", "static", "static", "dhcp")
+                newAddress = NetworkScreen('readOnly', "address", "0.0.0.0", thisname)
+                newNetmask = NetworkScreen('readOnly', "netmask", "0.0.0.0", thisname)
+                newGateway = NetworkScreen('readOnly', "gateway", "0.0.0.0", thisname)
+                newInterface.initScreenList([newMethod, newAddress, newNetmask, newGateway])
+                ethVirtCount
+            screenCreationCnt += 1
+            maxn = len(masterList) - 1
+        print thisData['config']
+
+class VirtualInterfaceAdd(ListScreen):
+    def changeConfig(self):
+        global masterList, screenCreationCnt, maxn, wlanVirtCount, ethVirtCount
+        """Change the setting in the config so that we can send it to piNetConfig."""
+        global thisData
+        print thisData['config']
+        if self.value == 'Go back to main menu':
+            pass
+        else:
+            if(self.value.startswith("wlan")):
+                thisname = self.value + ":" + str(wlanVirtCount)
+                thisData['config'][thisname]['protocol']['inet']['method'] = "static"
+                thisData['config'][thisname]['allow'] = ["auto", "hotplug"]
+                newInterface = Screen("subMenu", "wlan (" + thisname + ")", " ", thisname)
+                newMethod = MethodScreen("editable", "method", "static", "static", "dhcp")
+                newAddress = NetworkScreen('readOnly', "address", "0.0.0.0", thisname)
+                newNetmask = NetworkScreen('readOnly', "netmask", "0.0.0.0", thisname)
+                newGateway = NetworkScreen('readOnly', "gateway", "0.0.0.0", thisname)
+                newSSID = StringScreen('editable', 'wpa-ssid', ' ')
+                newPSK = StringScreen('editable', 'wpa-pask', ' ')
+
+                newInterface.initScreenList([newMethod, newAddress, newNetmask, newGateway, newSSID])
+                masterList.append(newInterface)
+                wlanVirtCount += 1
+
+            elif(self.value.startswith("eth")):
+                thisname = self.value + ":" + str(ethVirtCount)
+                thisData['config'][thisname]['protocol']['inet']['method'] = "static"
+                thisData['config'][thisname]['allow'] = ["auto", "hotplug"]
+                newInterface = Screen("subMenu", "Ethernet (" + thisname + ")", " ", thisname)
+                newMethod = MethodScreen("editable", "method", "static", "static", "dhcp")
+                newAddress = NetworkScreen('readOnly', "address", "0.0.0.0", thisname)
+                newNetmask = NetworkScreen('readOnly', "netmask", "0.0.0.0", thisname)
+                newGateway = NetworkScreen('readOnly', "gateway", "0.0.0.0", thisname)
+                newInterface.initScreenList([newMethod, newAddress, newNetmask, newGateway])
+                ethVirtCount
+            screenCreationCnt += 1
+            maxn = len(masterList) - 1
+        print thisData['config']
+
+
+class InterfaceDelete(ListScreen):
+    def __init__(self, type, title):
+        """Our initialization for the screen list class."""
+        global humanTranslations, thisData
+        self.type = type
+        self.screenType = "ListScreen"
+        self.valueLength = 0
+        if title in humanTranslations:
+            self.title = humanTranslations[title]
+        else:
+            self.title = title
+        self.dataName = title
+
+        self.childIndex = 0
+        valsList = list(k for k, v in thisData['config'].iteritems() if k != 'lo' and k != 'system')
+        self.value = valsList[self.childIndex]
+        self.valList = valsList
+        self.editLine = "Prev   Choose   Next"
+        if(self.type == "readOnly"):
+            self.navigation = self.navLine
+        elif(self.type == "subMenu"):
+            self.navigation = self.navLine
+        else:
+            self.navigation = self.incrLine
+    def editVal(self, index, addorsub):
+        global thisData
+        self.valList = list(k for k, v in thisData['config'].iteritems() if k != 'lo' and k != 'system')
+        if(addorsub == 0):
+            self.childIndex += -1
+            if(self.childIndex < 0):
+                self.childIndex = len(self.valList) - 1
+        elif(addorsub == 1):
+            self.childIndex += 1
+            if(self.childIndex > len(self.valList) - 1):
+                self.childIndex = 0
+        elif(addorsub == 2):
+            # create interface
+            pass
+        print self.valList, self.childIndex
+
+        self.value = self.valList[self.childIndex]
+
+        self.displayEdit(index, 0)
+    def changeConfig(self):
+        global thisData, maxn, masterList
+        try:
+            del thisData['config'][self.value]
+            for i, entry in enumerate(masterList):
+                print i, entry.getTitle()
+                if(entry.getTitle() == self.value):
+                    masterList.remove(entry)
+                    maxn = len(masterList) - 1
+            for i, entry in enumerate(masterList):
+                print i, entry.getTitle()
+        except KeyError:
+            pass
+        self.valList = list(k for k, v in thisData['config'].iteritems() if k != 'lo' and k != 'system')
+        print thisData['config']
+# ------------------End of DateTimeScreen Class Definition ---------------------
+class BooleanScreen(Screen):
+    """Class for true/false options screens. Extends Screen."""
+
+    def __init__(self, type, title, value, val0, val1):
+        """Our initialization for the screen boolean class."""
+        # String: type of screen - "readOnly", "subMenu", "editable"
+        global humanTranslations
+        self.type = type
+        self.screenType = "BooleanScreen"
+        self.valueLength = 0
+        if title in humanTranslations:
+            self.title = humanTranslations[title]
+        else:
+            self.title = title
+        self.dataName = title
+
         self.childIndex = 0
         self.value = value
         self.val0 = val0
@@ -1142,13 +1381,20 @@ def determineScreenType(value, title, method):
     return screendict
 
 screenCreationCnt = 0
+logicalCandidates = []
+virtualCandidates = []
+wlanVirtCount = 0
+ethVirtCount = 0
 
 def iterateWireless(key):
-    global masterList, thisData, screenCreationCnt
+    global masterList, thisData, screenCreationCnt, logicalCandidates, virtualCandidates, wlanVirtCount
     topKeys = list(k for k, v in thisData[key].iteritems() if 'wlan' in k.lower())
     print topKeys
+    # add ability to create a virtual interface using
+    virtualCandidates.append(key)
     if len(topKeys) > 0:
         for interface in topKeys:
+            wlanVirtCount += 1
             interfaces[interface] = thisData[key][interface]
             # interfaces[interface] = thisData[key][interface]
             masterList.append(Screen("subMenu", "wlan (" + interface + ")", " ", interface))
@@ -1164,14 +1410,14 @@ def iterateWireless(key):
             masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "address", thisData[key][interface]["inet"]["address"], interface)) if thisData[key][interface]["inet"].get("address", False) else masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "address", "0.0.0.0", interface))
             masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "gateway", thisData[key][interface]["inet"]["gateway"], interface)) if thisData[key][interface]["inet"].get("gateway", False) else masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "gateway", "0.0.0.0", interface))
             masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "netmask", thisData[key][interface]["inet"]["netmask"], interface)) if thisData[key][interface]["inet"].get("netmask", False) else masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "netmask", "0.0.0.0", interface))
-            masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "scope", thisData[key][interface]["inet"]["scope"], interface)) if thisData[key][interface]["inet"].get("netmask", False) else masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "scope", "Unknown", interface))
+            # masterList[screenCreationCnt].screens.append(StringScreen('readOnly', "scope", thisData[key][interface]["inet"]["scope"], interface)) if thisData[key][interface]["inet"].get("netmask", False) else masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "scope", "Unknown", interface))
 
             # add settings screens from wireless block
-            for setting, value in thisData[key]['wireless']['settings']:
+            for setting in thisData[key]['wireless']['settings']:
                 if setting.lower() == 'essid':
-                    masterList[screenCreationCnt].screens.append(StringScreen('editable', setting, value))
+                    masterList[screenCreationCnt].screens.append(StringScreen('editable', setting, thisData[key]['wireless']['settings'][setting]))
                 else:
-                    masterList[screenCreationCnt].screens.append(StringScreen('readOnly', setting, value))
+                    masterList[screenCreationCnt].screens.append(StringScreen('readOnly', setting, thisData[key]['wireless']['settings'][setting]))
             # add global wlan settings
             for generalSetting in thisData[key]:
                 if isinstance(thisData[key][generalSetting], AutoVivification):
@@ -1183,10 +1429,11 @@ def iterateWireless(key):
             screenCreationCnt += 1
     else:
         masterList.append(Screen("subMenu", "wlan (" + key + ")", " ", key))
-        masterList[screenCreationCnt].screens.append(MethodScreen("editable", "method", "Not Set", "static", "dhcp"))
+        logicalCandidates.append(key)
+        '''masterList[screenCreationCnt].screens.append(MethodScreen("editable", "method", "Not Set", "static", "dhcp"))
         masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "address", "0.0.0.0", key))
         masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "netmask", "0.0.0.0", key))
-        masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "gateway", "0.0.0.0", key))
+        masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "gateway", "0.0.0.0", key))'''
         # add settings screens from wireless block
         for setting in thisData[key]['wireless']['settings']:
             if setting.lower() == 'essid':
@@ -1204,11 +1451,14 @@ def iterateWireless(key):
 
 
 def iterateEthernet(key):
-    global masterList, thisData, screenCreationCnt
+    global masterList, thisData, screenCreationCnt, ethVirtCount
     topKeys = list(k for k, v in thisData[key].iteritems() if 'eth' in k.lower())
     blacklistSet = ['address', 'gateway', 'netmask']
+    # add ability to create a virtual interface using
+    virtualCandidates.append(key)
     if len(topKeys) > 0:
         for interface in topKeys:
+            ethVirtCount += 1
             interfaces[interface] = thisData[key][interface]
             # interfaces[interface] = thisData[key][interface]
             masterList.append(Screen("subMenu", "Ethernet (" + interface + ")", " ", interface))
@@ -1239,10 +1489,11 @@ def iterateEthernet(key):
             screenCreationCnt += 1
     else:
         masterList.append(Screen("subMenu", "Ethernet (" + key + ")", " ", key))
-        masterList[screenCreationCnt].screens.append(MethodScreen("editable", "method", "dhcp", "static", "dhcp"))
+        logicalCandidates.append(key)
+        '''masterList[screenCreationCnt].screens.append(MethodScreen("editable", "method", "dhcp", "static", "dhcp"))
         masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "address", "0.0.0.0", key))
         masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "netmask", "0.0.0.0", key))
-        masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "gateway", "0.0.0.0", key))
+        masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "gateway", "0.0.0.0", key))'''
         for generalSetting in thisData[key]:
             if isinstance(thisData[key][generalSetting], AutoVivification):
                 pass
@@ -1253,12 +1504,11 @@ def iterateEthernet(key):
         screenCreationCnt += 1
 
 def createTop3():
-    global masterList, thisData, screenCreationCnt
+    global masterList, thisData, screenCreationCnt,logicalCandidates,virtualCandidates
     topKeys = list(k for k, v in thisData.iteritems() if 'eth' in k.lower() or 'wlan' in k.lower())
     for key in topKeys:
         # decide if wireless or ethernet
         iterateWireless(key) if key.startswith("wlan") else iterateEthernet(key)
-
 
 def createTop2():
     global masterList, thisData
@@ -1400,13 +1650,30 @@ def createTop2():
             count = count + 1
 
 createTop3()
-
+logicalCandidates.append("Go back to main menu")
+virtualCandidates.append("Go back to main menu")
 timeScreen = Screen("subMenu", "Time and Date", " ", 'time')
+
 # intialize time screens
 timeEdit = DateTimeScreen("editable", "Current Time")
 
 timeScreen.initScreenList([timeEdit])
 masterList.append(timeScreen)
+
+createLogical = Screen("subMenu", "Create Logical iface", " ", "creation")
+logicalList = LogicalInterfaceAdd("editable", "Available Interfaces", logicalCandidates)
+createLogical.initScreenList([logicalList])
+masterList.append(createLogical)
+
+createVirtual = Screen("subMenu", "Create Virtual iface", " ", "creation")
+virtualList = VirtualInterfaceAdd("editable", "Available Interfaces", virtualCandidates)
+createVirtual.initScreenList([virtualList])
+masterList.append(createVirtual)
+
+delInterface = Screen("subMenu", "Delete an Interface", " ", "creation")
+delList = InterfaceDelete("editable", "Deletable Interfaces")
+delInterface.initScreenList([delList])
+masterList.append(delInterface)
 
 configurationScreen = Screen("subMenu", "Configurations", " ", "config")
 # initialize configuration screens

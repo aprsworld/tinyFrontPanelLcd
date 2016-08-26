@@ -14,5 +14,5 @@ def sendConfig(url, data):
     """Send data to a resource defined by url."""
     req = urllib2.Request(url)
     req.add_header('Content-Type', 'application/json')
-    response = urllib2.urlopen(req, json.dumps(data))
+    response = urllib2.urlopen(req, json.dumps({"config":data}))
     print response.read()
