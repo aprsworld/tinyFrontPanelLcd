@@ -16,3 +16,9 @@ def sendConfig(url, data):
     req.add_header('Content-Type', 'application/json')
     response = urllib2.urlopen(req, json.dumps({"config":data}))
     print response.read()
+
+def getID_List(url):
+    """gets list of current ssids."""
+    data = urllib.urlopen(url).read()
+    output = json.loads(data)
+    return output[output.keys()[0]].keys()

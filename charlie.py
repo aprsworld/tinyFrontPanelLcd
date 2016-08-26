@@ -42,6 +42,7 @@ def autoVivify(d):
 URL = "http://localhost/piNetConfig/netconfig.php"
 # URL2 = "http://192.168.10.160/piNetConfig/netconfig-write.php"
 URL2 = "http://localhost/piNetConfig/netconfig.php"
+URL3 = "http://localhost/piNetConfig/netconfig-scan.php"
 
 LOGO_DISPLAY_TIME = 1
 editableSet = ['gateway', 'address', 'netmask', 'ESSID', 'Extended SSID', 'mtu', 'Maximum Trans Unit']
@@ -133,7 +134,6 @@ def print_some_times():
     except (KeyboardInterrupt, SystemExit):
         print '\n! Received keyboard interrupt, quitting threads.\n'
         return
-
 
 def update_vals():
     """Update the values of DHCP interfaces."""
@@ -928,7 +928,7 @@ class ListScreen(Screen):
             self.navigation = self.incrLine
 
     def editVal(self, index, addorsub):
-        print self.valList, self.childIndex, addorsub, len(self.valList)
+        print self.valList
         if(addorsub == 0):
             self.childIndex += -1
             if(self.childIndex < 0):
@@ -962,12 +962,12 @@ class LogicalInterfaceAdd(ListScreen):
                 thisData['config'][thisname]['allow'] = ["auto", "hotplug"]
                 thisData['config'][thisname]['protocol']['inet']['wpa-scan-ssid'] = "1"
                 thisData['config'][thisname]['protocol']['inet']['wpa-ap-scan'] = "1"
-
+                ssidList = getConfig.getID_List(URL3)
                 newMethod = MethodScreen("editable", "method", "dhcp", "static", "dhcp")
                 newAddress = NetworkScreen('readOnly', "address", "0.0.0.0", thisname)
                 newNetmask = NetworkScreen('readOnly', "netmask", "0.0.0.0", thisname)
                 newGateway = NetworkScreen('readOnly', "gateway", "0.0.0.0", thisname)
-                newSSID = WifiCreds('editable', 'wpa-ssid', 'aprsworlc', self.value)
+                newSSID = SsidChooser('editable', 'wpa-ssid', ssidList, self.value)
                 newPSK = WifiCreds('editable', 'wpa-psk', 'zestopenguim', self.value)
 
                 try:
@@ -999,6 +999,33 @@ class LogicalInterfaceAdd(ListScreen):
             screenCreationCnt += 1
             maxn = len(masterList) - 1
         print thisData['config']
+class SsidChooser(ListScreen):
+    def __init__(self, type, title, valsList, interface):
+        """Our initialization for the screen list class."""
+        global humanTranslations
+        self.type = type
+        self.screenType = "ListScreen"
+        self.valueLength = 0
+        if title in humanTranslations:
+            self.title = humanTranslations[title]
+        else:
+            self.title = title
+        self.dataName = title
+        self.interface = interface
+        self.titleOrig = title
+        self.childIndex = 0
+        self.valList = valsList
+        self.value = self.valList[0]
+        self.editLine = "Prev   Choose   Next"
+        if(self.type == "readOnly"):
+            self.navigation = self.navLine
+        elif(self.type == "subMenu"):
+            self.navigation = self.navLine
+        else:
+            self.navigation = self.incrLine
+    def changeConfig(self):
+        global thisData
+        thisData['config'][self.interface]['protocol']['inet'][self.titleOrig] = self.value
 
 class VirtualInterfaceAdd(ListScreen):
     def changeConfig(self):
