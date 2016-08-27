@@ -107,7 +107,7 @@ def setReady():
 # timer to change screen once device is ready
 Timer(LOGO_DISPLAY_TIME, setReady).start()
 charlieimage.dispLogo()
-ssidList = getConfig.getID_List(URL3)
+ssidListGlobal = getConfig.getID_List(URL3)
 
 # pauses program while stuff is being set up
 while(not ready):
@@ -968,6 +968,7 @@ class LogicalInterfaceAdd(ListScreen):
                 thisData['config'][thisname]['protocol']['inet']['wpa-scan-ssid'] = "1"
                 thisData['config'][thisname]['protocol']['inet']['wpa-ap-scan'] = "1"
                 ssidList = getConfig.getID_List(URL3)
+                ssidList = ssidList[ssidList.keys()[0]].keys()
                 newMethod = MethodScreen("editable", "method", "dhcp", "static", "dhcp")
                 newAddress = NetworkScreen('readOnly', "address", "0.0.0.0", thisname)
                 newNetmask = NetworkScreen('readOnly', "netmask", "0.0.0.0", thisname)
@@ -1004,6 +1005,32 @@ class LogicalInterfaceAdd(ListScreen):
             screenCreationCnt += 1
             maxn = len(masterList) - 1
         print thisData['config']
+
+class SecurityChanger(ListScreen):
+    def __init__(self, type, title, interface):
+        """Our initialization for the screen list class."""
+        global humanTranslations
+        self.type = type
+        self.screenType = "ListScreen"
+        self.valueLength = 0
+        if title in humanTranslations:
+            self.title = humanTranslations[title]
+        else:
+            self.title = title
+        self.dataName = title
+        self.interface = interface
+        self.titleOrig = title
+        self.childIndex = 0
+        self.valList = ['wpa',]
+        self.value = self.valList[0]
+        self.editLine = "Prev   Choose   Next"
+        if(self.type == "readOnly"):
+            self.navigation = self.navLine
+        elif(self.type == "subMenu"):
+            self.navigation = self.navLine
+        else:
+            self.navigation = self.incrLine
+
 class SsidChooser(ListScreen):
     def __init__(self, type, title, valsList, interface):
         """Our initialization for the screen list class."""
@@ -1036,8 +1063,8 @@ class SsidChooser(ListScreen):
     def screenChosen(self):
         """Screen is chosen - sets child index to zero and displays first child."""
         print("screenChosen " + self.title)
-        self.valsList = ssidListGlobal
-        self.valueLength = len(ssidListGlobal)
+        self.valsList = ssidListGlobal[ssidListGlobal.keys()[0]].keys()
+        self.valueLength = len(self.valsList)
         self.childIndex = 0
         self.screens[self.childIndex].displayThis()
 
@@ -1448,11 +1475,11 @@ def iterateWireless(key):
             # get rest of inet settings
             # if statement format is:
             # create screen with json data        if     statement data exists     else      create screen with default dat
-
+            ssids = ssidListGlobal[ssidListGlobal.keys()[0]].keys()
             masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "address", thisData[key][interface]["inet"]["address"], interface)) if thisData[key][interface]["inet"].get("address", False) else masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "address", "0.0.0.0", interface))
             masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "gateway", thisData[key][interface]["inet"]["gateway"], interface)) if thisData[key][interface]["inet"].get("gateway", False) else masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "gateway", "0.0.0.0", interface))
             masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "netmask", thisData[key][interface]["inet"]["netmask"], interface)) if thisData[key][interface]["inet"].get("netmask", False) else masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "netmask", "0.0.0.0", interface))
-            masterList[screenCreationCnt].screens.append(SsidChooser('editable', 'wpa-ssid', ssidListGlobal, thisData[key][interface]["inet"]["wpa-ssid"], interface)) if thisData[key][interface]["inet"].get("wpa-ssid", False) else masterList[screenCreationCnt].screens.append(SsidChooser('editable', 'wpa-ssid', ssidList, interface))
+            masterList[screenCreationCnt].screens.append(SsidChooser('editable', 'wpa-ssid', ssids, thisData[key][interface]["inet"]["wpa-ssid"], interface)) if thisData[key][interface]["inet"].get("wpa-ssid", False) else masterList[screenCreationCnt].screens.append(SsidChooser('editable', 'wpa-ssid', ssids, interface))
             masterList[screenCreationCnt].screens.append(WifiCreds('editable', 'wpa-psk', 'zestopenguim', thisData[key][interface]["inet"]["wpa-psk"], interface)) if thisData[key][interface]["inet"].get("wpa-psk", False) else masterList[screenCreationCnt].screens.append(WifiCreds('editable', 'wpa-psk', 'zestopenguim', interface))
 
             # masterList[screenCreationCnt].screens.append(StringScreen('readOnly', "scope", thisData[key][interface]["inet"]["scope"], interface)) if thisData[key][interface]["inet"].get("netmask", False) else masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "scope", "Unknown", interface))

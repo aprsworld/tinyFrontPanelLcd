@@ -27,6 +27,5 @@ def getID_List(url):
     """gets list of current ssids."""
     data = urllib.urlopen(url).read()
     output = json.loads(data)
-    return output[output.keys()[0]].keys()
-
-print getAllID("http://localhost/piNetConfig/netconfig-scan.php")
+    return output
+    # output[output.keys()[0]].keys()
