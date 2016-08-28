@@ -1043,7 +1043,7 @@ class SecurityChanger(ListScreen):
         self.interface = interface
         self.titleOrig = title
         self.childIndex = 0
-        self.valList = ['WPA', 'WPA2', 'WEP']
+        self.valList = ['WPA', 'WPA2', 'WEP', 'NONE']
         self.prevVal = security
         self.value = security
         self.editLine = "Prev   Choose   Next"
@@ -1468,7 +1468,8 @@ def changeSecurityType(interface, newSecurity, oldSecurity):
     # dictionaries to hold new and old values
     wepSecurity = {"ssid": "wireless-essid", "passphrase": "wireless-key"}
     wpaSecurity = {"ssid": "wpa-ssid", "passphrase": "wpa-psk"}
-    securityLookup = {"wep": wepSecurity, "wpa": wpaSecurity, "wpa2": wpaSecurity}
+    noneSecurity = {"ssid": "wireless-essid", "passphrase": "wireless-key"}
+    securityLookup = {"wep": wepSecurity, "wpa": wpaSecurity, "wpa2": wpaSecurity, "none": noneSecurity}
 
     # variables to hold values for readability purposes
     newPassPhrase = securityLookup[newSecurity.lower()]["passphrase"]
@@ -1480,7 +1481,7 @@ def changeSecurityType(interface, newSecurity, oldSecurity):
 
     # loop through Screen List and change the title of the screen
     print masterList[n].screens
-    if newSecurity.lower() == "wep" and (oldSecurity.lower() == "wpa" or oldSecurity.lower() == "wpa2"):
+    if newSecurity.lower() == "wep" or newSecurity.lower() == "none" and (oldSecurity.lower() == "wpa" or oldSecurity.lower() == "wpa2"):
         configAddress.pop("wpa-scan-ssid")
         configAddress.pop("wpa-ap-scan")
     elif newSecurity.lower() == "wpa" or newSecurity.lower() == "wpa2":
@@ -1489,13 +1490,16 @@ def changeSecurityType(interface, newSecurity, oldSecurity):
     for i, entry in enumerate(masterList[n].screens):
         if(entry.getTitle().lower() == oldPassPhrase.lower()):
             entry.setTitle(newPassPhrase)
-            configAddress[newPassPhrase] = configAddress.pop(oldPassPhrase)
+            if(newSecurity.lower() == "none"):
+                configAddress.pop(oldPassPhrase)
+            else:
+                configAddress[newPassPhrase] = configAddress.pop(oldPassPhrase)
             print configAddress
         if(entry.getTitle().lower() == old_ssid.lower()):
             entry.setTitle(new_ssid)
             configAddress[new_ssid] = configAddress.pop(old_ssid)
             print configAddress
-
+    print 1502, thisData['config']
 def resetFromStatic(interface):
     """Reset values when method changed from DHCP to Static"""
     global thisData
