@@ -17,15 +17,17 @@ def sendConfig(url, data):
     response = urllib2.urlopen(req, json.dumps({"config":data}))
     print response.read()
 
-def getAllID(url):
-    """gets list of current ssids."""
-    data = urllib.urlopen(url).read()
-    output = json.loads(data)
-    return output
+def hasKeys(ssidListGlobal):
+    if(len(ssidListGlobal) > 0):
+        ssids = ssidListGlobal[ssidListGlobal.keys()[0]].keys()
+    else:
+        ssids = ['none in range']
+    return ssids
 
 def getID_List(url):
     """gets list of current ssids."""
     data = urllib.urlopen(url).read()
     output = json.loads(data)
-    return output
+    print output
+    return {}
     # output[output.keys()[0]].keys()

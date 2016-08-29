@@ -1064,7 +1064,7 @@ class LogicalInterfaceAdd(ListScreen):
                 thisData['config'][thisname]['protocol']['inet']['wpa-ssid'] = ""
                 thisData['config'][thisname]['protocol']['inet']['wpa-psk'] = ""
                 ssidList = getConfig.getID_List(URL3)
-                ssidList = ssidList[ssidList.keys()[0]].keys()
+                ssidList = getConfig.hasKeys(ssidList)
                 newMethod = MethodScreen("editable", "method", "dhcp", "static", "dhcp")
                 newAddress = NetworkScreen('readOnly', "address", "0.0.0.0", thisname)
                 newNetmask = NetworkScreen('readOnly', "netmask", "0.0.0.0", thisname)
@@ -1179,7 +1179,7 @@ class SsidChooser(ListScreen):
         self.interface = interface
         self.titleOrig = title
         self.childIndex = 0
-        self.valList = ssidListGlobal[ssidListGlobal.keys()[0]].keys()
+        self.valList = getConfig.hasKeys(ssidListGlobal)
         self.value = self.valList[0]
         self.editLine = "Prev   Choose   Next"
         if(self.type == "readOnly"):
@@ -1199,7 +1199,7 @@ class SsidChooser(ListScreen):
     def screenChosen(self):
         """Screen is chosen - sets child index to zero and displays first child."""
         print("screenChosen " + self.title)
-        self.valsList = ssidListGlobal[ssidListGlobal.keys()[0]].keys()
+        self.valsList = getConfig.hasKeys(ssidListGlobal)
         self.valueLength = len(self.valsList)
         self.childIndex = 0
         self.screens[self.childIndex].displayThis()
@@ -1687,10 +1687,7 @@ def iterateWireless(key):
             # get rest of inet settings
             # if statement format is:
             # create screen with json data        if     statement data exists     else      create screen with default dat
-            if(len(ssidListGlobal) >= 0):
-                ssids = ssidListGlobal[ssidListGlobal.keys()[0]].keys()
-            else:
-                ssids = ['none in range']
+            ssids = getConfig.hasKeys(ssidListGlobal)
             wep = False
             for key1 in thisData['config'][interface]['protocol']["inet"]:
                 if key1.startswith("wireless"):
