@@ -311,7 +311,7 @@ def button_callback(channel):
         elif(channel == 18):
             this.editVal(this.childIndex, 0)
         elif(channel == 27):
-            print this.childIndex, this.valueLength
+            print this.value, this.childIndex, this.valueLength
             if(curIndex < this.valueLength and "BooleanScreen" != this.screenType and "ListScreen" != this.screenType):
                 this.childIndex = this.childIndex + 1
                 this.editVal(this.childIndex, 2)
@@ -319,7 +319,6 @@ def button_callback(channel):
             elif "confScreen" == this.screenType:
                 this.navigation = this.incrLine
             else:
-
                 this.edit = False
                 this.childIndex = 0
                 if(hasattr(this, 'interface') or this.screenType == "ListScreen") or this.screenType == "StringScreen":
@@ -732,6 +731,56 @@ class StringScreen(Screen):
         word = word[:index] + char + word[index + 1:]
         self.value = word
         self.displayEdit(index, 6)
+
+class HiddenSSID(StringScreen):
+    def __init__(self, type, title, configKey, value, interface):
+        """Our initialization for the screen stringclass."""
+        # String: type of screen - "readOnly", "subMenu", "editable"
+        global humanTranslations
+        self.type = type
+        self.screenType = "StringScreen"
+        # String: Line one on the LCD Screen
+        if title in humanTranslations:
+            self.title = humanTranslations[title]
+        else:
+            self.title = title
+        self.interface = interface
+        self.dataName = title
+        self.titleOrig = title
+        self.configKey = configKey
+        # String: line two on the LCD Screen
+        self.childIndex = 0
+        self.value = value
+        self.valueLength = 18
+        self.edit = False
+
+        # String: line Three on the LCD Screen
+        # Can be either <--    Select    -->   OR   (-)    Select    (+)
+        if(self.type == "readOnly"):
+            self.navigation = self.navLine
+        elif(self.type == "subMenu"):
+            self.navigation = self.navLine
+        else:
+            self.navigation = self.incrLine
+
+    def getConfigKey(self):
+        return self.configKey
+
+    def setConfigKey(self, key):
+        self.configKey = key
+
+    def getTitle(self):
+        return self.titleOrig
+
+    def setTitle(Self, title):
+        self.titleOrig = title
+
+    def changeConfig(self):
+        """Change the setting in the config so that we can send it to piNetConfig."""
+        global thisData
+        print thisData['config']
+        print self.value.lower()
+        thisData['config'][self.interface]['protocol']['inet'][self.configKey] = self.value.strip()
 
 class WifiCreds(StringScreen):
     def __init__(self, type, title, value, interface):
@@ -1555,7 +1604,12 @@ def changeSecurityType(interface, newSecurity, oldSecurity):
             entry.setTitle(new_ssid)
             configAddress[new_ssid] = configAddress.pop(old_ssid)
             print configAddress
+        if(entry.getTitle().lower() == "hidden ssid"):
+            entry.setConfigKey(old_ssid)
     print 1502, thisData['config']
+
+
+
 def resetFromStatic(interface):
     """Reset values when method changed from DHCP to Static"""
     global thisData
@@ -1623,7 +1677,7 @@ def iterateWireless(key):
             # get rest of inet settings
             # if statement format is:
             # create screen with json data        if     statement data exists     else      create screen with default dat
-            if(len(ssidListGlobal.keys()) >= 0):
+            if(len(ssidListGlobal) >= 0):
                 ssids = ssidListGlobal[ssidListGlobal.keys()[0]].keys()
             else:
                 ssids = ['none in range']
@@ -1636,13 +1690,13 @@ def iterateWireless(key):
                 masterList[screenCreationCnt].screens.append(NetworkScreen(editable, "address", thisData[key][interface]["inet"]["address"], interface)) if thisData[key][interface]["inet"].get("address", False) else masterList[screenCreationCnt].screens.append(NetworkScreen(editable, "address", "0.0.0.0", interface))
                 masterList[screenCreationCnt].screens.append(NetworkScreen(editable, "gateway", thisData[key][interface]["inet"]["gateway"], interface)) if thisData[key][interface]["inet"].get("gateway", False) else masterList[screenCreationCnt].screens.append(NetworkScreen(editable, "gateway", "0.0.0.0", interface))
                 masterList[screenCreationCnt].screens.append(NetworkScreen(editable, "netmask", thisData[key][interface]["inet"]["netmask"], interface)) if thisData[key][interface]["inet"].get("netmask", False) else masterList[screenCreationCnt].screens.append(NetworkScreen(editable, "netmask", "0.0.0.0", interface))
+                masterList[screenCreationCnt].screens.append(HiddenSSID("editable", "Hidden SSID", "wireless-ssid", "not_set", interface))
                 if thisData['config'][interface]['protocol']["inet"].get("wireless-essid", False):
                     ssidScreen = SsidChooser('editable', 'wireless-essid', ssids, interface)
                     ssidScreen.setVal(thisData['config'][interface]['protocol']["inet"]['wireless-essid'])
                     masterList[screenCreationCnt].screens.append(ssidScreen)
                 else:
                     masterList[screenCreationCnt].screens.append(SsidChooser('editable', 'wireless-essid', ssids, interface))
-                # masterList[screenCreationCnt].screens.append(SsidChooser('editable', 'wireless-essid', ssids, interface)) if thisData['config'][interface]['protocol']["inet"].get("wireless-essid", False) else masterList[screenCreationCnt].screens.append(SsidChooser('editable', 'wireless-essid', ssids, interface))
                 masterList[screenCreationCnt].screens.append(WifiCreds('editable', 'wireless-key', address["wireless-key"], interface)) if thisData['config'][interface]['protocol']["inet"].get("wireless-key", False) else masterList[screenCreationCnt].screens.append(WifiCreds('editable', 'wireless-key', '01234567890', interface))
                 masterList[screenCreationCnt].screens.append(SecurityChanger('editable', 'securityType', interface, "wep"))
             else:
@@ -1650,13 +1704,13 @@ def iterateWireless(key):
                 masterList[screenCreationCnt].screens.append(NetworkScreen(editable, "address", thisData[key][interface]["inet"]["address"], interface)) if thisData[key][interface]["inet"].get("address", False) else masterList[screenCreationCnt].screens.append(NetworkScreen(editable, "address", "0.0.0.0", interface))
                 masterList[screenCreationCnt].screens.append(NetworkScreen(editable, "gateway", thisData[key][interface]["inet"]["gateway"], interface)) if thisData[key][interface]["inet"].get("gateway", False) else masterList[screenCreationCnt].screens.append(NetworkScreen(editable, "gateway", "0.0.0.0", interface))
                 masterList[screenCreationCnt].screens.append(NetworkScreen(editable, "netmask", thisData[key][interface]["inet"]["netmask"], interface)) if thisData[key][interface]["inet"].get("netmask", False) else masterList[screenCreationCnt].screens.append(NetworkScreen(editable, "netmask", "0.0.0.0", interface))
+                masterList[screenCreationCnt].screens.append(HiddenSSID("editable", "Hidden SSID", "wpa-ssid", "not_set", interface))
                 if thisData['config'][interface]['protocol']["inet"].get("wpa-ssid", False):
                     ssidScreen = SsidChooser('editable', 'wpa-ssid', ssids, interface)
                     ssidScreen.setVal(thisData['config'][interface]['protocol']["inet"]['wpa-ssid'])
                     masterList[screenCreationCnt].screens.append(ssidScreen)
                 else:
                     masterList[screenCreationCnt].screens.append(SsidChooser('editable', 'wpa-ssid', ssids, interface))
-                # masterList[screenCreationCnt].screens.append(SsidChooser('editable', 'wpa-ssid', ssids, interface)) if thisData['config'][interface]['protocol']["inet"].get("wpa-ssid", False) else masterList[screenCreationCnt].screens.append(SsidChooser('editable', 'wpa-ssid', ssids, interface))
                 masterList[screenCreationCnt].screens.append(WifiCreds('editable', 'wpa-psk', address["wpa-psk"].strip('"'), interface)) if thisData['config'][interface]['protocol']["inet"].get("wpa-psk", False) else masterList[screenCreationCnt].screens.append(WifiCreds('editable', 'wpa-psk', 'zestopenguim', interface))
                 masterList[screenCreationCnt].screens.append(SecurityChanger('editable', 'securityType', interface, "wpa"))
 
