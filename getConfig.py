@@ -3,6 +3,7 @@
 import json
 import urllib
 import urllib2
+import collections
 
 def getData(url):
     """Get data from a resource defined bu url."""
@@ -10,8 +11,21 @@ def getData(url):
     output = json.loads(data)
     return output
 
+def orderIface(data):
+    print data
+    print "         "
+    for interface in data:
+        if interface.startswith("wlan"):
+            if data[interface].get("protocol", False) is not False:
+                if data[interface]["protocol"].get("inet", False) is not False:
+                    mydict = data[interface]["protocol"].get("inet")
+                    mydict = collections.OrderedDict(sorted(mydict.iteritems()))
+                    data[interface]["protocol"]["inet"] = mydict
+    print data
+
 def sendConfig(url, data):
     """Send data to a resource defined by url."""
+    orderIface(data)
     req = urllib2.Request(url)
     req.add_header('Content-Type', 'application/json')
     response = urllib2.urlopen(req, json.dumps({"config":data}))
@@ -29,5 +43,5 @@ def getID_List(url):
     data = urllib.urlopen(url).read()
     output = json.loads(data)
     print output
-    return {}
+    return output
     # output[output.keys()[0]].keys()

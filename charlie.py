@@ -343,7 +343,7 @@ def detect_edges(callbackFn):
     """designate threaded callbacks for all button presses."""
     GPIO.add_event_detect(17, GPIO.FALLING, callback=callbackFn, bouncetime=300)
     GPIO.add_event_detect(18, GPIO.FALLING, callback=callbackFn, bouncetime=300)
-    GPIO.add_event_detect(27, GPIO.FALLING, callback=callbackFn, bouncetime=300)
+    GPIO.add_event_detect(27, GPIO.FALLING, callback=callbackFn, bouncetime=400)
 
 
 class Screen:
@@ -1204,6 +1204,12 @@ class SsidChooser(ListScreen):
         self.childIndex = 0
         self.screens[self.childIndex].displayThis()
 
+    def displayThis(self):
+        global inView
+        inView = self
+        self.valList = getConfig.hasKeys(ssidListGlobal)
+        draw_screen(self.title, self.value, self.navigation, 255, 0)
+
 class VirtualInterfaceAdd(ListScreen):
     def changeConfig(self):
         global masterList, screenCreationCnt, maxn, wlanVirtCount, ethVirtCount
@@ -1588,11 +1594,15 @@ def changeSecurityType(interface, newSecurity, oldSecurity):
     # loop through Screen List and change the title of the screen
     print masterList[n].screens
     if newSecurity.lower() == "wep" and (oldSecurity.lower() == "wpa" or oldSecurity.lower() == "wpa2"):
-        configAddress.pop("wpa-scan-ssid")
-        configAddress.pop("wpa-ap-scan")
+        if configAddress.get("wpa-scan-ssid", False) is not False:
+            configAddress.pop("wpa-scan-ssid")
+        if configAddress.get("wpa-ap-scan", False) is not False:
+            configAddress.pop("wpa-ap-scan")
     elif newSecurity.lower() == "none" and (oldSecurity.lower() == "wpa" or oldSecurity.lower() == "wpa2"):
-        configAddress.pop("wpa-scan-ssid")
-        configAddress.pop("wpa-ap-scan")
+        if configAddress.get("wpa-scan-ssid", False) is not False:
+            configAddress.pop("wpa-scan-ssid")
+        if configAddress.get("wpa-ap-scan", False) is not False:
+            configAddress.pop("wpa-ap-scan")
     elif newSecurity.lower() == "wpa" or newSecurity.lower() == "wpa2":
         configAddress["wpa-scan-ssid"] = "1"
         configAddress["wpa-ap-scan"] = "1"
