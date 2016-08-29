@@ -1218,6 +1218,7 @@ class InterfaceDelete(ListScreen):
     def editVal(self, index, addorsub):
         global thisData
         self.valList = list(k for k, v in thisData['config'].iteritems() if k != 'lo' and k != 'system')
+        self.valList.append("Go back to main menu")
         if(addorsub == 0):
             self.childIndex += -1
             if(self.childIndex < 0):
@@ -1236,6 +1237,8 @@ class InterfaceDelete(ListScreen):
         self.displayEdit(index, 0)
     def changeConfig(self):
         global thisData, maxn, masterList
+        if(self.value == "Go back to main menu"):
+            return
         try:
             del thisData['config'][self.value]
             for i, entry in enumerate(masterList):
@@ -1532,6 +1535,8 @@ def changeSecurityType(interface, newSecurity, oldSecurity):
             if(newSecurity.lower() == "none"):
                 print "test"
                 configAddress.pop(oldPassPhrase)
+            elif(oldSecurity.lower() == "none"):
+                configAddress[newPassPhrase] = "<none>"
             elif oldPassPhrase in configAddress:
                 configAddress[newPassPhrase] = configAddress.pop(oldPassPhrase)
             else:
