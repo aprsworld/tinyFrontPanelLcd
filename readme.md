@@ -1,6 +1,6 @@
 # Readme
 
-### Top-Level Screens:
+### Top-Level Screens
 
 * Wireless Interface Screens
 
