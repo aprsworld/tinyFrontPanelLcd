@@ -54,7 +54,7 @@ charSet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '$', '@', '^', '`', '|', '%', ';', '.', '~', '(', ')', '/', '{', '}',
            ':', '?', '[', ']', '=', '-', '+', '_', '#', '!', ' ']
 
-charHexaSet = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F']
+charHexaSet = [' ', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F']
 
 humanTranslations = {
     'method': 'Addressing Method',
@@ -765,16 +765,20 @@ class WifiCreds(StringScreen):
 
     def editVal(self, index, addorsub):
         global charSet, charHexaSet, charSetIndex
+        if self.title.startswith("wireless-key"):
+            thisSet = charHexaSet
+        else:
+            thisSet = charSet
         word = self.value
         print "|"+word[index - 1:index]+"|"
         if(word[index - 1:index] == '' and index != 0):
             self.childIndex = self.valueLength
             return
-        print charSetIndex, (len(charSet) - 1), index
-        if(charSetIndex >= len(charSet) - 1):
+        print charSetIndex, (len(thisSet) - 1), index
+        if(charSetIndex >= len(thisSet) - 1):
             charSetIndex = 0
         if(charSetIndex < 0):
-            charSetIndex = len(charSet) - 1
+            charSetIndex = len(thisSet) - 1
         if(addorsub == 0):
             addAmt = -1
         elif(addorsub == 2):
@@ -782,12 +786,12 @@ class WifiCreds(StringScreen):
             return
         else:
             addAmt = 1
-        if(index < len(word) and charSet.index(word[index]) + addAmt < len(charSet)):
-            charSetIndex = charSet.index(word[index]) + addAmt
+        if(word[index] in thisSet and index < len(word) and thisSet.index(word[index]) + addAmt < len(thisSet)):
+            charSetIndex = thisSet.index(word[index]) + addAmt
         else:
             charSetIndex = 0
         print charSetIndex
-        char = charSet[charSetIndex]
+        char = thisSet[charSetIndex]
         word = word[:index] + char + word[index + 1:]
         self.value = word
         self.displayEdit(index, 6)
@@ -797,7 +801,7 @@ class WifiCreds(StringScreen):
         global thisData
         print thisData['config']
         print self.value.lower()
-        if(self.value.lower() == "wep"):
+        if(self.title.startswith("wireless-key")):
             thisData['config'][self.interface]['protocol']['inet'][self.titleOrig] = self.value.strip()
         else:
             thisData['config'][self.interface]['protocol']['inet'][self.titleOrig] = '\"'+self.value.strip()+'\"'
@@ -1112,7 +1116,7 @@ class SecurityChanger(ListScreen):
 class SsidChooser(ListScreen):
     def __init__(self, type, title, valsList, interface):
         """Our initialization for the screen list class."""
-        global humanTranslations
+        global humanTranslations, ssidListGlobal
         self.type = type
         self.screenType = "ListScreen"
         self.valueLength = 0
@@ -1124,7 +1128,7 @@ class SsidChooser(ListScreen):
         self.interface = interface
         self.titleOrig = title
         self.childIndex = 0
-        self.valList = valsList
+        self.valList = ssidListGlobal[ssidListGlobal.keys()[0]].keys()
         self.value = self.valList[0]
         self.editLine = "Prev   Choose   Next"
         if(self.type == "readOnly"):
@@ -1528,8 +1532,10 @@ def changeSecurityType(interface, newSecurity, oldSecurity):
             if(newSecurity.lower() == "none"):
                 print "test"
                 configAddress.pop(oldPassPhrase)
-            else:
+            elif oldPassPhrase in configAddress:
                 configAddress[newPassPhrase] = configAddress.pop(oldPassPhrase)
+            else:
+                pass
             print configAddress
         if(entry.getTitle().lower() == old_ssid.lower()):
             entry.setTitle(new_ssid)
