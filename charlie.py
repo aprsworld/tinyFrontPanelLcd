@@ -331,19 +331,6 @@ def button_callback(channel):
                 this.displayThis()
                 draw_confirmation(this.title + " has", "been saved to config", 255, 0, masterList[n].screens[masterList[n].childIndex])
                 level = 2
-                # level = 4
-                '''
-    elif(level == 4):
-        print "got here"
-        this = masterList[n].screens[masterList[n].childIndex]
-        level = 2
-        if(channel == 17):
-            this.displayThis()
-        elif(channel == 18):
-            this.displayThis()
-        elif(channel == 27):
-            this.displayThis()
-            '''
 
     print(channel)
     action_up_now = False
@@ -1030,6 +1017,7 @@ class ListScreen(Screen):
         self.childIndex = 0
         self.value = valsList[self.childIndex]
         self.valList = valsList
+        self.incrLine = "<--    Select    -->"
         self.editLine = "Prev   Choose   Next"
         if(self.type == "readOnly"):
             self.navigation = self.navLine
@@ -1115,6 +1103,13 @@ class LogicalInterfaceAdd(ListScreen):
             screenCreationCnt += 1
             maxn = len(masterList) - 1
         print thisData['config']
+
+    def displayThis(self):
+        """Draw our screen."""
+        global inView
+        inView = self
+        draw_screen(self.title, "", self.navigation, 255, 0)
+
 
 class SecurityChanger(ListScreen):
     def __init__(self, type, title, interface, security):
@@ -1249,6 +1244,11 @@ class VirtualInterfaceAdd(ListScreen):
             maxn = len(masterList) - 1
         print thisData['config']
 
+    def displayThis(self):
+        """Draw our screen."""
+        global inView
+        inView = self
+        draw_screen(self.title, "", self.navigation, 255, 0)
 
 class InterfaceDelete(ListScreen):
     def __init__(self, type, title):
@@ -1267,7 +1267,8 @@ class InterfaceDelete(ListScreen):
         valsList = list(k for k, v in thisData['config'].iteritems() if k != 'lo' and k != 'system')
         self.value = valsList[self.childIndex]
         self.valList = valsList
-        self.editLine = "Prev   Choose   Next"
+        self.incrLine = "<--    Select    -->"
+        self.editLine = "<--    Choose    -->"
         if(self.type == "readOnly"):
             self.navigation = self.navLine
         elif(self.type == "subMenu"):
@@ -1277,7 +1278,7 @@ class InterfaceDelete(ListScreen):
     def editVal(self, index, addorsub):
         global thisData
         self.valList = list(k for k, v in thisData['config'].iteritems() if k != 'lo' and k != 'system')
-        self.valList.append("Go back to main menu")
+        self.valList.append("Return to prev menu")
         if(addorsub == 0):
             self.childIndex += -1
             if(self.childIndex < 0):
@@ -1293,21 +1294,18 @@ class InterfaceDelete(ListScreen):
         self.value = self.valList[self.childIndex]
         self.displayEdit(index, 0)
 
+    def displayThis(self):
+        """Draw our screen."""
+        global inView
+        inView = self
+        draw_screen(self.title, "", self.navigation, 255, 0)
+
     def changeConfig(self):
-        global thisData, maxn, masterList
-        if(self.value == "Go back to main menu"):
+        global thisData, maxn, masterList, n
+        if(self.value == "Return to prev menu"):
             return
         try:
             del thisData['config'][self.value]
-            '''
-            for i, entry in enumerate(masterList):
-                print i, entry.getInterfaceType()
-                if(entry.getInterfaceType() == self.value):
-                    for j, screen in enumerate(masterList[i].screens):
-                        title = masterList[i].screens[j].titleOrig
-                        if(title == 'address' or title == 'gateway' or title == 'netmask' or title == '')
-            for i, entry in enumerate(masterList):
-                print i, entry.getInterfaceType()
 
             for i, entry in enumerate(masterList):
                 print i, entry.getInterfaceType()
@@ -1316,7 +1314,6 @@ class InterfaceDelete(ListScreen):
                     maxn = len(masterList) - 1
             for i, entry in enumerate(masterList):
                 print i, entry.getInterfaceType()
-            '''
         except KeyError:
             pass
         self.valList = list(k for k, v in thisData['config'].iteritems() if k != 'lo' and k != 'system')
@@ -1462,7 +1459,6 @@ class MethodScreen(Screen):
             print thisData
             # thisData['config'][masterList[n].interfaceType]['protocol']['inet'].update({'method': self.value})
             for childScreen in masterList[n].screens:
-                print 1395, childScreen.title, childScreen.screenType, masterList[n].title
                 if (childScreen.screenType == 'NetworkScreen' or childScreen.screenType == 'IntScreen') and childScreen.dataName in editableSet:
                     print childScreen.type
                     print self.value, self.val0, self.val1
@@ -1478,7 +1474,6 @@ class MethodScreen(Screen):
             thisData['config'][masterList[n].interfaceType]['protocol']['inet']['method'] = self.value
             resetFromStatic(masterList[n].interfaceType)
             for childScreen in masterList[n].screens:
-                print 1395, childScreen.title, childScreen.screenType, masterList[n].title
                 if (childScreen.screenType == 'NetworkScreen' or childScreen.screenType == 'IntScreen') and childScreen.titleOrig in editableSet:
                     print childScreen.type
                     print self.value, self.val0, self.val1
@@ -1811,14 +1806,15 @@ def iterateEthernet(key):
                 masterList[screenCreationCnt].screens.append(StringScreen('readOnly', generalSetting, thisData[key][generalSetting]))
         screenCreationCnt += 1
 
-def createTop3():
-    global masterList, thisData, screenCreationCnt,logicalCandidates,virtualCandidates
+def createMenuTree():
+    """Goes through the json and creates all of the necessary screens."""
+    global masterList, thisData, screenCreationCnt, logicalCandidates,virtualCandidates
     topKeys = list(k for k, v in thisData.iteritems() if 'eth' in k.lower() or 'wlan' in k.lower())
     for key in topKeys:
         # decide if wireless or ethernet
         iterateWireless(key) if key.startswith("wlan") else iterateEthernet(key)
 
-createTop3()
+createMenuTree()
 logicalCandidates.append("Go back to main menu")
 virtualCandidates.append("Go back to main menu")
 timeScreen = Screen("subMenu", "Time and Date", " ", 'time')
@@ -1830,19 +1826,23 @@ timeScreen.initScreenList([timeEdit])
 masterList.append(timeScreen)
 
 createLogical = Screen("subMenu", "Create Logical iface", " ", "creation")
-logicalList = LogicalInterfaceAdd("editable", "Available Interfaces", logicalCandidates)
+logicalList = LogicalInterfaceAdd("editable", "Create Logical iface", logicalCandidates)
 createLogical.initScreenList([logicalList])
-masterList.append(createLogical)
+# masterList.append(createLogical)
 
 createVirtual = Screen("subMenu", "Create Virtual iface", " ", "creation")
-virtualList = VirtualInterfaceAdd("editable", "Available Interfaces", virtualCandidates)
+virtualList = VirtualInterfaceAdd("editable", "Create Virtual iface", virtualCandidates)
 createVirtual.initScreenList([virtualList])
-masterList.append(createVirtual)
+# masterList.append(createVirtual)
 
 delInterface = Screen("subMenu", "Delete an Interface", " ", "creation")
-delList = InterfaceDelete("editable", "Deletable Interfaces")
+delList = InterfaceDelete("editable", "Delete an Interface")
 delInterface.initScreenList([delList])
-masterList.append(delInterface)
+#  masterList.append(delInterface)
+
+interfaceMgmt = Screen("subMenu", "Manage Interfaces", " ", "creation")
+interfaceMgmt.initScreenList([logicalList, virtualList, delList])
+masterList.append(interfaceMgmt)
 
 configurationScreen = Screen("subMenu", "Configurations", " ", "config")
 # initialize configuration screens
