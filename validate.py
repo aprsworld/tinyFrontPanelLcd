@@ -248,7 +248,7 @@ def config_validate(config):
     """validate entire config."""
     for iface, ifconfig in config.iteritems():
         print 250, iface, ifconfig
-        if iface is "source" or iface is "source-directory" or iface is "system":
+        if iface is "source" or iface is "source-directory" or iface is "system" or iface is "wlan0-secondary":
             continue
         if 'protocol' not in ifconfig:
             continue
