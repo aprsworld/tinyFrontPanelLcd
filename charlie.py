@@ -64,7 +64,7 @@ humanTranslations = {
     'broadcast': 'Broadcast',
     'netmask': 'Netmask',
     'gateway': 'Gateway',
-    'address': 'inet Address',
+    'address': 'IP Address',
     'scope': 'Address Scope',
     'hwaddress': 'Hardware Address',
     'mtu': 'Maximum Trans Unit',
@@ -75,7 +75,10 @@ humanTranslations = {
     'group': 'Group',
     'ESSID': 'Extended SSID',
     'RTS thr': 'RTS Threshold',
-    'Framgent thr': 'Fragment Threshold'
+    'Framgent thr': 'Fragment Threshold',
+    'securityType': 'Security Type',
+    'wpa-ssid': 'WPA Wireless SSID',
+    'wpa-psk': 'WPA Password'
 }
 
 charSetIndex = 0
@@ -2211,7 +2214,7 @@ detect_edges(button_callback)
 # startup text
 screen_select(n)
 dhcpUpdateTimer()
-xlist = list(k for k,v in thisData.iteritems() if 'eth' in k.lower() or 'wlan' in k.lower())
+xlist = list(k for k, v in thisData.iteritems() if 'eth' in k.lower() or 'wlan' in k.lower())
 print xlist
 try:
     raw_input("Press Enter to quit\n>")
