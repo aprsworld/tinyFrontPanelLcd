@@ -46,6 +46,13 @@ def autoVivify(d):
         d = AutoVivification({k: autoVivify(v) for k, v in d.iteritems()})
     return d
 
+'''
+--------------------------------------------------------------------------------
+    Globals and other data
+--------------------------------------------------------------------------------
+
+'''
+
 # OLED I2C display, 128x32 pixels
 RST = 24
 disp = Adafruit_SSD1306.SSD1306_128_32(rst=RST)
@@ -372,6 +379,12 @@ def detect_edges(callbackFn):
     GPIO.add_event_detect(18, GPIO.FALLING, callback=callbackFn, bouncetime=300)
     GPIO.add_event_detect(27, GPIO.FALLING, callback=callbackFn, bouncetime=400)
 
+'''
+--------------------------------------------------------------------------------
+    Class Definitions
+--------------------------------------------------------------------------------
+
+'''
 
 class Screen:
     """
@@ -505,7 +518,25 @@ class Screen:
 
     def changeType(self, type, navigation):
         self.type = type
-        self.navigation = navigation
+        self.navigation =
+
+    def setConfirmation(self, warning):
+        self.warning = warning
+
+    def getConfirmation(self):
+        if not hasattr(self, 'warning'):
+            return 'default warning'
+        else:
+            return self.warning
+
+    def setWarning(self, warning):
+        self.warning = warning
+
+    def getWarning(self):
+        if not hasattr(self, 'warning'):
+            return 'default warning'
+        else:
+            return self.warning
 
 # --------------------End of Screen Class Definition -----------------------
 
@@ -1694,6 +1725,14 @@ class confSend(Screen):
         """screen to display when editting value."""
         draw_screen_ul(self.title, "Are You Sure?", self.navigation, 255, 0, 0, 0)
 # --------------------End of ConfScreen Class Definition -----------------------
+
+
+'''
+--------------------------------------------------------------------------------
+    Function Definitions
+--------------------------------------------------------------------------------
+
+'''
 
 
 def changeSecurityType(interface, newSecurity, oldSecurity):
