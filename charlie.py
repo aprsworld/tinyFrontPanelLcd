@@ -1741,11 +1741,7 @@ class RestartScreen(confSend):
     def editVal(self, index, addorsub):
         global level
         if(addorsub == 0):
-            print thisData['config']
-            result = validate.config_validate(thisData['config'])
-            print result
-            if __name__ == "__main__":
-                restart_program()
+            restartProgram()
         elif(addorsub == 1):
             level = 1
             self.navigation = self.incrLine
@@ -1778,6 +1774,10 @@ def restartProgram():
     remove edge detection and re enable
     """
     global maxn, thisData, masterList, logicalCandidates, virtualCandidates, wlanVirtCount, ethVirtCount, inView, interfaces, dataUpdateDict, n
+    # disable button presses while setup is taking place
+    GPIO.remove_event_detect(17)
+    GPIO.remove_event_detect(18)
+    GPIO.remove_event_detect(27)
     # cleanup
     logicalCandidates[:] = []
     virtualCandidates[:] = []
@@ -1825,12 +1825,14 @@ def restartProgram():
     configurationScreen = Screen("subMenu", "System Options", " ", "config")
     # initialize configuration screens
     configSend = confSend("editable", "Validate/Send Config", "")
-
-    configurationScreen.initScreenList([configSend])
+    restart = RestartScreen("editable", "Restart Program", "Changes will be lost")
+    configurationScreen.initScreenList([configSend, restart])
     masterList.append(configurationScreen)
     # Set the number of menu items to the size of the list
     # Since the list counts from one, we must subtract one
     maxn = len(masterList) - 1
+    # re-enable button presses
+    detect_edges(button_callback)
 
 def changeSecurityType(interface, newSecurity, oldSecurity):
     """Change necessary screens and config keys when changing between wep and WPA."""
@@ -2337,8 +2339,8 @@ masterList.append(interfaceMgmt)
 configurationScreen = Screen("subMenu", "System Options", " ", "config")
 # initialize configuration screens
 configSend = confSend("editable", "Validate/Send Config", "")
-
-configurationScreen.initScreenList([configSend])
+restart = RestartScreen("editable", "Restart Program", "Changes will be lost")
+configurationScreen.initScreenList([configSend, restart])
 masterList.append(configurationScreen)
 # Set the number of menu items to the size of the list
 # Since the list counts from one, we must subtract one
