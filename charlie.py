@@ -1741,7 +1741,8 @@ class RestartScreen(confSend):
     def editVal(self, index, addorsub):
         global level
         if(addorsub == 0):
-            restartProgram()
+            # restartProgram()
+            pass
         elif(addorsub == 1):
             level = 1
             self.navigation = self.incrLine
@@ -1813,9 +1814,9 @@ def restartProgram():
     createVirtual.initScreenList([virtualList])
     # masterList.append(createVirtual)
 
-    delInterface = Screen("subMenu", "Delete an Interface", " ", "creation")
-    delList = InterfaceDelete("editable", "Delete an Interface")
-    delInterface.initScreenList([delList])
+    # delInterface = Screen("subMenu", "Delete an Interface", " ", "creation")
+    # delList = InterfaceDelete("editable", "Delete an Interface")
+    # delInterface.initScreenList([delList])
     #  masterList.append(delInterface)
 
     interfaceMgmt = Screen("subMenu", "Manage Interfaces", " ", "creation")
