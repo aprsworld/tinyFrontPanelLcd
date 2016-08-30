@@ -31,6 +31,20 @@ def sendConfig(url, data):
     response = urllib2.urlopen(req, json.dumps({"config":data}))
     print response.read()
 
+def checkForInterfaces(url, interfaceList):
+    """checks current interface list against interfaces in currentsettings.
+
+    Returns list of interfaces that need to be implemented
+    """
+    checkData = getData(url)
+    keyList = []
+    for k in checkData.keys():
+        if k in interfaceList:
+            pass
+        else:
+            keyList.append(k)
+    return {"keys": keyList, "newData": checkData}
+
 def hasKeys(ssidListGlobal):
     if(len(ssidListGlobal) > 0):
         ssids = ssidListGlobal[ssidListGlobal.keys()[0]].keys()

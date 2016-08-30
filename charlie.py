@@ -182,11 +182,22 @@ def update_vals():
     Scans wifi networks as well
     """
 
-    global thisData, interfaces, ssidListGlobal, URL3
+    global thisData, interfaces, ssidListGlobal, URL3, maxn
     # newData = getConfig.getData(URL)
     # print 136, interfaces
     if not level == 3 and not level == 2:
         ssidListGlobal = getConfig.getID_List(URL3)
+        interfaceCandidates = getConfig.checkForInterfaces(URL, interfaces.keys())
+        thisData.update(interfaceCandidates["newData"])
+        print 191, interfaces.keys()
+        print 192, interfaceCandidates["keys"]
+        for k in interfaceCandidates["keys"]:
+            print k
+            if k.startswith("wlan"):
+                iterateWireless(k)
+            if k.startswith("eth"):
+                iterateEthernet(k)
+        maxn = len(masterList) - 1
         '''
         for name, interfaceObject in interfaces.iteritems():
             if name in thisData['config']:
@@ -500,6 +511,7 @@ class Screen:
         """Screen is chosen - sets child index to zero and displays first child."""
         print("screenChosen " + self.title)
         self.childIndex = 0
+        print self.screens
         self.screens[self.childIndex].displayThis()
 
     def getTitle(self):
@@ -1929,11 +1941,12 @@ def iterateWireless(key):
     global masterList, thisData, screenCreationCnt, logicalCandidates, virtualCandidates, wlanVirtCount, ssidListGlobal
     # temporary endswith - only for testing
     topKeys = list(k for k, v in thisData[key].iteritems() if 'wlan' in k.lower() and not k.endswith('secondary'))
-    print topKeys
+    print 1941, topKeys
     # add ability to create a virtual interface using
     virtualCandidates.append(key)
     if len(topKeys) > 0:
         for interface in topKeys:
+            print 1947, interface
             wlanVirtCount += 1
             interfaces[interface] = thisData[key][interface]
             # interfaces[interface] = thisData[key][interface]
@@ -2346,7 +2359,7 @@ masterList.append(configurationScreen)
 # Set the number of menu items to the size of the list
 # Since the list counts from one, we must subtract one
 maxn = len(masterList) - 1
-
+screenCreationCnt = maxn + 1
 detect_edges(button_callback)
 # startup text
 screen_select(n)
