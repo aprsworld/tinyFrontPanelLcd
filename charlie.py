@@ -15,6 +15,7 @@ import getConfig
 import validate
 import sys
 import os
+import gc
 from threading import Timer
 from collections import defaultdict
 
@@ -143,7 +144,7 @@ def setReady():
 
 # timer to change screen once device is ready
 Timer(LOGO_DISPLAY_TIME, setReady).start()
-charlieimage.dispLogo()
+charlieimage.dispLogo("booting...")
 ssidListGlobal = getConfig.getID_List(URL3)
 
 # pauses program while stuff is being set up
@@ -1770,6 +1771,26 @@ def restartProgram():
     python = sys.executable
     os.execl(python, python * sys.argv)
 
+def restartProgram2():
+    """
+    Cleans up, garbage collects, and restarts the current program.
+
+    remove edge detection and re enable
+    """
+    global thisData, masterList, logicalCandidates, virtualCandidates, wlanVirtCount, ethVirtCount, inView, interfaces, dataUpdateDict, n
+    # cleanup
+    logicalCandidates[:] = []
+    virtualCandidates[:] = []
+    interfaces.clear()
+    dataUpdateDict.clear()
+    wlanVirtCount = 0
+    ethVirtCount = 0
+    thisData.clear()
+    masterList[:] = []
+    gc.collect()
+    # redo the initial setup
+    inView = ""
+    n = 0
 
 def changeSecurityType(interface, newSecurity, oldSecurity):
     """Change necessary screens and config keys when changing between wep and WPA."""

@@ -39,7 +39,7 @@ SPI_DEVICE = 0
 # DC = 'P9_15'
 # SPI_PORT = 1
 # SPI_DEVICE = 0
-def dispLogo():
+def dispLogo(message):
 
     # 128x32 display with hardware I2C:
     disp = Adafruit_SSD1306.SSD1306_128_32(rst=RST)
@@ -72,7 +72,7 @@ def dispLogo():
     draw = ImageDraw.Draw(image)
     font = ImageFont.load_default()
 
-    draw.text((0, 2 + 20), 'Booting...', font=font, fill=255)
+    draw.text((0, 2 + 20), message, font=font, fill=255)
 
     # Display image.
 
