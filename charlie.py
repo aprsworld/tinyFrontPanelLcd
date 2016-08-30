@@ -13,6 +13,8 @@ from dateutil.relativedelta import relativedelta as tdelta
 import charlieimage
 import getConfig
 import validate
+import sys
+import os
 from threading import Timer
 from collections import defaultdict
 
@@ -180,7 +182,7 @@ def update_vals():
     """
 
     global thisData, interfaces, ssidListGlobal, URL3
-    newData = getConfig.getData(URL)
+    # newData = getConfig.getData(URL)
     # print 136, interfaces
     if not level == 3 and not level == 2:
         ssidListGlobal = getConfig.getID_List(URL3)
@@ -365,7 +367,9 @@ def button_callback(channel):
                     this.changeConfig()
                 this.navigation = this.incrLine
                 this.displayThis()
-                draw_confirmation(this.title + " has", "been saved to config", 255, 0, masterList[n].screens[masterList[n].childIndex])
+                conf = this.getConfirmation()
+                print conf
+                draw_confirmation(conf['line1'], conf['line2'], 255, 0, masterList[n].screens[masterList[n].childIndex])
                 level = 2
 
     print(channel)
@@ -518,26 +522,29 @@ class Screen:
 
     def changeType(self, type, navigation):
         self.type = type
-        self.navigation =
+        self.navigation = navigation
 
-    def setConfirmation(self, warning):
-        self.warning = warning
+    def setConfirmation(self, conf1, conf2):
+        self.conf1 = conf1
+        self.conf2 = conf2
 
     def getConfirmation(self):
-        if not hasattr(self, 'warning'):
-            return 'default warning'
+        if self.value == "Go back to main menu":
+            return {"line1": "Returning to", "line2": "main menu"}
+        elif not hasattr(self, 'conf1') or not hasattr(self, 'conf2'):
+            return {"line1": self.title + ' has', "line2": "been saved to config"}
         else:
-            return self.warning
+            return {"line1": self.conf1, "line2": self.conf2}
 
-    def setWarning(self, warning):
-        self.warning = warning
+    def setWarning(self, warn1, warn2):
+        self.warn1 = warn1
+        self.warn2 = warn2
 
     def getWarning(self):
         if not hasattr(self, 'warning'):
-            return 'default warning'
+            return {"line1": 'default warning', "line2": "line2"}
         else:
-            return self.warning
-
+            return {"line1": self.warn1, "line2": self.warn2}
 # --------------------End of Screen Class Definition -----------------------
 
 
@@ -1387,7 +1394,7 @@ class VirtualInterfaceAdd(ListScreen):
                 newSSID = StringScreen('editable', 'wpa-ssid', ' ')
                 newPSK = StringScreen('editable', 'wpa-pask', ' ')
 
-                newInterface.initScreenList([newMethod, newAddress, newNetmask, newGateway, newSSID])
+                newInterface.initScreenList([newMethod, newAddress, newNetmask, newGateway, newSSID, newPSK])
                 masterList.append(newInterface)
                 wlanVirtCount += 1
 
@@ -1437,6 +1444,8 @@ class InterfaceDelete(ListScreen):
         self.valList = valsList
         self.incrLine = "<--    Select    -->"
         self.editLine = "<--    Choose    -->"
+        self.conf1 = "Interface has"
+        self.conf2 = "been deleted"
         if(self.type == "readOnly"):
             self.navigation = self.navLine
         elif(self.type == "subMenu"):
@@ -1469,7 +1478,7 @@ class InterfaceDelete(ListScreen):
         draw_screen(self.title, "", self.navigation, 255, 0)
 
     def changeConfig(self):
-        global thisData, maxn, masterList, n
+        global thisData, maxn, masterList, n, logicalCandidates
         if(self.value == "Return to prev menu"):
             return
         try:
@@ -1726,6 +1735,24 @@ class confSend(Screen):
         draw_screen_ul(self.title, "Are You Sure?", self.navigation, 255, 0, 0, 0)
 # --------------------End of ConfScreen Class Definition -----------------------
 
+class RestartScreen(confSend):
+    """Screen that allows user to restart program."""
+    def editVal(self, index, addorsub):
+        global level
+        if(addorsub == 0):
+            print thisData['config']
+            result = validate.config_validate(thisData['config'])
+            print result
+            if __name__ == "__main__":
+                restart_program()
+        elif(addorsub == 1):
+            level = 1
+            self.navigation = self.incrLine
+            draw_warning('canceled', 'Returning to main menu', 255, 0, masterList[n])
+        elif(addorsub == 2):
+            self.displayThis()
+# --------------------End of restartScreen Class Definition -----------------------
+
 
 '''
 --------------------------------------------------------------------------------
@@ -1733,6 +1760,15 @@ class confSend(Screen):
 --------------------------------------------------------------------------------
 
 '''
+
+def restartProgram():
+    """
+    retarts the current program.
+    """
+    # clean up and restart
+    GPIO.cleanup()
+    python = sys.executable
+    os.execl(python, python * sys.argv)
 
 
 def changeSecurityType(interface, newSecurity, oldSecurity):
@@ -2002,7 +2038,10 @@ def configureOctet(value, addAmt):
             value = 0
     elif(value < 0):
         if(addAmt == -100):
-            value = 200 + tens + ones
+            if tens + ones > 55:
+                value = 100 + tens + ones
+            else:
+                value = 200 + tens + ones
         elif(addAmt == -10):
             if ones >= 5:
                 value = 250
@@ -2216,6 +2255,7 @@ masterList.append(timeScreen)
 
 createLogical = Screen("subMenu", "Create Logical iface", " ", "creation")
 logicalList = LogicalInterfaceAdd("editable", "Create Logical iface", logicalCandidates)
+logicalList.setConfirmation(logicalList.value + " has", "been added")
 createLogical.initScreenList([logicalList])
 # masterList.append(createLogical)
 
@@ -2233,7 +2273,7 @@ interfaceMgmt = Screen("subMenu", "Manage Interfaces", " ", "creation")
 interfaceMgmt.initScreenList([logicalList, virtualList, delList])
 masterList.append(interfaceMgmt)
 
-configurationScreen = Screen("subMenu", "Configurations", " ", "config")
+configurationScreen = Screen("subMenu", "System Options", " ", "config")
 # initialize configuration screens
 configSend = confSend("editable", "Validate/Send Config", "")
 
