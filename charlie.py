@@ -98,7 +98,14 @@ humanTranslations = {
 }
 # global flag that determines level of "Directory" that we are on
 level = 1
-
+# initializes the list that keeps track of top-level screens
+masterList = []
+screenCreationCnt = 0
+logicalCandidates = []
+virtualCandidates = []
+wlanVirtCount = 0
+ethVirtCount = 0
+# Data Object
 thisData = AutoVivification()
 # thisData = getConfig.getData(URL)
 thisData.update(getConfig.getData(URL))
@@ -753,35 +760,53 @@ class StringScreen(Screen):
     def editVal(self, index, addorsub):
         global charSet, charSetIndex
         word = self.value
-        print "|"+word[index - 1:index]+"|"
+        print "|" + word[index - 1:index] + "|"
+
+        # if we are at the end of the word we need to notify that we are
         if(word[index - 1:index] == '' and index != 0):
             self.childIndex = self.valueLength
             return
         print charSetIndex, (len(charSet) - 1), index
+
+        # If we have reached the end of the char set, we must flip the index
+        # back to zero or vice-versa
         if(charSetIndex >= len(charSet) - 1):
             charSetIndex = 0
         if(charSetIndex < 0):
             charSetIndex = len(charSet) - 1
         if(addorsub == 0):
             addAmt = -1
+        # when not at the end of the word, pressing the middle button shifts
+        # the cursor one character over
         elif(addorsub == 2):
             self.displayEdit(index, 6)
             return
         else:
             addAmt = 1
+        # this is used to locate the current character in the string
+        # within the charset list
         if(index < len(word) and charSet.index(word[index]) + addAmt < len(charSet)):
             charSetIndex = charSet.index(word[index]) + addAmt
         else:
             charSetIndex = 0
         print charSetIndex
         char = charSet[charSetIndex]
+        # insert the new char within the word
         word = word[:index] + char + word[index + 1:]
         self.value = word
         self.displayEdit(index, 6)
+# --------------------End of StringScreen Class Definition -----------------------
+
 
 class HiddenSSID(StringScreen):
+    """
+    Class for setting hidden ssid.
+
+    extends StringScreen
+    """
+
     def __init__(self, type, title, configKey, value, interface):
-        """Our initialization for the screen stringclass."""
+        """Our initialization for the HiddenSSID stringclass."""
         # String: type of screen - "readOnly", "subMenu", "editable"
         global humanTranslations
         self.type = type
@@ -829,7 +854,17 @@ class HiddenSSID(StringScreen):
         print self.value.lower()
         thisData['config'][self.interface]['protocol']['inet'][self.configKey] = self.value.strip()
 
+# --------------------End of HiddenSSID Class Definition -----------------------
+
+
 class WifiCreds(StringScreen):
+    """
+    Class definition for WifiCredentials class.
+
+    Used for changing wifi passwords in WEP and WPA/WPA2 formats
+    Extends String Screen
+    """
+
     def __init__(self, type, title, value, interface):
         """Our initialization for the screen stringclass."""
         # String: type of screen - "readOnly", "subMenu", "editable"
@@ -897,13 +932,15 @@ class WifiCreds(StringScreen):
         global thisData
         print thisData['config']
         print self.value.lower()
+        # WPA keys need quotes around them
         if(self.title.startswith("wireless-key")):
             thisData['config'][self.interface]['protocol']['inet'][self.titleOrig] = self.value.strip()
         else:
-            thisData['config'][self.interface]['protocol']['inet'][self.titleOrig] = '\"'+self.value.strip()+'\"'
+            thisData['config'][self.interface]['protocol']['inet'][self.titleOrig] = '\"' + self.value.strip() + '\"'
         print thisData['config']
+# --------------------End of WifiCreds Class Definition -----------------------
 
-# --------------------End of StringScreen Class Definition -----------------------
+
 class DateTimeScreen(Screen):
     """Class for dateTime screens. Extends Screen."""
 
@@ -1054,6 +1091,8 @@ class DateTimeScreen(Screen):
             self.second = self.second + 1
         else:
             print('else')
+# --------------------End of DateTimeScreen Class Definition -----------------------
+
 
 class ListScreen(Screen):
     """Class for more than two options. extends screen."""
@@ -1100,12 +1139,19 @@ class ListScreen(Screen):
         self.value = self.valList[self.childIndex]
 
         self.displayEdit(index, 6)
+# --------------------End of ListScreen Class Definition -----------------------
 
 
 class LogicalInterfaceAdd(ListScreen):
+    """
+    Class for adding interfaces.
+
+    extends ListScreen
+    """
+
     def changeConfig(self):
-        global masterList, screenCreationCnt, maxn, wlanVirtCount, ethVirtCount
         """Change the setting in the config so that we can send it to piNetConfig."""
+        global masterList, screenCreationCnt, maxn, wlanVirtCount, ethVirtCount
         global thisData
         print thisData['config']
         if self.value == 'Go back to main menu':
@@ -1167,9 +1213,16 @@ class LogicalInterfaceAdd(ListScreen):
         global inView
         inView = self
         draw_screen(self.title, "", self.navigation, 255, 0)
+# --------------------End of LogicalInterfaceAdd Class Definition -----------------------
 
 
 class SecurityChanger(ListScreen):
+    """
+    Class for changing security settings.
+
+    extends listing screen
+    """
+
     def __init__(self, type, title, interface, security):
         """Our initialization for the screen list class."""
         global humanTranslations
@@ -1221,8 +1274,16 @@ class SecurityChanger(ListScreen):
         changeSecurityType(self.interface, self.value, self.prevVal)
         self.prevVal = self.value
         print thisData['config']
+# --------------------End of SecurityChanger Class Definition -----------------------
+
 
 class SsidChooser(ListScreen):
+    """
+    Class for changing SSID.
+
+    extends listscreen class
+    """
+
     def __init__(self, type, title, valsList, interface):
         """Our initialization for the screen list class."""
         global humanTranslations, ssidListGlobal
@@ -1267,8 +1328,14 @@ class SsidChooser(ListScreen):
         inView = self
         self.valList = getConfig.hasKeys(ssidListGlobal)
         draw_screen(self.title, self.value, self.navigation, 255, 0)
+# --------------------End of SecurityChanger Class Definition -----------------------
 
 class VirtualInterfaceAdd(ListScreen):
+    """
+    class for adding virtual interfaces.
+
+    extends listscreen class
+    """
     def changeConfig(self):
         global masterList, screenCreationCnt, maxn, wlanVirtCount, ethVirtCount
         """Change the setting in the config so that we can send it to piNetConfig."""
@@ -1315,6 +1382,12 @@ class VirtualInterfaceAdd(ListScreen):
         draw_screen(self.title, "", self.navigation, 255, 0)
 
 class InterfaceDelete(ListScreen):
+    """
+    class for deleting interfaces.
+
+    extends listscreen
+    """
+
     def __init__(self, type, title):
         """Our initialization for the screen list class."""
         global humanTranslations, thisData
@@ -1382,8 +1455,9 @@ class InterfaceDelete(ListScreen):
             pass
         self.valList = list(k for k, v in thisData['config'].iteritems() if k != 'lo' and k != 'system')
         print thisData['config']
+# ------------------End of InterfaceDelete Class Definition ---------------------
 
-# ------------------End of DateTimeScreen Class Definition ---------------------
+
 class BooleanScreen(Screen):
     """Class for true/false options screens. Extends Screen."""
 
@@ -1619,21 +1693,11 @@ class confSend(Screen):
     def displayEdit(self, underline_pos, underline_width):
         """screen to display when editting value."""
         draw_screen_ul(self.title, "Are You Sure?", self.navigation, 255, 0, 0, 0)
+# --------------------End of ConfScreen Class Definition -----------------------
 
-
-#  ******* Comment block denoting screen section
-# *
-# *
-#   *****  This is where we initialize all of our screens
-#        *
-#        *
-# *******
-
-# initializes the list that keeps track of top-level screens
-masterList = []
 
 def changeSecurityType(interface, newSecurity, oldSecurity):
-    """Changes necessary screens and config keys when changing between wep and WPA"""
+    """Change necessary screens and config keys when changing between wep and WPA."""
     global maxn, masterList, thisData
     # dictionaries to hold new and old values
     wepSecurity = {"ssid": "wireless-essid", "passphrase": "wireless-key"}
@@ -1687,14 +1751,14 @@ def changeSecurityType(interface, newSecurity, oldSecurity):
     print 1502, thisData['config']
 
 
-
 def resetFromStatic(interface):
-    """Reset values when method changed from DHCP to Static"""
+    """Reset values when method changed from DHCP to Static."""
     global thisData
     thisData['config'][interface]['protocol']['inet'].pop('address', None)
     thisData['config'][interface]['protocol']['inet'].pop('netmask', None)
     thisData['config'][interface]['protocol']['inet'].pop('gateway', None)
     print thisData['config']
+
 
 def determineScreenType(value, title, method):
     """Determine what type of screen.
@@ -1721,13 +1785,8 @@ def determineScreenType(value, title, method):
         screendict['editable'] = 'readOnly'
     return screendict
 
-screenCreationCnt = 0
-logicalCandidates = []
-virtualCandidates = []
-wlanVirtCount = 0
-ethVirtCount = 0
-
 def iterateWireless(key):
+    """Iterates through wireless interface."""
     global masterList, thisData, screenCreationCnt, logicalCandidates, virtualCandidates, wlanVirtCount, ssidListGlobal
     # temporary endswith - only for testing
     topKeys = list(k for k, v in thisData[key].iteritems() if 'wlan' in k.lower() and not k.endswith('secondary'))
@@ -1822,6 +1881,7 @@ def iterateWireless(key):
 
 
 def iterateEthernet(key):
+    """iterate through ethernet interface."""
     global masterList, thisData, screenCreationCnt, ethVirtCount
     topKeys = list(k for k, v in thisData[key].iteritems() if 'eth' in k.lower())
     blacklistSet = ['address', 'gateway', 'netmask']
@@ -1878,46 +1938,6 @@ def createMenuTree():
     for key in topKeys:
         # decide if wireless or ethernet
         iterateWireless(key) if key.startswith("wlan") else iterateEthernet(key)
-
-createMenuTree()
-logicalCandidates.append("Go back to main menu")
-virtualCandidates.append("Go back to main menu")
-timeScreen = Screen("subMenu", "Time and Date", " ", 'time')
-
-# intialize time screens
-timeEdit = DateTimeScreen("editable", "Current Time")
-
-timeScreen.initScreenList([timeEdit])
-masterList.append(timeScreen)
-
-createLogical = Screen("subMenu", "Create Logical iface", " ", "creation")
-logicalList = LogicalInterfaceAdd("editable", "Create Logical iface", logicalCandidates)
-createLogical.initScreenList([logicalList])
-# masterList.append(createLogical)
-
-createVirtual = Screen("subMenu", "Create Virtual iface", " ", "creation")
-virtualList = VirtualInterfaceAdd("editable", "Create Virtual iface", virtualCandidates)
-createVirtual.initScreenList([virtualList])
-# masterList.append(createVirtual)
-
-delInterface = Screen("subMenu", "Delete an Interface", " ", "creation")
-delList = InterfaceDelete("editable", "Delete an Interface")
-delInterface.initScreenList([delList])
-#  masterList.append(delInterface)
-
-interfaceMgmt = Screen("subMenu", "Manage Interfaces", " ", "creation")
-interfaceMgmt.initScreenList([logicalList, virtualList, delList])
-masterList.append(interfaceMgmt)
-
-configurationScreen = Screen("subMenu", "Configurations", " ", "config")
-# initialize configuration screens
-configSend = confSend("editable", "Validate/Send Config", "")
-
-configurationScreen.initScreenList([configSend])
-masterList.append(configurationScreen)
-# Set the number of menu items to the size of the list
-# Since the list counts from one, we must subtract one
-maxn = len(masterList) - 1
 
 def configureOctet(value, addAmt):
     """chooses what to display in an ip address' octet."""
@@ -2136,6 +2156,53 @@ def screen_select(screenNum):
 
     # find and display the screen in the list based on our passed int value
     masterList[screenNum].displayThis()
+
+
+'''
+--------------------------------------------------------------------------------
+    Start Screen Creation
+-------------------------------------------------------------------------------
+'''
+
+createMenuTree()
+logicalCandidates.append("Go back to main menu")
+virtualCandidates.append("Go back to main menu")
+timeScreen = Screen("subMenu", "Time and Date", " ", 'time')
+
+# intialize time screens
+timeEdit = DateTimeScreen("editable", "Current Time")
+
+timeScreen.initScreenList([timeEdit])
+masterList.append(timeScreen)
+
+createLogical = Screen("subMenu", "Create Logical iface", " ", "creation")
+logicalList = LogicalInterfaceAdd("editable", "Create Logical iface", logicalCandidates)
+createLogical.initScreenList([logicalList])
+# masterList.append(createLogical)
+
+createVirtual = Screen("subMenu", "Create Virtual iface", " ", "creation")
+virtualList = VirtualInterfaceAdd("editable", "Create Virtual iface", virtualCandidates)
+createVirtual.initScreenList([virtualList])
+# masterList.append(createVirtual)
+
+delInterface = Screen("subMenu", "Delete an Interface", " ", "creation")
+delList = InterfaceDelete("editable", "Delete an Interface")
+delInterface.initScreenList([delList])
+#  masterList.append(delInterface)
+
+interfaceMgmt = Screen("subMenu", "Manage Interfaces", " ", "creation")
+interfaceMgmt.initScreenList([logicalList, virtualList, delList])
+masterList.append(interfaceMgmt)
+
+configurationScreen = Screen("subMenu", "Configurations", " ", "config")
+# initialize configuration screens
+configSend = confSend("editable", "Validate/Send Config", "")
+
+configurationScreen.initScreenList([configSend])
+masterList.append(configurationScreen)
+# Set the number of menu items to the size of the list
+# Since the list counts from one, we must subtract one
+maxn = len(masterList) - 1
 
 detect_edges(button_callback)
 # startup text
