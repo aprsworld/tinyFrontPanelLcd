@@ -1762,7 +1762,7 @@ class RestartScreen(confSend):
 
 '''
 
-def restartProgram():
+def restartProgram2():
     """
     retarts the current program.
     """
@@ -1771,13 +1771,13 @@ def restartProgram():
     python = sys.executable
     os.execl(python, python * sys.argv)
 
-def restartProgram2():
+def restartProgram():
     """
     Cleans up, garbage collects, and restarts the current program.
 
     remove edge detection and re enable
     """
-    global thisData, masterList, logicalCandidates, virtualCandidates, wlanVirtCount, ethVirtCount, inView, interfaces, dataUpdateDict, n
+    global maxn, thisData, masterList, logicalCandidates, virtualCandidates, wlanVirtCount, ethVirtCount, inView, interfaces, dataUpdateDict, n
     # cleanup
     logicalCandidates[:] = []
     virtualCandidates[:] = []
@@ -1791,6 +1791,46 @@ def restartProgram2():
     # redo the initial setup
     inView = ""
     n = 0
+    createMenuTree()
+    logicalCandidates.append("Go back to main menu")
+    virtualCandidates.append("Go back to main menu")
+    timeScreen = Screen("subMenu", "Time and Date", " ", 'time')
+
+    # intialize time screens
+    timeEdit = DateTimeScreen("editable", "Current Time")
+
+    timeScreen.initScreenList([timeEdit])
+    masterList.append(timeScreen)
+
+    createLogical = Screen("subMenu", "Create Logical iface", " ", "creation")
+    logicalList = LogicalInterfaceAdd("editable", "Create Logical iface", logicalCandidates)
+    logicalList.setConfirmation(logicalList.value + " has", "been added")
+    createLogical.initScreenList([logicalList])
+    # masterList.append(createLogical)
+
+    createVirtual = Screen("subMenu", "Create Virtual iface", " ", "creation")
+    virtualList = VirtualInterfaceAdd("editable", "Create Virtual iface", virtualCandidates)
+    createVirtual.initScreenList([virtualList])
+    # masterList.append(createVirtual)
+
+    delInterface = Screen("subMenu", "Delete an Interface", " ", "creation")
+    delList = InterfaceDelete("editable", "Delete an Interface")
+    delInterface.initScreenList([delList])
+    #  masterList.append(delInterface)
+
+    interfaceMgmt = Screen("subMenu", "Manage Interfaces", " ", "creation")
+    interfaceMgmt.initScreenList([logicalList, virtualList, delList])
+    masterList.append(interfaceMgmt)
+
+    configurationScreen = Screen("subMenu", "System Options", " ", "config")
+    # initialize configuration screens
+    configSend = confSend("editable", "Validate/Send Config", "")
+
+    configurationScreen.initScreenList([configSend])
+    masterList.append(configurationScreen)
+    # Set the number of menu items to the size of the list
+    # Since the list counts from one, we must subtract one
+    maxn = len(masterList) - 1
 
 def changeSecurityType(interface, newSecurity, oldSecurity):
     """Change necessary screens and config keys when changing between wep and WPA."""
