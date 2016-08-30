@@ -17,45 +17,60 @@ from threading import Timer
 from collections import defaultdict
 
 
-# define tree data structure to make our life easier
 class AutoVivification(dict):
-    """Implementation of perl's autovivification feature."""
+    """
+    Implementation of perl's autovivification feature.
+
+    define tree data structure to make our life easier
+    this allows for referencing keys in a dictionary that do not exists
+    when referencing a non-existent key, it will create the key instead of throwing
+    a key error
+    """
 
     def __getitem__(self, item):
+        """Override __getitem__."""
         try:
             return dict.__getitem__(self, item)
         except KeyError:
             value = self[item] = type(self)()
             return value
 
-
 def autoVivify(d):
-    """Turn a regular dictionary into an AutoVivification dict."""
+    """
+    Turn a regular dictionary into an AutoVivification dict.
+    Args:
+        d: is the dicionary to convert
+    """
     if isinstance(d, dict):
         # recursive adaptation of child dictionary elements
         d = AutoVivification({k: autoVivify(v) for k, v in d.iteritems()})
     return d
 
+# OLED I2C display, 128x32 pixels
+RST = 24
+disp = Adafruit_SSD1306.SSD1306_128_32(rst=RST)
 
-# URL that we are getting data from
-# URL = "http://192.168.10.160/piNetConfig/current_settings.php"
+# Our URL Constants for getting and setting data
 URL = "http://localhost/piNetConfig/netconfig.php"
-# URL2 = "http://192.168.10.160/piNetConfig/netconfig-write.php"
 URL2 = "http://localhost/piNetConfig/netconfig.php"
 URL3 = "http://localhost/piNetConfig/netconfig-scan.php"
-
+# Default time for the logo to display at the beginning of the program
 LOGO_DISPLAY_TIME = 1
+# Index global used to keey track of place within our char sets
+charSetIndex = 0
+# List of items that may be editted within screens
 editableSet = ['gateway', 'address', 'netmask', 'Extended SSID', 'mtu', 'Maximum Trans Unit']
-charSetPass = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-           'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
 
+# charset for passwords
 charSet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '$', '@', '^', '`', '|', '%', ';', '.', '~', '(', ')', '/', '{', '}',
            ':', '?', '[', ']', '=', '-', '+', '_', '#', '!', ' ']
-
+# charset for WEP keys
 charHexaSet = [' ', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F']
 
+# Dicionary for converting between the values that come in via json and
+# human readable translations of those values
 humanTranslations = {
     'method': 'Addressing Method',
     'dhcp': 'DHCP',
@@ -81,8 +96,9 @@ humanTranslations = {
     'wpa-psk': 'WPA Password',
     'ESSID': 'Current WIFI SSID'
 }
+# global flag that determines level of "Directory" that we are on
+level = 1
 
-charSetIndex = 0
 thisData = AutoVivification()
 # thisData = getConfig.getData(URL)
 thisData.update(getConfig.getData(URL))
@@ -95,8 +111,7 @@ inView = ""
 interfaces = AutoVivification()
 # global dictionary for updating network screen values
 dataUpdateDict = AutoVivification()
-# global flag that determines level of "Directory" that we are on
-level = 1
+
 
 # starting time to display on unit
 thisTime = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -142,12 +157,18 @@ def print_some_times():
         print '\n! Received keyboard interrupt, quitting threads.\n'
         return
 
+
 def update_vals():
-    """Update the values of DHCP interfaces."""
+    """
+    Update the values of DHCP interfaces.
+
+    Scans wifi networks as well
+    """
+
     global thisData, interfaces, ssidListGlobal, URL3
     newData = getConfig.getData(URL)
     # print 136, interfaces
-    if not level == 3 or level == 2:
+    if not level == 3 and not level == 2:
         ssidListGlobal = getConfig.getID_List(URL3)
         '''
         for name, interfaceObject in interfaces.iteritems():
@@ -204,10 +225,6 @@ def dhcpUpdateTimer():
         print '\n! Received keyboard interrupt, quitting threads.\n'
         return
 
-# OLED I2C display, 128x32 pixels
-RST = 24
-disp = Adafruit_SSD1306.SSD1306_128_32(rst=RST)
-
 # Initialize library.
 disp.begin()
 
@@ -220,6 +237,7 @@ width = disp.width
 height = disp.height
 image = Image.new('1', (width, height))
 draw = ImageDraw.Draw(image)
+
 # Load default font.
 font = ImageFont.load_default()
 GPIO.setmode(GPIO.BCM)
@@ -236,10 +254,14 @@ action_down_now = False
 n = 0
 
 
-# now we'll define two threaded callback functions
-# these will run in another thread when our events are detected
 def button_callback(channel):
-    """two threaded callback functions."""
+    """
+    Two threaded callback functions.
+
+    These run in another thread when our events are detected
+    Args:
+        channel: the button that was pressed
+    """
     # allow access to our globals
     global disable, action_up_now, action_select_now, action_down_now, n, maxn, masterList, level, charSetIndex
     print "level: ", level
@@ -337,8 +359,6 @@ def button_callback(channel):
     action_select_now = False
     action_down_now = False
 
-
-# detect button falling edges
 def detect_edges(callbackFn):
     """designate threaded callbacks for all button presses."""
     GPIO.add_event_detect(17, GPIO.FALLING, callback=callbackFn, bouncetime=300)
@@ -347,7 +367,11 @@ def detect_edges(callbackFn):
 
 
 class Screen:
-    """Our screen class."""
+    """
+    Our screen class.
+
+    This is the base class for our screens - it is extended by other classes
+    """
 
     dirLine = "<--    Select    -->"
     navLine = "<--              -->"
@@ -355,7 +379,15 @@ class Screen:
     editLine = "(-)     Next     (+)"
 
     def __init__(self, type, title, value, interface):
-        """Our initialization for the screen class."""
+        """
+        Our initialization for the screen class.
+
+        Args:
+            type: whether it is readonly or editable
+            title: the label to display at the top of the screen when displayEdit
+            value: the value stored to display on the second line of the screenType
+            interface: the interface that this screen is associated with
+        """
         # String: type of screen - "readOnly", "subMenu", "editable"
         global humanTranslations
         self.type = type
@@ -385,11 +417,21 @@ class Screen:
         self.edit = False
 
     def initScreenList(self, screens):
-        """Initialize the submenus for this screen."""
+        """
+        Initialize the submenus for this screen.
+
+        Args:
+            screens: a list of screen objects
+        """
         self.screens = screens
 
     def prependScreenList(self, screen):
-        "add screen to beginning of screen list"
+        """
+        Add screen to beginning of screen list.
+
+        Args:
+            screen: the screen object to prepend to the screen list
+        """
         self.screens.insert(0, screen)
 
     def displayThis(self):
@@ -399,7 +441,13 @@ class Screen:
         draw_screen(self.title, self.value, self.navigation, 255, 0)
 
     def displayEdit(self, underline_pos, underline_width):
-        """screen to display when editting value."""
+        """
+        screen to display when editting value.
+
+        Args:
+            underline_pos: the x value for the starting point of our underline_pos
+            underline_width: the width of the underline
+        """
         draw_screen_ul(self.title, self.value, self.navigation, 255, 0, underline_pos, underline_width)
 
     def colorInvert(self):
@@ -418,6 +466,8 @@ class Screen:
         """set child index of screen.
 
         Child index is used to determine what subscreen we are on
+        Args:
+            value: the value to set as childindex
         """
         self.childIndex = value
 
@@ -428,9 +478,15 @@ class Screen:
         self.screens[self.childIndex].displayThis()
 
     def getTitle(self):
+        """Gets the original title.
+
+        Note: it is important that it gets the original title as this is used to
+        set values in the config.
+        """
         return self.titleOrig
 
     def setTitle(self, title):
+        """Sets the displayed title"""
         if title in humanTranslations:
             self.title = humanTranslations[title]
         else:
@@ -1787,13 +1843,14 @@ def iterateEthernet(key):
             # if statement format is:
             # create screen with json data        if     statement data exists     else      create screen with default data
             masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "address", thisData[key][interface]["inet"]["address"], interface)) if thisData[key][interface]["inet"].get("address", False) else masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "address", "0.0.0.0", interface))
-            masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "gateway", thisData[key][interface]["inet"]["gateway"], interface)) if thisData[key][interface]["inet"].get("gateway", False) else masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "gateway", "0.0.0.0", interface))
             masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "netmask", thisData[key][interface]["inet"]["netmask"], interface)) if thisData[key][interface]["inet"].get("netmask", False) else masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "netmask", "0.0.0.0", interface))
+            masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "gateway", thisData[key][interface]["inet"]["gateway"], interface)) if thisData[key][interface]["inet"].get("gateway", False) else masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', "gateway", "0.0.0.0", interface))
             for inetKey in thisData[key][interface]["inet"]:
                 if inetKey == 'brd' or inetKey == 'broadcast':
                     masterList[screenCreationCnt].screens.append(NetworkScreen('readOnly', inetKey, thisData[key][interface]["inet"][inetKey], interface))
                 elif inetKey not in blacklistSet:
                     masterList[screenCreationCnt].screens.append(StringScreen('readOnly', inetKey, thisData[key][interface]["inet"][inetKey]))
+            # iterate through the rest of the settings ignoring dictionaries and autovivifications, as these have already been added
             for generalSetting in thisData[key]:
                 if isinstance(thisData[key][generalSetting], AutoVivification):
                     pass
