@@ -4,6 +4,7 @@ import json
 import urllib
 import urllib2
 import collections
+import globalDependencies
 
 def getData(url):
     """Get data from a resource defined bu url."""
@@ -59,3 +60,9 @@ def getID_List(url):
     print output
     return output
     # output[output.keys()[0]].keys()
+
+def get_layout(url):
+    with open(url) as json_data:
+        d = json.load(json_data)
+        print(d)
+        return d

@@ -1,0 +1,60 @@
+{
+    "network-status": {
+        "eth-iface": {
+            "state": [
+                "stringscreen",
+                "readonly"
+            ],
+            "address": [
+                "networkscreen",
+                "readonly"
+            ],
+            "netmask": [
+                "networkscreen",
+                "readonly"
+            ],
+            "gateway": [
+                "networkscreen",
+                "readonly"
+            ],
+            "advanced-settings": {
+                "hw-address": [
+                    "stringscreen",
+                    "readonly"
+                ]
+            }
+        },
+        "wifi-iface": {
+            "state": [
+                "stringscreen",
+                "readonly"
+            ],
+            "ssid": [
+                "stringscreen",
+                "readonly"
+            ],
+            "securityType": [
+                "stringscreen",
+                "readonly"
+            ],
+            "address": [
+                "networkscreen",
+                "readonly"
+            ],
+            "netmask": [
+                "networkscreen",
+                "readonly"
+            ],
+            "gateway": [
+                "networkscreen",
+                "readonly"
+            ],
+            "advanced-settings": {
+                "hw-address": [
+                    "stringscreen",
+                    "readonly"
+                ]
+            }
+        }
+    }
+}
