@@ -118,6 +118,35 @@ humanTranslations = {
 }
 
 
+def screen_select(screenNum):
+    """for changing screens."""
+    global ip, lo, masterList
+
+    # find and display the screen in the list based on our passed int value
+    masterList[screenNum].displayThis()
+
+
+def draw_confirmation(line2, line3, fillNum, fillBg, currentScreen):
+    """for drawing an error."""
+    global disp, n, maxn, Image, ImageDraw, draw, font
+    # Draw a black filled fox to clear the image.
+
+    draw.rectangle((0, 0, width - 1, height - 1), outline=1, fill=fillBg)
+
+    top = 2
+    draw.rectangle((1, 0, width - 1, top + 9), outline=1, fill=fillNum)
+    draw.text((center_text("S A V E D", 0), top), "S A V E D", font=font, fill=fillBg)
+    draw.text((center_text(line2, 0), top + 9), line2, font=font, fill=fillNum)
+    draw.text((center_text(line3, 0), top + 18), line3, font=font, fill=fillNum)
+    disp.image(image.rotate(180))
+
+    disp.display()
+    GPIO.remove_event_detect(27)
+    GPIO.remove_event_detect(17)
+    GPIO.remove_event_detect(18)
+    t = Timer(2.5, drawAndEnable, [currentScreen])
+    t.start()
+
 def draw_screen(s, line2, line3, fillNum, fillBg):
     """for drawing the next screen."""
     global disp, n, maxn, Image, ImageDraw, draw, font

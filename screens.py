@@ -275,7 +275,7 @@ class NetworkScreen(Screen):
         self.valueLength = 11
         self.edit = False
         self.interface = interface
-        dataUpdateDict[self.interface + "_" + self.dataName] = self
+        # dataUpdateDict[self.interface + "_" + self.dataName] = self
         # String: line Three on the LCD Screen
         # Can be either <--    Select    -->   OR   (-)    Select    (+)
         if(self.type == "readOnly"):
