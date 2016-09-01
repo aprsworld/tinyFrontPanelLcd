@@ -34,7 +34,82 @@ n = 0
 
 print list(layout.keys())
 
+class Stack:
+    def __init__(self):
+        self.items = []
+
+    def isEmpty(self):
+        return self.items == []
+
+    def push(self, item):
+        self.items.append(item)
+
+    def pop(self):
+        return self.items.pop()
+
+    def peek(self):
+        return self.items[len(self.items) - 1]
+
+    def size(self):
+        return len(self.items)
+
+menuStack = Stack()
+topLevelMenu = screens.Screen("topMenu", "Top Menu", "", "")
+
+
 def button_callback(channel):
+    """
+    Two threaded callback functions.
+
+    These run in another thread when our events are detected
+    Args:
+        channel: the button that was pressed
+    """
+    global disable, action_up_now, action_select_now, action_down_now, charSetIndex, screenChosen
+
+    if action_up_now or action_select_now or action_down_now:
+        print "simultaneous press", channel
+        return
+
+    if(17 == channel):
+        action_up_now = True
+    elif(18 == channel):
+        action_down_now = True
+    elif(27 == channel):
+        action_select_now = True
+
+    if channel == 17:
+        if screenChosen.childIndex == screenChosen.valueLength:
+            if not screenChosen.type == topLevelMenu.type:
+                screenChosen.setChildIndex(0)
+                screenChosen = menuStack.pop()
+            else:
+                screenChosen.childIndex = 0
+        else:
+            screenChosen.childIndex += 1
+        screenChosen.screens[screenChosen.childIndex].displayThis()
+    elif channel == 18:
+        if screenChosen.childIndex == 0:
+            if not screenChosen.type == topLevelMenu.type:
+                screenChosen.setChildIndex(0)
+                screenChosen = menuStack.pop()
+            else:
+                screenChosen.childIndex = screenChosen.valueLength
+        else:
+            screenChosen.childIndex -= 1
+        screenChosen.screens[screenChosen.childIndex].displayThis()
+    elif channel == 27:
+        if screenChosen.type == "editable":
+            pass
+        else:
+            menuStack.push(screenChosen)
+            screenChosen = screenChosen.screens[screenChosen.childIndex]
+        screenChosen.screens[screenChosen.childIndex].displayThis()
+    action_up_now = False
+    action_select_now = False
+    action_down_now = False
+
+def button_callback2(channel):
     """
     Two threaded callback functions.
 
@@ -171,10 +246,10 @@ def getInterfaceList():
     pass
 
 def buildNetworkStatus():
-    global masterList, layout
+    global masterList, layout, topLevelMenu
     networkStatusScreen = screens.Screen("subMenu", "Network Status", " ", "networkStatus")
     eth0 = screens.Screen("subMenu", "ethernet(eth0)", " ", "eth0")
-    networkStatusScreen.screens.append(eth0)
+    networkStatusScreen.appendScreenList(eth0)
     for item in layout["network-status"]["eth-iface"]:
         if isinstance(layout["network-status"]["eth-iface"][item], dict):
             for subItem in layout["network-status"]["eth-iface"][item]:
@@ -186,7 +261,7 @@ def buildNetworkStatus():
             val = retrieveData("eth0", "eth0", item)
             res = layout["network-status"]["eth-iface"][item]
             x = createScreen(res[1], item, res[0], val, "eth0")
-            eth0.screens.append(x)
+            eth0.appendScreenList(x)
     return networkStatusScreen
 
 
@@ -208,9 +283,10 @@ def mainSetupMenu():
     return mainSetupMenu
 
 if "network-status" in layoutKeys:
-    masterList.append(buildNetworkStatus())
+    topLevelMenu.appendScreenList(buildNetworkStatus())
 
-masterList[0].displayThis()
+topLevelMenu.screens[0].displayThis()
+screenChosen = topLevelMenu
 maxn = len(masterList) - 1
 
 

@@ -60,6 +60,7 @@ class Screen:
             screens: a list of screen objects
         """
         self.screens = screens
+        self.valueLength = len(self.screens) - 1
 
     def prependScreenList(self, screen):
         """
@@ -69,6 +70,17 @@ class Screen:
             screen: the screen object to prepend to the screen list
         """
         self.screens.insert(0, screen)
+        self.valueLength = len(self.screens) - 1
+
+    def appendScreenList(self, screen):
+        """
+        Add screen to end of screen list.
+
+        Args:
+            screen: the screen object to prepend to the screen list
+        """
+        self.screens.append(screen)
+        self.valueLength = len(self.screens) - 1
 
     def displayThis(self):
         """Draw our screen."""
