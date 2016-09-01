@@ -38,6 +38,7 @@ class Screen:
         self.dataName = title
         # String: line two on the LCD Screen
         self.value = value
+        self.valueLength = 0
         self.childIndex = 0
         self.screens = []
         # String: line Three on the LCD Screen
@@ -61,6 +62,11 @@ class Screen:
         """
         self.screens = screens
         self.valueLength = len(self.screens) - 1
+
+    def insertScreenList(self, screen, index):
+        if index > self.valueLength:
+            self.valueLength = index
+        self.screens.insert(index, screen)
 
     def prependScreenList(self, screen):
         """

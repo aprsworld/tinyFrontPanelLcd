@@ -5,7 +5,7 @@ import urllib
 import urllib2
 import collections
 import globalDependencies
-
+from collections import OrderedDict
 def getData(url):
     """Get data from a resource defined bu url."""
     data = urllib.urlopen(url).read()
@@ -61,8 +61,16 @@ def getID_List(url):
     return output
     # output[output.keys()[0]].keys()
 
-def get_layout(url):
+def get_layout2(url):
     with open(url) as json_data:
+        print json_data
         d = json.load(json_data)
         print(d)
         return d
+
+def get_layout(url):
+    data = urllib.urlopen(url).read()
+    print data
+    d = json.load(open(url), object_pairs_hook=OrderedDict)
+    print(d)
+    return d

@@ -104,7 +104,7 @@ def button_callback(channel):
         else:
             menuStack.push(screenChosen)
             screenChosen = screenChosen.screens[screenChosen.childIndex]
-        screenChosen.screens[screenChosen.childIndex].displayThis()
+            screenChosen.screens[screenChosen.childIndex].displayThis()
     action_up_now = False
     action_select_now = False
     action_down_now = False
@@ -222,9 +222,12 @@ def retrieveData(physical, logical, requestedData):
         "address": safeget(thisData, physical, logical, "inet", requestedData),
         "gateway": safeget(thisData, physical, logical, "inet", requestedData),
         "netmask": safeget(thisData, physical, logical, "inet", requestedData),
-        "state": safeget(thisData, physical, requestedData)
+        "state": safeget(thisData, physical, requestedData),
+        "ssid": "aprsworld",
+        "securityType": "WPA2",
+        "hwaddress": safeget(thisData, physical, requestedData)
     }
-    return dataDict[requestedData]
+    return safeget(dataDict, requestedData)
 
 def safeget(dct, *keys):
     for key in keys:
@@ -240,28 +243,51 @@ def createScreen(editable, title, screentype, value, interface):
         return screens.StringScreen(editable, title, value)
     elif screentype.lower() == "networkscreen":
         return screens.NetworkScreen(editable, title, value, interface)
-
+    elif screentype.lower() == "submenu":
+        return screens.Screen(screentype, title, value, interface)
 
 def getInterfaceList():
-    pass
+    global thisData
+    interfaceList = list()
+    for key in thisData.keys():
+        if key.startswith("eth") or key.startswith("wlan"):
+            if key.startswith("eth"):
+                keyType = "eth-iface"
+            elif key.startswith("wlan"):
+                keyType = "wifi-iface"
+            for subkey in thisData[key].keys():
+                if subkey.startswith(key) and not subkey.endswith("secondary"):
+                    interfaceList.append({"key": key, "subkey": subkey, "keyType": keyType})
+    print 253, interfaceList
+    return interfaceList
 
 def buildNetworkStatus():
-    global masterList, layout, topLevelMenu
+    global layout, topLevelMenu
     networkStatusScreen = screens.Screen("subMenu", "Network Status", " ", "networkStatus")
-    eth0 = screens.Screen("subMenu", "ethernet(eth0)", " ", "eth0")
-    networkStatusScreen.appendScreenList(eth0)
-    for item in layout["network-status"]["eth-iface"]:
-        if isinstance(layout["network-status"]["eth-iface"][item], dict):
-            for subItem in layout["network-status"]["eth-iface"][item]:
-                if isinstance(layout["network-status"]["eth-iface"][item][subItem], dict):
-                    pass
-                else:
-                    pass
-        else:
-            val = retrieveData("eth0", "eth0", item)
-            res = layout["network-status"]["eth-iface"][item]
-            x = createScreen(res[1], item, res[0], val, "eth0")
-            eth0.appendScreenList(x)
+    iFaceList = getInterfaceList()
+    for iface in iFaceList:
+        newScreen = screens.Screen("subMenu", iface["subkey"], " ", iface["subkey"])
+        print iface
+        for item in layout["network-status"][iface["keyType"]]:
+            if isinstance(layout["network-status"][iface["keyType"]][item], dict):
+                x = createScreen("", item, "subMenu", "", item)
+                for subItem in layout["network-status"][iface["keyType"]][item]:
+                    if isinstance(layout["network-status"][iface["keyType"]][item][subItem], dict):
+                        pass
+                    else:
+                        val = retrieveData(iface["key"], iface["subkey"], subItem)
+                        res = layout["network-status"][iface["keyType"]][item][subItem]
+                        subscreen = createScreen(res[1], subItem, res[0], val, iface["key"])
+                        x.appendScreenList(subscreen)
+                newScreen.appendScreenList(x)
+            else:
+                val = retrieveData(iface["key"], iface["subkey"], item)
+                res = layout["network-status"][iface["keyType"]][item]
+                x = createScreen(res[1], item, res[0], val, iface["key"])
+                newScreen.appendScreenList(x)
+                print newScreen.screens
+        networkStatusScreen.appendScreenList(newScreen)
+    print networkStatusScreen.screens
     return networkStatusScreen
 
 
@@ -277,13 +303,19 @@ def buildDateAndTime():
     return dateAndTime
 
 
-def mainSetupMenu():
+def buildMainSetupMenu():
     global masterList, layout
-    mainSetupMenu = screens.Screen("subMenu", "Main Setup", " ", "mainSetupMenu")
+    mainSetupMenu = screens.Screen("subMenu", "Main Setup Menu", " ", "mainSetupMenu")
     return mainSetupMenu
 
 if "network-status" in layoutKeys:
     topLevelMenu.appendScreenList(buildNetworkStatus())
+if "magWebProStatus" in layoutKeys:
+    topLevelMenu.appendScreenList(buildMagWebProStatus())
+if "dateAndTime" in layoutKeys:
+    topLevelMenu.appendScreenList(buildDateAndTime())
+if "mainSetupMenu" in layoutKeys:
+    topLevelMenu.appendScreenList(buildMainSetupMenu())
 
 topLevelMenu.screens[0].displayThis()
 screenChosen = topLevelMenu

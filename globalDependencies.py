@@ -114,7 +114,10 @@ humanTranslations = {
     'securityType': 'Security Type',
     'wpa-ssid': 'WPA Wireless SSID',
     'wpa-psk': 'WPA Password',
-    'ESSID': 'Current WIFI SSID'
+    'ESSID': 'Current WIFI SSID',
+    'dateAndTime': 'Date and Time',
+    'magWebProStatus': 'MagWebPro Status',
+    'mainSetupMenu': 'Main Setup Menu'
 }
 
 

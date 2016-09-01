@@ -18,7 +18,7 @@
                 "readonly"
             ],
             "advanced-settings": {
-                "hw-address": [
+                "hwaddress": [
                     "stringscreen",
                     "readonly"
                 ]
@@ -50,11 +50,71 @@
                 "readonly"
             ],
             "advanced-settings": {
-                "hw-address": [
+                "hwaddress": [
                     "stringscreen",
                     "readonly"
                 ]
             }
         }
-    }
+    },
+	"magWebProStatus": {
+		"hostName": [
+			"stringScreen",
+			"readonly"
+		]
+	},
+	"dateAndTime": [
+		"datetimescreen",
+		"readonly"
+	],
+	"mainSetupMenu": {
+		"allowWebConfig": [
+			"booleanScreen",
+			"editable"
+		],
+		"eth-iface": {
+            "state": [
+                "stringscreen",
+                "editable"
+            ],
+            "address": [
+                "networkscreen",
+                "editable"
+            ],
+            "netmask": [
+                "networkscreen",
+                "editable"
+            ],
+            "gateway": [
+                "networkscreen",
+                "editable"
+            ]
+		},
+		"wifi-iface": {
+            "state": [
+                "stringscreen",
+                "readonly"
+            ],
+            "ssid": [
+                "stringscreen",
+                "readonly"
+            ],
+            "securityType": [
+                "stringscreen",
+                "editable"
+            ],
+            "address": [
+                "networkscreen",
+                "editable"
+            ],
+            "netmask": [
+                "networkscreen",
+                "editable"
+            ],
+            "gateway": [
+                "networkscreen",
+                "editable"
+            ]
+		}
+	}
 }
