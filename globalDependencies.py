@@ -120,6 +120,15 @@ humanTranslations = {
     'mainSetupMenu': 'Main Setup Menu'
 }
 
+charSetIndex = 0
+# charset for passwords
+charSet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+           'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+           '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '$', '@', '^', '`', '|', '%', ';', '.', '~', '(', ')', '/', '{', '}',
+           ':', '?', '[', ']', '=', '-', '+', '_', '#', '!', ' ']
+# charset for WEP keys
+charHexaSet = [' ', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F']
+
 
 def screen_select(screenNum):
     """for changing screens."""
@@ -169,8 +178,67 @@ def draw_screen(s, line2, line3, fillNum, fillBg):
     # disp.image(image)
     disp.display()
 
+def draw_screen_ul(s, line2, line3, fillNum, fillBg, underline_pos, underline_width):
+    """for drawing the next screen."""
+    global disp, n, maxn, Image, ImageDraw, draw
+
+    # Draw a black filled box to clear the image.
+    draw.rectangle((0, 0, width, height), outline=0, fill=fillBg)
+
+    x = 0
+    top = 2
+    draw.rectangle((1, 0, width - 1, top + 9), outline=1, fill=fillNum)
+    draw.text((center_text(s, 0), top), s, font=font, fill=fillBg)
+    draw.text((x, top + 10), line2, font=font, fill=fillNum)
+    draw.text((center_text(line3, 0), top + 20), line3, font=font, fill=fillNum)
+
+    draw.line([underline_pos * underline_width, 22, (underline_pos + 1) * underline_width - 1, 22], fill=255)
+
+    disp.image(image.rotate(180))
+    # disp.image(image)
+    disp.display()
 
 def center_text(text, borderWidth):
     """Center text on the LCD Screen."""
     strlen = len(str(text)) * 6
     return (128 + borderWidth - strlen) / 2
+
+def configureOctet(value, addAmt):
+    """chooses what to display in an ip address' octet."""
+    if(not value == 0):
+        hunds = value - (value % 100)
+        ones = value % 100 % 10
+        if value < 100:
+            tens = (value % 100) - ones
+        else:
+            tens = value % (hunds + ones)
+    else:
+        hunds = 0
+        tens = 0
+        ones = 0
+    print hunds, tens, ones
+    value = value + addAmt
+    if(value > 255):
+        if(addAmt == 100):
+            value = 0 + tens + ones
+        elif(addAmt == 10):
+            value = 0 + ones
+        else:
+            value = 0
+    elif(value < 0):
+        if(addAmt == -100):
+            if tens + ones > 55:
+                value = 100 + tens + ones
+            else:
+                value = 200 + tens + ones
+        elif(addAmt == -10):
+            if ones >= 5:
+                value = 250
+            else:
+                if(tens >= 50):
+                    value = 250 + ones
+                else:
+                    value = 200 + tens + ones
+        else:
+            value = 255
+    return value

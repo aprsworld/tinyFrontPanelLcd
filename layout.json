@@ -69,52 +69,50 @@
 	],
 	"mainSetupMenu": {
 		"allowWebConfig": [
-			"booleanScreen",
+			"booleanscreen",
 			"editable"
 		],
-		"eth-iface": {
-            "state": [
-                "stringscreen",
-                "editable"
-            ],
-            "address": [
-                "networkscreen",
-                "editable"
-            ],
-            "netmask": [
-                "networkscreen",
-                "editable"
-            ],
-            "gateway": [
-                "networkscreen",
-                "editable"
-            ]
-		},
-		"wifi-iface": {
-            "state": [
-                "stringscreen",
-                "readonly"
-            ],
-            "ssid": [
-                "stringscreen",
-                "readonly"
-            ],
-            "securityType": [
-                "stringscreen",
-                "editable"
-            ],
-            "address": [
-                "networkscreen",
-                "editable"
-            ],
-            "netmask": [
-                "networkscreen",
-                "editable"
-            ],
-            "gateway": [
-                "networkscreen",
-                "editable"
-            ]
+		"setTime": [
+			"dateandtime",
+			"editable"
+		],
+		"network-setup": {
+			"eth-iface": {
+				"address": [
+					"networkscreen",
+					"editable"
+				],
+				"netmask": [
+					"networkscreen",
+					"editable"
+				],
+				"gateway": [
+					"networkscreen",
+					"editable"
+				]
+			},
+			"wifi-iface": {
+				"ssid": [
+					"stringscreen",
+					"readonly"
+				],
+				"securityType": [
+					"stringscreen",
+					"editable"
+				],
+				"address": [
+					"networkscreen",
+					"editable"
+				],
+				"netmask": [
+					"networkscreen",
+					"editable"
+				],
+				"gateway": [
+					"networkscreen",
+					"editable"
+				]
+			}
 		}
 	}
 }

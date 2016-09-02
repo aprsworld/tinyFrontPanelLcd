@@ -1,6 +1,10 @@
-import globalDependencies as gc
-humanTranslations = gc.humanTranslations
+import globalDependencies as gd
+from datetime import datetime as dt
+from dateutil.relativedelta import relativedelta as tdelta
+from threading import Timer
 
+humanTranslations = gd.humanTranslations
+thisData = gd.thisData
 
 class Screen:
     """
@@ -41,6 +45,7 @@ class Screen:
         self.valueLength = 0
         self.childIndex = 0
         self.screens = []
+        self.editMode = False
         # String: line Three on the LCD Screen
         # Can be either <--    Select    -->   OR   (-)    Select    (+)
         if(self.type == "readOnly"):
@@ -92,7 +97,7 @@ class Screen:
         """Draw our screen."""
         global inView
         inView = self
-        gc.draw_screen(self.title, self.value, self.navigation, 255, 0)
+        gd.draw_screen(self.title, self.value, self.navigation, 255, 0)
 
     def displayEdit(self, underline_pos, underline_width):
         """
@@ -102,7 +107,7 @@ class Screen:
             underline_pos: the x value for the starting point of our underline_pos
             underline_width: the width of the underline
         """
-        gc.draw_screen_ul(self.title, self.value, self.navigation, 255, 0, underline_pos, underline_width)
+        gd.draw_screen_ul(self.title, self.value, self.navigation, 255, 0, underline_pos, underline_width)
 
     def setChildIndex(self, value):
         """set child index of screen.
@@ -193,6 +198,7 @@ class IntScreen(Screen):
             self.navigation = self.navLine
         else:
             self.navigation = self.incrLine
+        self.editMode = False
 
     def editVal(self, index, addorsub):
         """Edits the integer value of this screen."""
@@ -302,6 +308,7 @@ class NetworkScreen(Screen):
             self.navigation = self.navLine
         else:
             self.navigation = self.incrLine
+        self.editMode = False
 
     def editVal(self, addrNum, addorsub):
         """Edit the value of a network screen.
@@ -324,24 +331,28 @@ class NetworkScreen(Screen):
             addAmt = addAmt * -1
         if(addorsub == 2):
             addAmt = 0
+            if self.childIndex >= 1:
+                addrNum += 1
+            self.childIndex += 1
+
         # ___.xxx.xxx.xxx
         if(addrNum <= 2):
-            self.addr0 = configureOctet(self.addr0, addAmt)
+            self.addr0 = gd.configureOctet(self.addr0, addAmt)
             self.value = self.formatAddr(str(self.addr0)) + "." + self.formatAddr(str(self.addr1)) + "." + self.formatAddr(str(self.addr2)) + "." + self.formatAddr(str(self.addr3))
             self.displayEdit(addrNum, 6)
         # xxx.___.xxx.xxx
         elif(addrNum <= 5):
-            self.addr1 = configureOctet(self.addr1, addAmt)
+            self.addr1 = gd.configureOctet(self.addr1, addAmt)
             self.value = self.formatAddr(str(self.addr0)) + "." + self.formatAddr(str(self.addr1)) + "." + self.formatAddr(str(self.addr2)) + "." + self.formatAddr(str(self.addr3))
             self.displayEdit(addrNum + 1, 6)
         # xxx.xxx.___.xxx
         elif(addrNum <= 8):
-            self.addr2 = configureOctet(self.addr2, addAmt)
+            self.addr2 = gd.configureOctet(self.addr2, addAmt)
             self.value = self.formatAddr(str(self.addr0)) + "." + self.formatAddr(str(self.addr1)) + "." + self.formatAddr(str(self.addr2)) + "." + self.formatAddr(str(self.addr3))
             self.displayEdit(addrNum + 2, 6)
         # xxx.xxx.xxx.___
         elif(addrNum <= 11):
-            self.addr3 = configureOctet(self.addr3, addAmt)
+            self.addr3 = gd.configureOctet(self.addr3, addAmt)
             self.value = self.formatAddr(str(self.addr0)) + "." + self.formatAddr(str(self.addr1)) + "." + self.formatAddr(str(self.addr2)) + "." + self.formatAddr(str(self.addr3))
             self.displayEdit(addrNum + 3, 6)
         # append everything into a network address string so that it can be shown on screen
@@ -378,7 +389,7 @@ class NetworkScreen(Screen):
         """Change the setting in the config so that we can send it to piNetConfig."""
         global thisData
         print thisData['config']
-        thisData['config'][self.interface]['protocol']['inet'][self.titleOrig] = str(self.addr0)+"."+str(self.addr1)+"."+str(self.addr2)+"."+str(self.addr3)
+        gd.thisData['config'][self.interface]['protocol']['inet'][self.titleOrig] = str(self.addr0)+"."+str(self.addr1)+"."+str(self.addr2)+"."+str(self.addr3)
         print thisData['config']
 
 
@@ -404,6 +415,7 @@ class StringScreen(Screen):
         self.value = value
         self.valueLength = 18
         self.edit = False
+        self.editMode = False
 
         # String: line Three on the LCD Screen
         # Can be either <--    Select    -->   OR   (-)    Select    (+)
@@ -452,3 +464,192 @@ class StringScreen(Screen):
         word = word[:index] + char + word[index + 1:]
         self.value = word
         self.displayEdit(index, 6)
+class BooleanScreen(Screen):
+    """Class for true/false options screens. Extends Screen."""
+
+    def __init__(self, type, title, value, val0, val1):
+        """Our initialization for the screen boolean class."""
+        # String: type of screen - "readOnly", "subMenu", "editable"
+        global humanTranslations
+        self.type = type
+        self.screenType = "BooleanScreen"
+        self.valueLength = 0
+        if title in humanTranslations:
+            self.title = humanTranslations[title]
+        else:
+            self.title = title
+        self.dataName = title
+
+        self.childIndex = 0
+        self.value = value
+        self.val0 = val0
+        self.val1 = val1
+        self.editLine = self.val0 + "< Confirm >" + self.val1
+        if(self.type == "readOnly"):
+            self.navigation = self.navLine
+        elif(self.type == "subMenu"):
+            self.navigation = self.navLine
+        else:
+            self.navigation = self.incrLine
+        self.editMode = False
+
+    def editVal(self, index, addorsub):
+        if(addorsub == 0):
+            self.value = self.val0
+        elif(addorsub == 1):
+            self.value = self.val1
+        elif(addorsub == 2):
+            self.value = self.value
+        self.displayThis()
+
+class DateTimeScreen(Screen):
+    """Class for dateTime screens. Extends Screen."""
+
+    def __init__(self, type, title):
+        """Our initialization for the screen stringclass."""
+        # String: type of screen - "readOnly", "subMenu", "editable"
+        global humanTranslations
+        self.type = type
+        self.screenType = "DateTimeScreen"
+
+        # String: Line one on the LCD Screen
+        if title in humanTranslations:
+            self.title = humanTranslations[title]
+        else:
+            self.title = title
+        self.dataName = title
+        # String: line two on the LCD Screen
+        self.childIndex = 0
+        self.date = dt.now()
+        self.value = self.date.strftime("%Y-%m-%d %H:%M:%S")
+        self.valueLength = 5
+        self.year = 0
+        self.month = 0
+        self.day = 0
+        self.hour = 0
+        self.second = 0
+        self.minute = 0
+        self.edit = False
+        self.editMode = False
+
+        self.timeChange = tdelta(years=self.year, months=self.month, days=self.day, hours=self.hour, minutes=self.minute, seconds=self.second)
+        # String: line Three on the LCD Screen
+        # Can be either <--    Select    -->   OR   (-)    Select    (+)
+        if(self.type == "readOnly"):
+            self.navigation = self.navLine
+        elif(self.type == "subMenu"):
+            self.navigation = self.navLine
+        else:
+            self.navigation = self.incrLine
+        self.print_some_times()
+
+    def editVal(self, index, addorsub):
+        """edit val of screen with new data."""
+        global draw
+        self.edit = True
+        if(index == 0):
+            self.editYear(addorsub)
+            self.underline_pos = 0
+            self.underline_width = 24
+        elif(index == 1):
+            self.editMonth(addorsub)
+            self.underline_pos = 2.5
+            self.underline_width = 12
+        elif(index == 2):
+            self.editDay(addorsub)
+            self.underline_pos = 4
+            self.underline_width = 12
+        elif(index == 3):
+            self.editHour(addorsub)
+            self.underline_pos = 5.5
+            self.underline_width = 12
+        elif(index == 4):
+            self.editMinute(addorsub)
+            self.underline_pos = 7
+            self.underline_width = 12
+        elif(index == 5):
+            self.editSecond(addorsub)
+            self.underline_pos = 8.5
+            self.underline_width = 12
+        self.timeChange = tdelta(years=self.year, months=self.month, days=self.day, hours=self.hour, minutes=self.minute, seconds=self.second)
+        self.date = dt.now() + self.timeChange
+        self.value = self.date.strftime("%Y-%m-%d %H:%M:%S")
+        self.displayEdit(self.underline_pos, self.underline_width)
+
+    def print_time(self):
+        """update the value of the time screen print_some_times calls this every second."""
+        global timeScreen, masterList
+        self.print_some_times()
+        self.date = dt.now() + self.timeChange
+        self.value = self.date.strftime("%Y-%m-%d %H:%M:%S")
+        # If we are on the time screen, update the screen every second as well
+        if(inView.title == self.title):
+            if(self.edit):
+                self.displayEdit(self.underline_pos, self.underline_width)
+            else:
+                self.displayThis()
+
+    def print_some_times(self):
+        """call print_time every second."""
+        try:
+            t = Timer(1, self.print_time)
+            t.daemon = True
+            t.start()
+        except (KeyboardInterrupt, SystemExit):
+            print '\n! Received keyboard interrupt, quitting threads.\n'
+            return
+
+    def editYear(self, addorsub):
+        """edit year of value on screen."""
+        print(self.year)
+        if(addorsub == 0):
+            self.year = self.year - 1
+        elif(addorsub == 1):
+            self.year = self.year + 1
+        else:
+            print('else')
+
+    def editMonth(self, addorsub):
+        """edit month of value on screen."""
+        if(addorsub == 0):
+            self.month = self.month - 1
+        elif(addorsub == 1):
+            self.month = self.month + 1
+        else:
+            print('else')
+
+    def editDay(self, addorsub):
+        """edit day of value on screen."""
+        if(addorsub == 0):
+            self.day = self.day - 1
+        elif(addorsub == 1):
+            self.day = self.day + 1
+        else:
+            print('else')
+
+    def editHour(self, addorsub):
+        """edit hour of value on screen."""
+        if(addorsub == 0):
+            self.hour = self.hour - 1
+        elif(addorsub == 1):
+            self.hour = self.hour + 1
+        else:
+            print('else')
+
+    def editMinute(self, addorsub):
+        """edit minute of value on screen."""
+        if(addorsub == 0):
+            self.minute = self.minute - 1
+        elif(addorsub == 1):
+            self.minute = self.minute + 1
+        else:
+            print('else')
+
+    def editSecond(self, addorsub):
+        """edit Second of value on screen."""
+        if(addorsub == 0):
+            self.second = self.second - 1
+        elif(addorsub == 1):
+            self.second = self.second + 1
+        else:
+            print('else')

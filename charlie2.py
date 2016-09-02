@@ -65,7 +65,7 @@ def button_callback(channel):
     Args:
         channel: the button that was pressed
     """
-    global disable, action_up_now, action_select_now, action_down_now, charSetIndex, screenChosen
+    global thisData, disable, action_up_now, action_select_now, action_down_now, charSetIndex, screenChosen
 
     if action_up_now or action_select_now or action_down_now:
         print "simultaneous press", channel
@@ -79,31 +79,50 @@ def button_callback(channel):
         action_select_now = True
 
     if channel == 17:
-        if screenChosen.childIndex == screenChosen.valueLength:
-            if not screenChosen.type == topLevelMenu.type:
-                screenChosen.setChildIndex(0)
-                screenChosen = menuStack.pop()
-            else:
-                screenChosen.childIndex = 0
+        if screenChosen.editMode == True:
+            screenChosen.editVal(screenChosen.childIndex, 1)
         else:
-            screenChosen.childIndex += 1
-        screenChosen.screens[screenChosen.childIndex].displayThis()
+            if screenChosen.childIndex == screenChosen.valueLength:
+                if not screenChosen.type == topLevelMenu.type:
+                    screenChosen.setChildIndex(0)
+                    screenChosen = menuStack.pop()
+                else:
+                    screenChosen.childIndex = 0
+            else:
+                screenChosen.childIndex += 1
+            screenChosen.screens[screenChosen.childIndex].displayThis()
     elif channel == 18:
-        if screenChosen.childIndex == 0:
-            if not screenChosen.type == topLevelMenu.type:
-                screenChosen.setChildIndex(0)
-                screenChosen = menuStack.pop()
+        if screenChosen.editMode == True:
+            screenChosen.editVal(screenChosen.childIndex, 0)
+        else:
+            if screenChosen.childIndex == 0:
+                if not screenChosen.type == topLevelMenu.type:
+                    screenChosen.setChildIndex(0)
+                    screenChosen = menuStack.pop()
+                else:
+                    screenChosen.childIndex = screenChosen.valueLength
             else:
-                screenChosen.childIndex = screenChosen.valueLength
-        else:
-            screenChosen.childIndex -= 1
-        screenChosen.screens[screenChosen.childIndex].displayThis()
+                screenChosen.childIndex -= 1
+            screenChosen.screens[screenChosen.childIndex].displayThis()
     elif channel == 27:
-        if screenChosen.type == "editable":
-            pass
-        else:
+        print screenChosen.type
+        if screenChosen.type == "subMenu" or screenChosen.type == "topMenu":
             menuStack.push(screenChosen)
             screenChosen = screenChosen.screens[screenChosen.childIndex]
+        if screenChosen.type == "editable":
+            screenChosen.editVal(screenChosen.childIndex, 2)
+            if screenChosen.editMode == True:
+                print True
+                screenChosen.childIndex + 1
+            screenChosen.editMode = True
+            if screenChosen.childIndex > screenChosen.valueLength:
+                screenChosen.childIndex = 0
+                screenChosen.editMode = False
+                screenChosen.changeConfig()
+                print thisData["config"]
+                screenChosen = menuStack.pop()
+                screenChosen.displayThis()
+        else:
             screenChosen.screens[screenChosen.childIndex].displayThis()
     action_up_now = False
     action_select_now = False
@@ -239,6 +258,10 @@ def safeget(dct, *keys):
 
 def createScreen(editable, title, screentype, value, interface):
     print screentype
+    if editable.lower() == "readonly":
+        editable = "readOnly"
+    if screentype.lower() == "submenu":
+        screentype = "subMenu"
     if screentype.lower() == "stringscreen":
         return screens.StringScreen(editable, title, value)
     elif screentype.lower() == "networkscreen":
@@ -305,7 +328,38 @@ def buildDateAndTime():
 
 def buildMainSetupMenu():
     global masterList, layout
+    iFaceList = getInterfaceList()
     mainSetupMenu = screens.Screen("subMenu", "Main Setup Menu", " ", "mainSetupMenu")
+    toplevel = "mainSetupMenu"
+    for key in layout["mainSetupMenu"].keys():
+        if key.lower() == "allowwebconfig":
+            mainSetupMenu.appendScreenList(screens.BooleanScreen("editable", "Allow Web Configuration", "Allow", "Allow", "Don't Allow"))
+        elif key.lower() == "settime":
+            mainSetupMenu.appendScreenList(screens.DateTimeScreen("readOnly", "Edit Date and Time"))
+        elif key.lower() == "network-setup":
+            networkSettings = createScreen("", "Network Setup", "submenu", "", "Network Setup")
+            for iface in iFaceList:
+                newScreen = screens.Screen("subMenu", iface["subkey"], " ", iface["subkey"])
+                for item in layout[toplevel]["network-setup"][iface["keyType"]]:
+                    if isinstance(layout[toplevel]["network-setup"][iface["keyType"]][item], dict):
+                        x = createScreen("", item, "subMenu", "", item)
+                        for subItem in layout["network-status"][iface["keyType"]][item]:
+                            if isinstance(layout["network-status"][iface["keyType"]][item][subItem], dict):
+                                pass
+                            else:
+                                val = retrieveData(iface["key"], iface["subkey"], subItem)
+                                res = layout["network-status"][iface["keyType"]][item][subItem]
+                                subscreen = createScreen(res[1], subItem, res[0], val, iface["key"])
+                                x.appendScreenList(subscreen)
+                        newScreen.appendScreenList(x)
+                    else:
+                        val = retrieveData(iface["key"], iface["subkey"], item)
+                        res = layout[toplevel]["network-setup"][iface["keyType"]][item]
+                        x = createScreen(res[1], item, res[0], val, iface["key"])
+                        newScreen.appendScreenList(x)
+                        print newScreen.screens
+                networkSettings.appendScreenList(newScreen)
+            mainSetupMenu.appendScreenList(networkSettings)
     return mainSetupMenu
 
 if "network-status" in layoutKeys:
