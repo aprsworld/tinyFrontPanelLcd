@@ -5,6 +5,63 @@ from threading import Timer
 
 humanTranslations = gd.humanTranslations
 thisData = gd.thisData
+charSetIndex = gd.charSetIndex
+charSet = gd.charSet
+
+def changeSecurityType(interface, newSecurity, oldSecurity):
+    """Change necessary screens and config keys when changing between wep and WPA."""
+    global maxn, masterList, thisData
+    # dictionaries to hold new and old values
+    wepSecurity = {"ssid": "wireless-essid", "passphrase": "wireless-key"}
+    wpaSecurity = {"ssid": "wpa-ssid", "passphrase": "wpa-psk"}
+    noneSecurity = {"ssid": "wireless-essid", "passphrase": "wireless-key"}
+    securityLookup = {"wep": wepSecurity, "wpa": wpaSecurity, "wpa2": wpaSecurity, "none": noneSecurity}
+
+    # variables to hold values for readability purposes
+    newPassPhrase = securityLookup[newSecurity.lower()]["passphrase"]
+    oldPassPhrase = securityLookup[oldSecurity.lower()]["passphrase"]
+    old_ssid = securityLookup[oldSecurity.lower()]["ssid"]
+    new_ssid = securityLookup[newSecurity.lower()]["ssid"]
+    configAddress = thisData['config'][interface]["protocol"]["inet"]
+    print "CHANGE SECURITY", "old_ssid:", old_ssid, "new_ssid", new_ssid
+
+    # loop through Screen List and change the title of the screen
+    print masterList[n].screens
+    if newSecurity.lower() == "wep" and (oldSecurity.lower() == "wpa" or oldSecurity.lower() == "wpa2"):
+        if configAddress.get("wpa-scan-ssid", False) is not False:
+            configAddress.pop("wpa-scan-ssid")
+        if configAddress.get("wpa-ap-scan", False) is not False:
+            configAddress.pop("wpa-ap-scan")
+    elif newSecurity.lower() == "none" and (oldSecurity.lower() == "wpa" or oldSecurity.lower() == "wpa2"):
+        if configAddress.get("wpa-scan-ssid", False) is not False:
+            configAddress.pop("wpa-scan-ssid")
+        if configAddress.get("wpa-ap-scan", False) is not False:
+            configAddress.pop("wpa-ap-scan")
+    elif newSecurity.lower() == "wpa" or newSecurity.lower() == "wpa2":
+        configAddress["wpa-scan-ssid"] = "1"
+        configAddress["wpa-ap-scan"] = "1"
+
+    for i, entry in enumerate(masterList[n].screens):
+        if(entry.getTitle().lower() == oldPassPhrase.lower()):
+            entry.setTitle(newPassPhrase)
+            if(newSecurity.lower() == "none"):
+                print "test"
+                configAddress.pop(oldPassPhrase)
+            elif(oldSecurity.lower() == "none"):
+                configAddress[newPassPhrase] = "<none>"
+            elif oldPassPhrase in configAddress:
+                configAddress[newPassPhrase] = configAddress.pop(oldPassPhrase)
+            else:
+                pass
+            print configAddress
+        if(entry.getTitle().lower() == old_ssid.lower()):
+            entry.setTitle(new_ssid)
+            configAddress[new_ssid] = configAddress.pop(old_ssid)
+            print configAddress
+        if(entry.getTitle().lower() == "hidden ssid"):
+            entry.setConfigKey(old_ssid)
+    print 1502, thisData['config']
+
 
 class Screen:
     """
@@ -331,9 +388,6 @@ class NetworkScreen(Screen):
             addAmt = addAmt * -1
         if(addorsub == 2):
             addAmt = 0
-            if self.childIndex >= 1:
-                addrNum += 1
-            self.childIndex += 1
 
         # ___.xxx.xxx.xxx
         if(addrNum <= 2):
@@ -433,7 +487,7 @@ class StringScreen(Screen):
 
         # if we are at the end of the word we need to notify that we are
         if(word[index - 1:index] == '' and index != 0):
-            self.childIndex = self.valueLength
+            self.childIndex = self.valueLength + 1
             return
         print charSetIndex, (len(charSet) - 1), index
 
@@ -653,3 +707,109 @@ class DateTimeScreen(Screen):
             self.second = self.second + 1
         else:
             print('else')
+
+class ListScreen(Screen):
+    """Class for more than two options. extends screen."""
+
+    def __init__(self, type, title, valsList):
+        """Our initialization for the screen list class."""
+        global humanTranslations
+        self.type = type
+        self.screenType = "ListScreen"
+        self.valueLength = 0
+        if title in humanTranslations:
+            self.title = humanTranslations[title]
+        else:
+            self.title = title
+        self.dataName = title
+
+        self.childIndex = 0
+        self.value = valsList[self.childIndex]
+        self.valList = valsList
+        self.incrLine = "<--    Select    -->"
+        self.editLine = "Prev   Choose   Next"
+        if(self.type == "readOnly"):
+            self.navigation = self.navLine
+        elif(self.type == "subMenu"):
+            self.navigation = self.navLine
+        else:
+            self.navigation = self.incrLine
+
+    def editVal(self, index, addorsub):
+        print self.valList
+        if(addorsub == 0):
+            self.childIndex += -1
+            if(self.childIndex < 0):
+                self.childIndex = len(self.valList) - 1
+        elif(addorsub == 1):
+            self.childIndex += 1
+            if(self.childIndex > len(self.valList) - 1):
+                self.childIndex = 0
+        elif(addorsub == 2):
+            # create interface
+            pass
+        print self.valList, self.childIndex
+
+        self.value = self.valList[self.childIndex]
+
+        self.displayEdit(index, 6)
+
+class SecurityChanger(ListScreen):
+    """
+    Class for changing security settings.
+
+    extends listing screen
+    """
+
+    def __init__(self, type, title, interface, security):
+        """Our initialization for the screen list class."""
+        global humanTranslations
+        self.type = type
+        self.screenType = "ListScreen"
+        self.valueLength = 0
+        if title in humanTranslations:
+            self.title = humanTranslations[title]
+        else:
+            self.title = title
+        self.dataName = title
+        self.interface = interface
+        self.titleOrig = title
+        self.childIndex = 0
+        self.valList = ['WPA', 'WPA2', 'WEP', 'NONE']
+        self.prevVal = security.upper()
+        self.value = security.upper()
+        self.editMode = False
+        # check if in list. if so, then set the index to that item
+        if(self.value in self.valList):
+            self.childIndex = self.valList.index(self.value)
+        self.editLine = "Prev   Choose   Next"
+        if(self.type == "readOnly"):
+            self.navigation = self.navLine
+        elif(self.type == "subMenu"):
+            self.navigation = self.navLine
+        else:
+            self.navigation = self.incrLine
+
+    def editVal(self, index, addorsub):
+        print self.valList
+        if(addorsub == 0):
+            self.childIndex += -1
+            if(self.childIndex < 0):
+                self.childIndex = len(self.valList) - 1
+        elif(addorsub == 1):
+            self.childIndex += 1
+            if(self.childIndex > len(self.valList) - 1):
+                self.childIndex = 0
+        elif(addorsub == 2):
+
+            pass
+        print self.valList, self.childIndex
+        self.value = self.valList[self.childIndex]
+        self.displayEdit(index, 0)
+
+    def changeConfig(self):
+        # update config and screens for this interface
+        global thisData
+        # changeSecurityType(self.interface, self.value, self.prevVal)
+        self.prevVal = self.value
+        print thisData['config']

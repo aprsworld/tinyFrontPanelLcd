@@ -94,10 +94,10 @@
 			"wifi-iface": {
 				"ssid": [
 					"stringscreen",
-					"readonly"
+					"editable"
 				],
 				"securityType": [
-					"stringscreen",
+					"securitychanger",
 					"editable"
 				],
 				"address": [

@@ -31,6 +31,8 @@ action_select_now = gd.action_select_now
 action_down_now = gd.action_select_now
 level = 1
 n = 0
+charlieimage.dispLogo("Booting up...")
+wifiList = getConfig.getID_List(gd.URL3)
 
 print list(layout.keys())
 
@@ -110,12 +112,15 @@ def button_callback(channel):
             menuStack.push(screenChosen)
             screenChosen = screenChosen.screens[screenChosen.childIndex]
         if screenChosen.type == "editable":
-            screenChosen.editVal(screenChosen.childIndex, 2)
             if screenChosen.editMode == True:
                 print True
-                screenChosen.childIndex + 1
+                screenChosen.childIndex += 1
+                print screenChosen.childIndex
+                print screenChosen.valueLength
             screenChosen.editMode = True
+            screenChosen.editVal(screenChosen.childIndex, 2)
             if screenChosen.childIndex > screenChosen.valueLength:
+                print "else"
                 screenChosen.childIndex = 0
                 screenChosen.editMode = False
                 screenChosen.changeConfig()
@@ -237,16 +242,28 @@ def button_callback2(channel):
 
 def retrieveData(physical, logical, requestedData):
     global thisData
-    dataDict = {
-        "address": safeget(thisData, physical, logical, "inet", requestedData),
-        "gateway": safeget(thisData, physical, logical, "inet", requestedData),
-        "netmask": safeget(thisData, physical, logical, "inet", requestedData),
-        "state": safeget(thisData, physical, requestedData),
-        "ssid": "aprsworld",
-        "securityType": "WPA2",
-        "hwaddress": safeget(thisData, physical, requestedData)
-    }
-    return safeget(dataDict, requestedData)
+    if physical.startswith("eth"):
+        dataDict = {
+            "address": safeget(thisData, physical, logical, "inet", requestedData),
+            "gateway": safeget(thisData, physical, logical, "inet", requestedData),
+            "netmask": safeget(thisData, physical, logical, "inet", requestedData),
+            "state": safeget(thisData, physical, requestedData),
+            "hwaddress": safeget(thisData, physical, requestedData)
+        }
+    else:
+        dataDict = {
+            "address": safeget(thisData, physical, logical, "inet", requestedData),
+            "gateway": safeget(thisData, physical, logical, "inet", requestedData),
+            "netmask": safeget(thisData, physical, logical, "inet", requestedData),
+            "state": safeget(thisData, physical, requestedData),
+            "ssid": safeget(thisData, physical, "wireless", "settings", "ESSID"),
+            "securityType": safeget(wifiList, physical, safeget(thisData, physical, "wireless", "settings", "ESSID").replace('\"',''), "auth"),
+            "hwaddress": safeget(thisData, physical, requestedData)
+        }
+    if(requestedData == "ssid"):
+        return safeget(dataDict, requestedData).replace('\"','')
+    else:
+        return safeget(dataDict, requestedData)
 
 def safeget(dct, *keys):
     for key in keys:
@@ -268,6 +285,8 @@ def createScreen(editable, title, screentype, value, interface):
         return screens.NetworkScreen(editable, title, value, interface)
     elif screentype.lower() == "submenu":
         return screens.Screen(screentype, title, value, interface)
+    elif screentype.lower() == "securitychanger":
+        return screens.SecurityChanger(editable, title, interface, value)
 
 def getInterfaceList():
     global thisData
@@ -383,7 +402,7 @@ def detect_edges(callbackFn):
     GPIO.add_event_detect(27, GPIO.FALLING, callback=callbackFn, bouncetime=400)
 
 detect_edges(button_callback)
-
+print wifiList
 try:
     raw_input("Press Enter to quit\n>")
 
