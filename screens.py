@@ -8,6 +8,16 @@ thisData = gd.thisData
 charSetIndex = gd.charSetIndex
 charSet = gd.charSet
 
+
+def resetFromStatic(interface):
+    """Reset values when method changed from DHCP to Static."""
+    global thisData
+    thisData['config'][interface]['protocol']['inet'].pop('address', None)
+    thisData['config'][interface]['protocol']['inet'].pop('netmask', None)
+    thisData['config'][interface]['protocol']['inet'].pop('gateway', None)
+    print thisData['config']
+
+
 def changeSecurityType(interface, newSecurity, oldSecurity):
     """Change necessary screens and config keys when changing between wep and WPA."""
     global maxn, masterList, thisData
@@ -518,6 +528,92 @@ class StringScreen(Screen):
         word = word[:index] + char + word[index + 1:]
         self.value = word
         self.displayEdit(index, 6)
+
+class WifiCreds(StringScreen):
+    """
+    Class definition for WifiCredentials class.
+
+    Used for changing wifi passwords in WEP and WPA/WPA2 formats
+    Extends String Screen
+    """
+
+    def __init__(self, type, title, value, interface):
+        """Our initialization for the screen stringclass."""
+        # String: type of screen - "readOnly", "subMenu", "editable"
+        global humanTranslations
+        self.type = type
+        self.screenType = "StringScreen"
+        # String: Line one on the LCD Screen
+        if title in humanTranslations:
+            self.title = humanTranslations[title]
+        else:
+            self.title = title
+        self.dataName = title
+        self.titleOrig = title
+        # String: line two on the LCD Screen
+        self.childIndex = 0
+        self.value = value
+        self.valueLength = 18
+        self.edit = False
+        self.interface = interface
+        self.titleOrig = title
+        self.editMode = False
+        # String: line Three on the LCD Screen
+        # Can be either <--    Select    -->   OR   (-)    Select    (+)
+        if(self.type == "readOnly"):
+            self.navigation = self.navLine
+        elif(self.type == "subMenu"):
+            self.navigation = self.navLine
+        else:
+            self.navigation = self.incrLine
+
+    def editVal(self, index, addorsub):
+        global charSet, charHexaSet, charSetIndex
+        security = gd.interfaceSettings[self.interface]["security"]
+        if security == "WEP":
+            thisSet = charHexaSet
+        else:
+            thisSet = charSet
+        word = self.value
+        print "|"+word[index - 1:index]+"|"
+        if(word[index - 1:index] == '' and index != 0):
+            self.childIndex = self.valueLength + 1
+            return
+        print charSetIndex, (len(thisSet) - 1), index
+        if(charSetIndex >= len(thisSet) - 1):
+            charSetIndex = 0
+        if(charSetIndex < 0):
+            charSetIndex = len(thisSet) - 1
+        if(addorsub == 0):
+            addAmt = -1
+        elif(addorsub == 2):
+            self.displayEdit(index, 6)
+            return
+        else:
+            addAmt = 1
+        if(index < len(word) and word[index] in thisSet and thisSet.index(word[index]) + addAmt < len(thisSet)):
+            charSetIndex = thisSet.index(word[index]) + addAmt
+        else:
+            charSetIndex = 0
+        print charSetIndex
+        char = thisSet[charSetIndex]
+        word = word[:index] + char + word[index + 1:]
+        self.value = word
+        self.displayEdit(index, 6)
+
+    def changeConfig(self):
+        """Change the setting in the config so that we can send it to piNetConfig."""
+        global thisData
+        print thisData['config']
+        print self.value.lower()
+        # WPA keys need quotes around them
+        security = gd.interfaceSettings[self.interface]["security"]
+        if security == "WEP" or security is None:
+            thisData['config'][self.interface]['protocol']['inet']['wpa-psk'] = self.value.strip()
+        else:
+            thisData['config'][self.interface]['protocol']['inet']['wireless-key'] = '\"' + self.value.strip() + '\"'
+        print thisData['config']
+
 class BooleanScreen(Screen):
     """Class for true/false options screens. Extends Screen."""
 
@@ -754,6 +850,66 @@ class ListScreen(Screen):
 
         self.displayEdit(index, 6)
 
+
+class SsidChooser(ListScreen):
+    """
+    Class for changing SSID.
+
+    extends listscreen class
+    """
+
+    def __init__(self, type, title, valsList, interface):
+        """Our initialization for the screen list class."""
+        global humanTranslations, ssidListGlobal
+        self.type = type
+        self.screenType = "ListScreen"
+        self.valueLength = 0
+        if title in humanTranslations:
+            self.title = humanTranslations[title]
+        else:
+            self.title = title
+        self.dataName = title
+        self.interface = interface
+        self.titleOrig = title
+        self.childIndex = 0
+        self.valList = gd.getConfig.hasKeys(gd.wifiList)
+        self.value = self.valList[0]
+        self.editLine = "Prev   Choose   Next"
+        self.editMode = False
+        if(self.type == "readOnly"):
+            self.navigation = self.navLine
+        elif(self.type == "subMenu"):
+            self.navigation = self.navLine
+        else:
+            self.navigation = self.incrLine
+
+    def setVal(self, val):
+        self.value = val
+
+    def changeConfig(self):
+        global thisData
+        security = gd.interfaceSettings[self.interface]["security"]
+        print security
+        if security == "WPA" or security == "WPA2":
+            thisData['config'][self.interface]['protocol']['inet']["wpa-ssid"] = self.value
+        else:
+            thisData['config'][self.interface]['protocol']['inet']["wireless-essid"] = self.value
+
+    def screenChosen(self):
+        """Screen is chosen - sets child index to zero and displays first child."""
+        print("screenChosen " + self.title)
+        self.valsList = gd.getConfig.hasKeys(gd.wifiList)
+        self.valueLength = len(self.valsList)
+        self.childIndex = 0
+        self.screens[self.childIndex].displayThis()
+
+    def displayThis(self):
+        global inView
+        inView = self
+        self.valList = gd.getConfig.hasKeys(gd.wifiList)
+        gd.draw_screen(self.title, self.value, self.navigation, 255, 0)
+
+
 class SecurityChanger(ListScreen):
     """
     Class for changing security settings.
@@ -813,3 +969,55 @@ class SecurityChanger(ListScreen):
         # changeSecurityType(self.interface, self.value, self.prevVal)
         self.prevVal = self.value
         print thisData['config']
+
+
+class MethodScreen(Screen):
+    """Class for true/false options screens. Extends Screen."""
+
+    def __init__(self, type, title, value, interface):
+        """Our initialization for the screen stringclass."""
+        # String: type of screen - "readOnly", "subMenu", "editable"
+        global humanTranslations
+        self.type = type
+        self.screenType = "BooleanScreen"
+        self.valueLength = 0
+        # String: Line one on the LCD Screen
+        if title in humanTranslations:
+            self.title = humanTranslations[title]
+        else:
+            self.title = title
+        self.dataName = title
+        self.titleOrig = title
+        # String: line two on the LCD Screen
+        self.childIndex = 0
+        self.value = value
+        self.val0 = "static"
+        self.val1 = "DHCP"
+        self.interface = interface
+        self.editLine = self.val0 + "< Confirm >" + self.val1
+        if(self.type == "readOnly"):
+            self.navigation = self.navLine
+        elif(self.type == "subMenu"):
+            self.navigation = self.navLine
+        else:
+            self.navigation = self.incrLine
+
+    def editVal(self, index, addorsub):
+        print ":test"
+        if(addorsub == 0):
+            self.value = self.val0
+            print type(thisData['config'])
+            print thisData['config']
+            thisData['config'][self.interface]['protocol']['inet']['method'] = self.value
+            print thisData
+            # thisData['config'][masterList[n].interfaceType]['protocol']['inet'].update({'method': self.value})
+        elif(addorsub == 1):
+            self.value = self.val1
+            thisData['config'][self.interface]['protocol']['inet']['method'] = self.value
+            resetFromStatic(self.interface)
+        elif(addorsub == 2):
+            thisData['config'][self.interface]['protocol']['inet']['method'] = self.value
+            print thisData['config'][self.interface]['protocol']['inet']['method']
+            self.value = self.value
+            print self.value
+        self.displayThis()

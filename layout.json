@@ -6,15 +6,15 @@
                 "readonly"
             ],
             "address": [
-                "networkscreen",
+                "nstringscreen",
                 "readonly"
             ],
             "netmask": [
-                "networkscreen",
+                "stringscreen",
                 "readonly"
             ],
             "gateway": [
-                "networkscreen",
+                "stringscreen",
                 "readonly"
             ],
             "advanced-settings": {
@@ -38,15 +38,15 @@
                 "readonly"
             ],
             "address": [
-                "networkscreen",
+                "stringscreen",
                 "readonly"
             ],
             "netmask": [
-                "networkscreen",
+                "stringscreen",
                 "readonly"
             ],
             "gateway": [
-                "networkscreen",
+                "stringscreen",
                 "readonly"
             ],
             "advanced-settings": {
@@ -93,7 +93,15 @@
 			},
 			"wifi-iface": {
 				"ssid": [
-					"stringscreen",
+					"ssidchooser",
+					"editable"
+				],
+				"method": [
+					"methodscreen",
+					"editable"
+				],
+				"password": [
+					"wificreds",
 					"editable"
 				],
 				"securityType": [

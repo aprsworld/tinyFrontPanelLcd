@@ -1,6 +1,5 @@
 #screens
 import Adafruit_SSD1306
-import globalDependencies as gd
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
@@ -11,6 +10,8 @@ import time
 from datetime import datetime as dt
 from dateutil.relativedelta import relativedelta as tdelta
 import charlieimage
+charlieimage.dispLogo("Booting up...")
+import globalDependencies as gd
 import getConfig
 import validate
 import sys
@@ -31,9 +32,7 @@ action_select_now = gd.action_select_now
 action_down_now = gd.action_select_now
 level = 1
 n = 0
-charlieimage.dispLogo("Booting up...")
-wifiList = getConfig.getID_List(gd.URL3)
-
+wifiList = gd.wifiList
 print list(layout.keys())
 
 class Stack:
@@ -112,7 +111,7 @@ def button_callback(channel):
             menuStack.push(screenChosen)
             screenChosen = screenChosen.screens[screenChosen.childIndex]
         if screenChosen.type == "editable":
-            if screenChosen.editMode == True:
+            if screenChosen.editMode == True and screenChosen.screenType == "StringScreen":
                 print True
                 screenChosen.childIndex += 1
                 print screenChosen.childIndex
@@ -245,6 +244,7 @@ def retrieveData(physical, logical, requestedData):
     if physical.startswith("eth"):
         dataDict = {
             "address": safeget(thisData, physical, logical, "inet", requestedData),
+            "method": safeget(thisData, "config", logical, "protocol", "inet", requestedData),
             "gateway": safeget(thisData, physical, logical, "inet", requestedData),
             "netmask": safeget(thisData, physical, logical, "inet", requestedData),
             "state": safeget(thisData, physical, requestedData),
@@ -254,14 +254,22 @@ def retrieveData(physical, logical, requestedData):
         dataDict = {
             "address": safeget(thisData, physical, logical, "inet", requestedData),
             "gateway": safeget(thisData, physical, logical, "inet", requestedData),
+            "method": safeget(thisData, "config", logical, "protocol", "inet", requestedData),
             "netmask": safeget(thisData, physical, logical, "inet", requestedData),
             "state": safeget(thisData, physical, requestedData),
             "ssid": safeget(thisData, physical, "wireless", "settings", "ESSID"),
+            "password": safeget(thisData, "config", logical, "protocol", "inet", "wireless-key") or safeget(thisData, "config", logical, "protocol", "inet", "wpa-psk"),
             "securityType": safeget(wifiList, physical, safeget(thisData, physical, "wireless", "settings", "ESSID").replace('\"',''), "auth"),
             "hwaddress": safeget(thisData, physical, requestedData)
         }
-    if(requestedData == "ssid"):
+    if(requestedData == "ssid" or requestedData == "password"):
         return safeget(dataDict, requestedData).replace('\"','')
+    elif(requestedData == "method"):
+        result = safeget(dataDict, requestedData)
+        if(result == None):
+            return "DHCP"
+        else:
+            return result
     else:
         return safeget(dataDict, requestedData)
 
@@ -286,7 +294,15 @@ def createScreen(editable, title, screentype, value, interface):
     elif screentype.lower() == "submenu":
         return screens.Screen(screentype, title, value, interface)
     elif screentype.lower() == "securitychanger":
+        gd.interfaceSettings[interface]["security"] = value
+        print gd.interfaceSettings
         return screens.SecurityChanger(editable, title, interface, value)
+    elif screentype.lower() == "ssidchooser":
+        return screens.SsidChooser(editable, title, "", interface)
+    elif screentype.lower() == "wificreds":
+        return screens.WifiCreds(editable, title, value, interface)
+    elif screentype.lower() == "methodscreen":
+        return screens.MethodScreen(editable, title, value, interface)
 
 def getInterfaceList():
     global thisData
@@ -326,6 +342,7 @@ def buildNetworkStatus():
                 val = retrieveData(iface["key"], iface["subkey"], item)
                 res = layout["network-status"][iface["keyType"]][item]
                 x = createScreen(res[1], item, res[0], val, iface["key"])
+                print res
                 newScreen.appendScreenList(x)
                 print newScreen.screens
         networkStatusScreen.appendScreenList(newScreen)
@@ -358,6 +375,7 @@ def buildMainSetupMenu():
         elif key.lower() == "network-setup":
             networkSettings = createScreen("", "Network Setup", "submenu", "", "Network Setup")
             for iface in iFaceList:
+                gd.interfaceSettings[iface["subkey"]] = dict()
                 newScreen = screens.Screen("subMenu", iface["subkey"], " ", iface["subkey"])
                 for item in layout[toplevel]["network-setup"][iface["keyType"]]:
                     if isinstance(layout[toplevel]["network-setup"][iface["keyType"]][item], dict):
