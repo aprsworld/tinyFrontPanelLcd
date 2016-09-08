@@ -10,7 +10,6 @@ import time
 from datetime import datetime as dt
 from dateutil.relativedelta import relativedelta as tdelta
 import charlieimage
-charlieimage.dispLogo("Booting up...")
 import globalDependencies as gd
 import getConfig
 import validate
@@ -110,15 +109,22 @@ def button_callback(channel):
         if screenChosen.type == "subMenu" or screenChosen.type == "topMenu":
             menuStack.push(screenChosen)
             screenChosen = screenChosen.screens[screenChosen.childIndex]
-        if screenChosen.type == "editable":
-            if screenChosen.editMode == True and screenChosen.screenType == "StringScreen":
+            if screenChosen.type == "subMenu" or screenChosen.type == "topMenu":
+                screenChosen.screens[screenChosen.childIndex].displayThis()
+            elif screenChosen.type == "editable":
+                print screenChosen.title
+                screenChosen.editMode = True
+            else:
+                screenChosen = menuStack.pop()
+        elif screenChosen.type == "editable":
+            if screenChosen.editMode == True and (screenChosen.screenType == "StringScreen" or screenChosen.screenType == "NetworkScreen"):
                 print True
                 screenChosen.childIndex += 1
                 print screenChosen.childIndex
                 print screenChosen.valueLength
             screenChosen.editMode = True
             screenChosen.editVal(screenChosen.childIndex, 2)
-            if screenChosen.childIndex > screenChosen.valueLength:
+            if screenChosen.childIndex > screenChosen.valueLength or screenChosen.screenType == "BooleanScreen":
                 print "else"
                 screenChosen.childIndex = 0
                 screenChosen.editMode = False
@@ -126,8 +132,8 @@ def button_callback(channel):
                 print thisData["config"]
                 screenChosen = menuStack.pop()
                 screenChosen.displayThis()
-        else:
-            screenChosen.screens[screenChosen.childIndex].displayThis()
+        elif screenChosen.type == "readOnly":
+            pass
     action_up_now = False
     action_select_now = False
     action_down_now = False
@@ -262,11 +268,11 @@ def retrieveData(physical, logical, requestedData):
             "securityType": safeget(wifiList, physical, safeget(thisData, physical, "wireless", "settings", "ESSID").replace('\"',''), "auth"),
             "hwaddress": safeget(thisData, physical, requestedData)
         }
-    if(requestedData == "ssid" or requestedData == "password"):
+    if requestedData is "ssid" or requestedData is "password":
         return safeget(dataDict, requestedData).replace('\"','')
-    elif(requestedData == "method"):
+    elif requestedData is "method":
         result = safeget(dataDict, requestedData)
-        if(result == None):
+        if result is None:
             return "DHCP"
         else:
             return result
@@ -302,7 +308,12 @@ def createScreen(editable, title, screentype, value, interface):
     elif screentype.lower() == "wificreds":
         return screens.WifiCreds(editable, title, value, interface)
     elif screentype.lower() == "methodscreen":
+        gd.interfaceSettings[interface]["method"] = value
+        print gd.interfaceSettings
         return screens.MethodScreen(editable, title, value, interface)
+    elif screentype.lower() == "confsend":
+        return screens.confSend(editable, title, value)
+
 
 def getInterfaceList():
     global thisData
@@ -362,6 +373,15 @@ def buildDateAndTime():
     return dateAndTime
 
 
+def buildTools():
+    global layout, topLevelMenu
+    toolsScreen = screens.Screen("subMenu", "Tools", " ", "tools")
+    for item in layout["tools"]:
+        res = layout["tools"][item]
+        x = createScreen(res[1], item, res[0], "", "")
+        toolsScreen.appendScreenList(x)
+    return toolsScreen
+
 def buildMainSetupMenu():
     global masterList, layout
     iFaceList = getInterfaceList()
@@ -405,6 +425,8 @@ if "magWebProStatus" in layoutKeys:
     topLevelMenu.appendScreenList(buildMagWebProStatus())
 if "dateAndTime" in layoutKeys:
     topLevelMenu.appendScreenList(buildDateAndTime())
+if "tools" in layoutKeys:
+    topLevelMenu.appendScreenList(buildTools())
 if "mainSetupMenu" in layoutKeys:
     topLevelMenu.appendScreenList(buildMainSetupMenu())
 

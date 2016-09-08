@@ -1,8 +1,13 @@
 import globalDependencies as gd
+import validate
+import getConfig
 from datetime import datetime as dt
 from dateutil.relativedelta import relativedelta as tdelta
 from threading import Timer
 
+URL = gd.URL
+URL2 = gd.URL2
+URL3 = gd.URL3
 humanTranslations = gd.humanTranslations
 thisData = gd.thisData
 charSetIndex = gd.charSetIndex
@@ -456,6 +461,31 @@ class NetworkScreen(Screen):
         gd.thisData['config'][self.interface]['protocol']['inet'][self.titleOrig] = str(self.addr0)+"."+str(self.addr1)+"."+str(self.addr2)+"."+str(self.addr3)
         print thisData['config']
 
+    def displayThis(self):
+        """Draw our screen."""
+        global inView
+        inView = self
+        if gd.interfaceSettings[self.interface]["method"].lower() == "dhcp":
+            self.type = "readonly"
+            self.navigation = self.navLine
+        else:
+            self.type = "editable"
+            self.navigation = self.incrLine
+        gd.draw_screen(self.title, self.value, self.navigation, 255, 0)
+
+    def displayEdit(self, underline_pos, underline_width):
+        """
+        screen to display when editting value.
+
+        Args:
+            underline_pos: the x value for the starting point of our underline_pos
+            underline_width: the width of the underline
+        """
+        if gd.interfaceSettings[self.interface]["method"].lower() is "dhcp":
+            self.type = "readonly"
+        else:
+            self.type = "editable"
+        gd.draw_screen_ul(self.title, self.value, self.navigation, 255, 0, underline_pos, underline_width)
 
 # --------------------End of NetworkScreen Class Definition -----------------------
 class StringScreen(Screen):
@@ -995,6 +1025,7 @@ class MethodScreen(Screen):
         self.val1 = "DHCP"
         self.interface = interface
         self.editLine = self.val0 + "< Confirm >" + self.val1
+        self.editMode = False
         if(self.type == "readOnly"):
             self.navigation = self.navLine
         elif(self.type == "subMenu"):
@@ -1021,3 +1052,70 @@ class MethodScreen(Screen):
             self.value = self.value
             print self.value
         self.displayThis()
+
+    def changeConfig(self):
+        # update config and screens for this interface
+        global thisData
+        # changeSecurityType(self.interface, self.value, self.prevVal)
+        gd.interfaceSettings[self.interface]["method"] = self.value
+        print thisData['config']
+
+
+class confSend(Screen):
+    """Class for true/false options screens. Extends Screen."""
+
+    def __init__(self, type, title, value):
+        """Our initialization for the screen stringclass."""
+        # String: type of screen - "readOnly", "subMenu", "editable"
+        self.type = type
+        self.screenType = "confScreen"
+        self.valueLength = 0
+        # String: Line one on the LCD Screen
+        global humanTranslations
+        if title in humanTranslations:
+            self.title = humanTranslations[title]
+        else:
+            self.title = title
+        self.dataName = title
+
+        # String: line two on the LCD Screen
+        self.childIndex = 0
+        self.value = value
+        self.val0 = "Yes"
+        self.val1 = "No"
+        self.incrLine = "<--    Send    -->"
+        self.editLine = self.val0 + "          " + self.val1
+        if(self.type == "readOnly"):
+            self.navigation = self.navLine
+        elif(self.type == "subMenu"):
+            self.navigation = self.navLine
+        else:
+            self.navigation = self.incrLine
+
+    def editVal(self, index, addorsub):
+        global level
+        if(addorsub == 0):
+            print thisData['config']
+            result = validate.config_validate(thisData['config'])
+            print result
+            if result is True:
+                # TEMPORARY
+                # with open("Output.txt", "w") as text_file:
+                #     text_file.write("Data: {0}".format(thisData['config']))
+                getConfig.sendConfig(URL2, thisData['config'])
+                self.navigation = self.incrLine
+                draw_confirmation("Sent valid config", "RESTARTING", 255, 0, masterList[n])
+                # print thisData['config']
+            else:
+                print result
+                self.navigation = self.incrLine
+                draw_warning2(result['message'], 255, 0, masterList[n])
+        elif(addorsub == 1):
+            self.navigation = self.incrLine
+            draw_warning('canceled', 'Returning to main menu', 255, 0, masterList[n])
+        elif(addorsub == 2):
+            self.displayThis()
+
+    def displayEdit(self, underline_pos, underline_width):
+        """screen to display when editting value."""
+        draw_screen_ul(self.title, "Are You Sure?", self.navigation, 255, 0, 0, 0)

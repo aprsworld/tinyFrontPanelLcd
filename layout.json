@@ -63,6 +63,12 @@
 			"readonly"
 		]
 	},
+	"tools": {
+		"sendConfig": [
+			"confSend",
+			"editable"
+		]
+	},
 	"dateAndTime": [
 		"datetimescreen",
 		"readonly"
@@ -78,6 +84,10 @@
 		],
 		"network-setup": {
 			"eth-iface": {
+				"method": [
+					"methodscreen",
+					"editable"
+				],
 				"address": [
 					"networkscreen",
 					"editable"
