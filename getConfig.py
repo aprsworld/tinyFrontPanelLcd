@@ -57,7 +57,6 @@ def getID_List(url):
     """gets list of current ssids."""
     data = urllib.urlopen(url).read()
     output = json.loads(data)
-    print output
     return output
     # output[output.keys()[0]].keys()
 
@@ -65,12 +64,9 @@ def get_layout2(url):
     with open(url) as json_data:
         print json_data
         d = json.load(json_data)
-        print(d)
         return d
 
 def get_layout(url):
     data = urllib.urlopen(url).read()
-    print data
     d = json.load(open(url), object_pairs_hook=OrderedDict)
-    print(d)
     return d

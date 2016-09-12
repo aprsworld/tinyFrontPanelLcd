@@ -77,7 +77,8 @@ width = disp.width
 height = disp.height
 image = Image.new('1', (width, height))
 draw = ImageDraw.Draw(image)
-
+fillNum = 255
+fillBg = 0
 # Load default font.
 font = ImageFont.load_default()
 GPIO.setmode(GPIO.BCM)
@@ -92,7 +93,7 @@ action_up_now = False
 action_select_now = False
 action_down_now = False
 n = 0
-
+inView = None
 
 humanTranslations = {
     'method': 'Addressing Method',
@@ -132,6 +133,11 @@ charSet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
 # charset for WEP keys
 charHexaSet = [' ', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F']
 
+def detect_edges(callbackFn):
+    """designate threaded callbacks for all button presses."""
+    GPIO.add_event_detect(17, GPIO.FALLING, callback=callbackFn, bouncetime=300)
+    GPIO.add_event_detect(18, GPIO.FALLING, callback=callbackFn, bouncetime=300)
+    GPIO.add_event_detect(27, GPIO.FALLING, callback=callbackFn, bouncetime=400)
 
 def screen_select(screenNum):
     """for changing screens."""
@@ -140,6 +146,10 @@ def screen_select(screenNum):
     # find and display the screen in the list based on our passed int value
     masterList[screenNum].displayThis()
 
+def drawAndEnable(currentScreen):
+    detect_edges(button_callback)
+    currentScreen.displayThis()
+    print currentScreen.title
 
 def draw_confirmation(line2, line3, fillNum, fillBg, currentScreen):
     """for drawing an error."""

@@ -4,6 +4,10 @@ import getConfig
 from datetime import datetime as dt
 from dateutil.relativedelta import relativedelta as tdelta
 from threading import Timer
+import ctypes
+import ctypes.util
+import time
+import math
 
 URL = gd.URL
 URL2 = gd.URL2
@@ -12,7 +16,7 @@ humanTranslations = gd.humanTranslations
 thisData = gd.thisData
 charSetIndex = gd.charSetIndex
 charSet = gd.charSet
-
+inView = gd.inView
 
 def resetFromStatic(interface):
     """Reset values when method changed from DHCP to Static."""
@@ -468,9 +472,13 @@ class NetworkScreen(Screen):
         if gd.interfaceSettings[self.interface]["method"].lower() == "dhcp":
             self.type = "readonly"
             self.navigation = self.navLine
+        elif self.editMode == True:
+            self.type = "editable"
+            self.navigation = self.editLine
         else:
             self.type = "editable"
             self.navigation = self.incrLine
+
         gd.draw_screen(self.title, self.value, self.navigation, 255, 0)
 
     def displayEdit(self, underline_pos, underline_width):
@@ -751,7 +759,12 @@ class DateTimeScreen(Screen):
             self.editSecond(addorsub)
             self.underline_pos = 8.5
             self.underline_width = 12
+        if(addorsub == 2 and index >= 5):
+            self.underline_pos = 0
+            self.underline_width = 0
+            self.childIndex == self.valueLength + 1
         self.timeChange = tdelta(years=self.year, months=self.month, days=self.day, hours=self.hour, minutes=self.minute, seconds=self.second)
+        print self.timeChange
         self.date = dt.now() + self.timeChange
         self.value = self.date.strftime("%Y-%m-%d %H:%M:%S")
         self.displayEdit(self.underline_pos, self.underline_width)
@@ -833,6 +846,38 @@ class DateTimeScreen(Screen):
             self.second = self.second + 1
         else:
             print('else')
+
+    def changeConfig1(self):
+        print self.year
+        thisdate = dt.now() + tdelta(years=self.year, months=self.month, days=self.day, hours=self.hour, minutes=self.minute, seconds=self.second)
+        print thisdate.year, thisdate.month, thisdate.day, thisdate.hour, thisdate.minute, thisdate.second, int(math.floor(dt.now().microsecond*.001))
+        pass
+
+    def changeConfig(self):
+        thisdate = dt.now() + tdelta(years=self.year, months=self.month, days=self.day, hours=self.hour, minutes=self.minute, seconds=self.second)
+        time_tuple = ( thisdate.year, thisdate.month, thisdate.day, thisdate.hour, thisdate.minute, thisdate.second, int(math.floor(dt.now().microsecond*.001)))
+
+        CLOCK_REALTIME = 0
+
+        class timespec(ctypes.Structure):
+            _fields_ = [("tv_sec", ctypes.c_long),
+                        ("tv_nsec", ctypes.c_long)]
+
+        librt = ctypes.CDLL(ctypes.util.find_library("rt"))
+
+        ts = timespec()
+        ts.tv_sec = int( time.mktime( dt( *time_tuple[:6]).timetuple() ) )
+        ts.tv_nsec = time_tuple[6] * 1000000 # Millisecond to nanosecond
+
+        # http://linux.die.net/man/3/clock_settime
+        librt.clock_settime(CLOCK_REALTIME, ctypes.byref(ts))
+        self.value = dt.now()
+        self.year = 0
+        self.month = 0
+        self.day = 0
+        self.hour = 0
+        self.minute = 0
+        self.second = 0
 
 class ListScreen(Screen):
     """Class for more than two options. extends screen."""
@@ -1020,7 +1065,7 @@ class MethodScreen(Screen):
         self.titleOrig = title
         # String: line two on the LCD Screen
         self.childIndex = 0
-        self.value = value
+        self.value = humanTranslations[value]
         self.val0 = "static"
         self.val1 = "DHCP"
         self.interface = interface

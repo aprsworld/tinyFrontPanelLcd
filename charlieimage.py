@@ -79,3 +79,5 @@ def dispLogo(message):
     disp.image(image.rotate(180))
 
     disp.display()
+
+dispLogo("Booting up...")

@@ -20,6 +20,7 @@ import screens
 from threading import Timer
 from collections import defaultdict
 
+
 layout = dict()
 layout = getConfig.get_layout(gd.LAYOUT_URL)
 layoutKeys = layout.keys()
@@ -32,6 +33,9 @@ action_down_now = gd.action_select_now
 level = 1
 n = 0
 wifiList = gd.wifiList
+draw = gd.draw
+font = gd.font
+disp = gd.disp
 print list(layout.keys())
 
 class Stack:
@@ -86,11 +90,13 @@ def button_callback(channel):
                 if not screenChosen.type == topLevelMenu.type:
                     screenChosen.setChildIndex(0)
                     screenChosen = menuStack.pop()
+                    draw_confirmation("End Reached", "Returning to", "previous menu.", gd.fillNum, gd.fillBg)
                 else:
                     screenChosen.childIndex = 0
+                    screenChosen.screens[screenChosen.childIndex].displayThis()
             else:
                 screenChosen.childIndex += 1
-            screenChosen.screens[screenChosen.childIndex].displayThis()
+                screenChosen.screens[screenChosen.childIndex].displayThis()
     elif channel == 18:
         if screenChosen.editMode == True:
             screenChosen.editVal(screenChosen.childIndex, 0)
@@ -99,39 +105,50 @@ def button_callback(channel):
                 if not screenChosen.type == topLevelMenu.type:
                     screenChosen.setChildIndex(0)
                     screenChosen = menuStack.pop()
+                    draw_confirmation("End Reached", "Returning to", "previous menu.", gd.fillNum, gd.fillBg)
                 else:
                     screenChosen.childIndex = screenChosen.valueLength
+                    screenChosen.screens[screenChosen.childIndex].displayThis()
             else:
                 screenChosen.childIndex -= 1
-            screenChosen.screens[screenChosen.childIndex].displayThis()
+                screenChosen.screens[screenChosen.childIndex].displayThis()
     elif channel == 27:
         print screenChosen.type
         if screenChosen.type == "subMenu" or screenChosen.type == "topMenu":
             menuStack.push(screenChosen)
             screenChosen = screenChosen.screens[screenChosen.childIndex]
+            print 112, screenChosen.type
             if screenChosen.type == "subMenu" or screenChosen.type == "topMenu":
+                print 114, "sub"
                 screenChosen.screens[screenChosen.childIndex].displayThis()
             elif screenChosen.type == "editable":
+                print 117, screenChosen.editLine
+
                 print screenChosen.title
                 screenChosen.editMode = True
+                screenChosen.navigation = screenChosen.editLine
+                screenChosen.displayThis()
             else:
                 screenChosen = menuStack.pop()
         elif screenChosen.type == "editable":
-            if screenChosen.editMode == True and (screenChosen.screenType == "StringScreen" or screenChosen.screenType == "NetworkScreen"):
+            if screenChosen.editMode == True and (screenChosen.screenType == "DateTimeScreen" or screenChosen.screenType == "StringScreen" or screenChosen.screenType == "NetworkScreen"):
                 print True
                 screenChosen.childIndex += 1
                 print screenChosen.childIndex
                 print screenChosen.valueLength
             screenChosen.editMode = True
+            screenChosen.navigation = screenChosen.editLine
             screenChosen.editVal(screenChosen.childIndex, 2)
             if screenChosen.childIndex > screenChosen.valueLength or screenChosen.screenType == "BooleanScreen":
                 print "else"
                 screenChosen.childIndex = 0
                 screenChosen.editMode = False
+                screenChosen.navigation = screenChosen.incrLine
                 screenChosen.changeConfig()
                 print thisData["config"]
                 screenChosen = menuStack.pop()
-                screenChosen.displayThis()
+                draw_confirmation("Saved! Returning", "to previous menu.", gd.fillNum, gd.fillBg, screenChosen.screens[screenChosen.childIndex])
+                # screenChosen.screens[screenChosen.childIndex].displayThis()
         elif screenChosen.type == "readOnly":
             pass
     action_up_now = False
@@ -247,6 +264,7 @@ def button_callback2(channel):
 
 def retrieveData(physical, logical, requestedData):
     global thisData
+    print 258, requestedData
     if physical.startswith("eth"):
         dataDict = {
             "address": safeget(thisData, physical, logical, "inet", requestedData),
@@ -268,9 +286,10 @@ def retrieveData(physical, logical, requestedData):
             "securityType": safeget(wifiList, physical, safeget(thisData, physical, "wireless", "settings", "ESSID").replace('\"',''), "auth"),
             "hwaddress": safeget(thisData, physical, requestedData)
         }
-    if requestedData is "ssid" or requestedData is "password":
-        return safeget(dataDict, requestedData).replace('\"','')
-    elif requestedData is "method":
+    if requestedData == "ssid" or requestedData == "password":
+        print 280, requestedData
+        return safeget(dataDict, requestedData).replace('\"', '')
+    elif requestedData == "method":
         result = safeget(dataDict, requestedData)
         if result is None:
             return "DHCP"
@@ -278,6 +297,35 @@ def retrieveData(physical, logical, requestedData):
             return result
     else:
         return safeget(dataDict, requestedData)
+
+def drawAndEnable():
+    global screenChosen
+    screenChosen.screens[screenChosen.childIndex].displayThis()
+
+def draw_confirmation(line1, line2, line3, fillNum, fillBg):
+    """for drawing an error."""
+    global disp, n, maxn, Image, ImageDraw, draw, font
+    # Draw a black filled fox to clear the image.
+    print 309
+    draw.rectangle((0, 0, gd.width - 1, gd.height - 1), outline=1, fill=fillBg)
+    print 311
+
+    top = 2
+    draw.rectangle((1, 0, gd.width - 1, top + 9), outline=1, fill=fillNum)
+    draw.text((gd.center_text(line1, 0), top), line1, font=font, fill=fillBg)
+    draw.text((gd.center_text(line2, 0), top + 9), line2, font=font, fill=fillNum)
+    draw.text((gd.center_text(line3, 0), top + 18), line3, font=font, fill=fillNum)
+    print 318
+
+    disp.image(gd.image.rotate(180))
+    disp.display()
+    print 326
+    t = Timer(1, drawAndEnable)
+    print 329
+    t.setDaemon(True)
+    t.start()
+    print 331
+
 
 def safeget(dct, *keys):
     for key in keys:
@@ -313,7 +361,8 @@ def createScreen(editable, title, screentype, value, interface):
         return screens.MethodScreen(editable, title, value, interface)
     elif screentype.lower() == "confsend":
         return screens.confSend(editable, title, value)
-
+    elif screentype.lower() == "datetimescreen":
+        return screens.DateTimeScreen(editable, title)
 
 def getInterfaceList():
     global thisData
@@ -368,8 +417,8 @@ def buildMagWebProStatus():
 
 
 def buildDateAndTime():
-    global masterList, layout
-    dateAndTime = screens.Screen("subMenu", "Date and Time", " ", "dateAndTime")
+    global layout, topLevelMenu
+    dateAndTime = screens.DateTimeScreen("readOnly", "Date and Time")
     return dateAndTime
 
 
@@ -391,7 +440,7 @@ def buildMainSetupMenu():
         if key.lower() == "allowwebconfig":
             mainSetupMenu.appendScreenList(screens.BooleanScreen("editable", "Allow Web Configuration", "Allow", "Allow", "Don't Allow"))
         elif key.lower() == "settime":
-            mainSetupMenu.appendScreenList(screens.DateTimeScreen("readOnly", "Edit Date and Time"))
+            mainSetupMenu.appendScreenList(screens.DateTimeScreen("editable", "Edit Date and Time"))
         elif key.lower() == "network-setup":
             networkSettings = createScreen("", "Network Setup", "submenu", "", "Network Setup")
             for iface in iFaceList:
