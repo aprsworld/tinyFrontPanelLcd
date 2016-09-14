@@ -114,6 +114,7 @@ GPIO.setup(27, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 action_up_now = False
 action_select_now = False
 action_down_now = False
+action_screen_update = False
 n = 0
 inView = None
 
@@ -221,7 +222,7 @@ def draw_screen_ul(s, line2, line3, fillNum, fillBg, underline_pos, underline_wi
     global disp, n, maxn, Image, ImageDraw, draw
 
     # Draw a black filled box to clear the image.
-    draw.rectangle((0, 0, width, height), outline=0, fill=fillBg)
+    draw.rectangle((0, 0, width + 10, height + 10), outline=0, fill=fillBg)
 
     x = 0
     top = 2

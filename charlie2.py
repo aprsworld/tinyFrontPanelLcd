@@ -27,9 +27,6 @@ layoutKeys = layout.keys()
 masterList = gd.masterList
 print gd.thisData.keys()
 thisData = gd.thisData
-action_up_now = gd.action_up_now
-action_select_now = gd.action_select_now
-action_down_now = gd.action_select_now
 level = 1
 n = 0
 wifiList = gd.wifiList
@@ -48,18 +45,21 @@ def button_callback(channel):
     Args:
         channel: the button that was pressed
     """
-    global thisData, disable, action_up_now, action_select_now, action_down_now, charSetIndex
-
-    if action_up_now or action_select_now or action_down_now:
+    global thisData, disable, charSetIndex
+    if gd.action_screen_update:
+        print "sleeping"
+        time.sleep(.1)
+    if gd.action_up_now or gd.action_select_now or gd.action_down_now or gd.action_screen_update:
         print "simultaneous press", channel
         return
+    print "button press"
 
     if(17 == channel):
-        action_up_now = True
+        gd.action_up_now = True
     elif(18 == channel):
-        action_down_now = True
+        gd.action_down_now = True
     elif(27 == channel):
-        action_select_now = True
+        gd.action_select_now = True
 
     if channel == 17:
         if gd.screenChosen.editMode == True:
@@ -135,9 +135,9 @@ def button_callback(channel):
                 # gd.screenChosen.screens[gd.screenChosen.childIndex].displayThis()
         elif gd.screenChosen.type == "readOnly":
             pass
-    action_up_now = False
-    action_select_now = False
-    action_down_now = False
+    gd.action_up_now = False
+    gd.action_select_now = False
+    gd.action_down_now = False
 
 def button_callback2(channel):
     """
@@ -148,20 +148,20 @@ def button_callback2(channel):
         channel: the button that was pressed
     """
     # allow access to our globals
-    global disable, action_up_now, action_select_now, action_down_now, n, maxn, masterList, level, charSetIndex
+    global disable, n, maxn, masterList, level, charSetIndex
     print "level: ", level
 
     # if a button is already pressed, return out of callback
-    if action_up_now or action_select_now or action_down_now:
+    if gd.action_up_now or gd.action_select_now or gd.action_down_now:
         print "simultaneous press", channel
         return
 
     if(17 == channel):
-        action_up_now = True
+        gd.action_up_now = True
     elif(18 == channel):
-        action_down_now = True
+        gd.action_down_now = True
     elif(27 == channel):
-        action_select_now = True
+        gd.action_select_now = True
 
     # level 1 in tree - we display the top level screens here
     if (level == 1):
@@ -242,9 +242,9 @@ def button_callback2(channel):
                 level = 2
 
     print(channel)
-    action_up_now = False
-    action_select_now = False
-    action_down_now = False
+    gd.action_up_now = False
+    gd.action_select_now = False
+    gd.action_down_now = False
 
 def retrieveData(physical, logical, requestedData):
     global thisData

@@ -768,11 +768,17 @@ class DateTimeScreen(Screen):
         self.date = dt.now() + self.timeChange
         self.value = self.date.strftime("%Y-%m-%d %H:%M:%S")
         # If we are on the time screen, update the screen every second as well
-        if(inView.title == self.title):
+        if inView.title == self.title and not gd.action_up_now and not gd.action_select_now and not gd.action_select_now:
+            # if inView.title == self.title:
+            print "update"
+            gd.action_screen_update = True
             if(self.edit):
                 self.displayEdit(self.underline_pos, self.underline_width)
             else:
                 self.displayThis()
+            gd.action_screen_update = False
+        elif inView.title == self.title or gd.action_up_now or gd.action_down_now:
+            print "conflict"
 
     def print_some_times(self):
         """call print_time every second."""
