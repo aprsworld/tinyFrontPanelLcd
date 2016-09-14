@@ -110,7 +110,7 @@ def button_callback(channel):
                     print gd.screenChosen.title
                     gd.screenChosen.editMode = True
                     gd.screenChosen.navigation = gd.screenChosen.editLine
-                    gd.screenChosen.displayThis()
+                    gd.screenChosen.editVal(gd.screenChosen.childIndex, 2)
                 else:
                     gd.screenChosen = menuStack.pop()
         elif gd.screenChosen.type == "editable":
@@ -468,9 +468,9 @@ maxn = len(masterList) - 1
 
 def detect_edges(callbackFn):
     """designate threaded callbacks for all button presses."""
-    GPIO.add_event_detect(17, GPIO.FALLING, callback=callbackFn, bouncetime=300)
-    GPIO.add_event_detect(18, GPIO.FALLING, callback=callbackFn, bouncetime=300)
-    GPIO.add_event_detect(27, GPIO.FALLING, callback=callbackFn, bouncetime=400)
+    GPIO.add_event_detect(17, GPIO.FALLING, callback=callbackFn, bouncetime=200)
+    GPIO.add_event_detect(18, GPIO.FALLING, callback=callbackFn, bouncetime=200)
+    GPIO.add_event_detect(27, GPIO.FALLING, callback=callbackFn, bouncetime=200)
 
 detect_edges(button_callback)
 print wifiList

@@ -751,7 +751,7 @@ class DateTimeScreen(Screen):
             self.editSecond(addorsub)
             self.underline_pos = 8.5
             self.underline_width = 12
-        if(addorsub == 2 and index >= 5):
+        if(addorsub == 2 and index > 5):
             self.underline_pos = 0
             self.underline_width = 0
             self.childIndex == self.valueLength + 1
