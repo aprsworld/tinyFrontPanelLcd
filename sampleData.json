@@ -1,0 +1,118 @@
+{
+    "lo": {
+        "mtu": "65536",
+        "qdisc": "noqueue",
+        "state": "UNKNOWN",
+        "mode": "DEFAULT",
+        "group": "default",
+        "hwaddress": "00:00:00:00:00:00",
+        "lo": {
+            "inet": {
+                "address": "127.0.0.1",
+                "netmask": "255.0.0.0",
+                "scope": "host"
+            }
+        }
+    },
+    "eth0": {
+        "mtu": "1500",
+        "qdisc": "pfifo_fast",
+        "state": "UP",
+        "mode": "DEFAULT",
+        "group": "default",
+        "qlen": "1000",
+        "hwaddress": "b8:27:eb:11:6c:a2",
+        "eth0": {
+            "inet": {
+                "gateway": "192.168.10.1",
+                "address": "192.168.10.244",
+                "netmask": "255.255.255.0",
+                "brd": "192.168.10.255",
+                "scope": "global"
+            }
+        }
+    },
+    "wlan0": {
+        "mtu": "1500",
+        "qdisc": "mq",
+        "state": "UP",
+        "mode": "DORMANT",
+        "group": "default",
+        "qlen": "1000",
+        "hwaddress": "7c:dd:90:7d:d8:d0",
+        "wlan0": {
+            "inet": {
+                "gateway": "192.168.10.1",
+                "address": "192.168.10.205",
+                "netmask": "255.255.255.0",
+                "brd": "192.168.10.255",
+                "scope": "global"
+            }
+        },
+        "wlan0-secondary": {
+            "inet": {
+                "address": "192.168.10.190",
+                "netmask": "255.255.255.0",
+                "brd": "192.168.10.255",
+                "scope": "global",
+                "secondary": "wlan0"
+            }
+        },
+        "wireless": {
+            "type": "IEEE 802.11bgn",
+            "settings": {
+                "ESSID": "\"aprsworld\"",
+                "Mode": "Managed",
+                "Frequency": "2.462 GHz",
+                "Access Point": "24:A4:3C:B8:A9:C1",
+                "Bit Rate": "48 Mb/s",
+                " Tx-Power": "20 dBm",
+                "Retry short limit": "7",
+                " RTS thr": "off",
+                " Fragment thr": "off",
+                "Power Management": "off",
+                "Link Quality": "70/70",
+                "Signal level": "-27 dBm",
+                "Rx invalid nwid": "0",
+                "Rx invalid crypt": "0",
+                "Rx invalid frag": "0",
+                "Tx excessive retries": "0",
+                "Invalid misc": "49",
+                " Missed beacon": "0"
+            }
+        }
+    },
+    "config": {
+        "lo": {
+            "allow": "auto",
+            "protocol": {
+                "inet": {
+                    "method": "loopback"
+                }
+            }
+        },
+        "wlan0": {
+            "allow": [
+                "auto",
+                "hotplug"
+            ],
+            "protocol": {
+                "inet": {
+                    "method": "dhcp",
+                    "wpa-ap-scan": "1",
+                    "wpa-psk": "\"zestopenguin\"",
+                    "wpa-scan-ssid": "1",
+                    "wpa-ssid": "aprsworld"
+                }
+            }
+        },
+        "eth0": {
+            "protocol": {
+                "inet": {
+                    "method": "dhcp"
+                }
+            }
+        },
+        "system": []
+    }
+}

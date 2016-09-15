@@ -4,7 +4,6 @@ import json
 import urllib
 import urllib2
 import collections
-import globalDependencies
 from collections import OrderedDict
 def getData(url):
     """Get data from a resource defined bu url."""
