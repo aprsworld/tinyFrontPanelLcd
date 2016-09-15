@@ -80,6 +80,8 @@ wifiInterfaces = list()
 masterList = list()
 menuStack = Stack()
 screenChosen = None
+topLevelMenu = None
+menuCreate = None
 
 interfaceSettings = dict()
 wifiList = getConfig.getID_List(URL3)
@@ -132,7 +134,7 @@ humanTranslations = {
     'scope': 'Address Scope',
     'hwaddress': 'Hardware Address',
     'mtu': 'Maximum Trans Unit',
-    'state': 'State',
+    'state': 'Link State',
     'mode': 'Mode',
     'qlen': 'Transmit Queue Length',
     'qdisc': 'Queueing Discipline',
@@ -171,10 +173,9 @@ def screen_select(screenNum):
     # find and display the screen in the list based on our passed int value
     masterList[screenNum].displayThis()
 
-def drawAndEnable(currentScreen):
-    detect_edges(button_callback)
-    currentScreen.displayThis()
-    print currentScreen.title
+def drawAndEnable():
+    global screenChosen
+    screenChosen.screens[screenChosen.childIndex].displayThis()
 
 def draw_confirmation(line1, line2, line3, fillNum, fillBg):
     """for drawing an error."""

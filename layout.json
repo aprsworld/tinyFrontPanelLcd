@@ -67,7 +67,11 @@
         "sendConfig": [
             "confSend",
             "editable"
-        ]
+        ],
+		"wifiScan": [
+			"wifiscan",
+			"editable"
+		]
     },
     "dateAndTime": [
         "datetimescreen",

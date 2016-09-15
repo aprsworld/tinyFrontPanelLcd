@@ -931,8 +931,8 @@ class TempScreen(StringScreen):
         prevMenu.value = self.value
         prevMenu.valList.insert(0,self.value)
         self.value = "ssidname"
-        screenChosen = gd.menuStack.pop()
-        screenChosen.childIndex = 0
+        gd.screenChosen = gd.menuStack.pop()
+        gd.screenChosen.childIndex = 0
 
 manualEntry = TempScreen("editable", "Manual SSID Entry", "ssidname")
 
@@ -1145,10 +1145,10 @@ class MethodScreen(Screen):
 
 
 class confSend(Screen):
-    """Class for true/false options screens. Extends Screen."""
+    """Class for sending config. Extends Screen."""
 
     def __init__(self, type, title, value):
-        """Our initialization for the screen stringclass."""
+        """Our initialization for the confSend subclass."""
         # String: type of screen - "readOnly", "subMenu", "editable"
         self.type = type
         self.screenType = "confScreen"
@@ -1202,3 +1202,46 @@ class confSend(Screen):
     def displayEdit(self, underline_pos, underline_width):
         """screen to display when editting value."""
         draw_screen_ul(self.title, "Are You Sure?", self.navigation, 255, 0, 0, 0)
+
+
+class WifiScan(Screen):
+    """Class for scanning wifi networks. Extends Screen."""
+    def __init__(self, type, title):
+        """Our initialization for the confSend subclass."""
+        # String: type of screen - "readOnly", "subMenu", "editable"
+        self.type = type
+        self.screenType = "BooleanScreen"
+        self.valueLength = 0
+        # String: Line one on the LCD Screen
+        global humanTranslations
+        if title in humanTranslations:
+            self.title = humanTranslations[title]
+        else:
+            self.title = title
+        self.dataName = title
+
+        # String: line two on the LCD Screen
+        self.childIndex = 0
+        self.value = "Scan for Wifi Networks"
+        self.val0 = "Yes"
+        self.val1 = "No"
+        self.incrLine = "<--    Scan    -->"
+        self.editLine = ""
+        self.editMode = False
+        if(self.type == "readOnly"):
+            self.navigation = self.navLine
+        elif(self.type == "subMenu"):
+            self.navigation = self.navLine
+        else:
+            self.navigation = self.incrLine
+
+    def editVal(self, index, addorsub):
+        self.value = "Scanning..."
+        self.displayThis()
+        gd.wifiList = getConfig.getID_List(URL3)
+        self.editMode = False
+        self.value = "Scan for Wifi Networks"
+        self.navigation = self.incrLine
+        print gd.wifiList
+        gd.screenChosen = gd.menuStack.pop()
+        gd.draw_confirmation("Finished Scanning", "Returning to", "parent menu.", gd.fillNum, gd.fillBg)
