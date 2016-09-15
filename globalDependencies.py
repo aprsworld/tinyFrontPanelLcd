@@ -38,6 +38,12 @@ class Stack:
     def size(self):
         return len(self.items)
 
+    def clear(self):
+        if self.size() == 0:
+            return
+        while self.size() > 1:
+            self.pop()
+
 class AutoVivification(dict):
     """
     Implementation of perl's autovivification feature.
@@ -82,7 +88,7 @@ menuStack = Stack()
 screenChosen = None
 topLevelMenu = None
 menuCreate = None
-
+menuDelete = None
 interfaceSettings = dict()
 wifiList = getConfig.getID_List(URL3)
 

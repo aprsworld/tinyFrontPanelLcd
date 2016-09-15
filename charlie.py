@@ -298,7 +298,6 @@ def button_callback(channel):
     if action_up_now or action_select_now or action_down_now:
         print "simultaneous press", channel
         return
-
     if(17 == channel):
         action_up_now = True
     elif(18 == channel):

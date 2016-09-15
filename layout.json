@@ -71,6 +71,10 @@
 		"wifiScan": [
 			"wifiscan",
 			"editable"
+		],
+		"restartscript": [
+			"restartscript",
+			"editable"
 		]
     },
     "dateAndTime": [

@@ -356,6 +356,8 @@ def createScreen(editable, title, screentype, value, interface):
         return screens.DateTimeScreen(editable, title)
     elif screentype.lower() == "wifiscan":
         return screens.WifiScan(editable, title)
+    elif screentype.lower() == "restartscript":
+        return screens.RestartScript(editable, title, "Are you sure?")
 
 def getInterfaceList():
     global thisData
@@ -472,14 +474,23 @@ def createMenus():
         gd.topLevelMenu.appendScreenList(buildTools())
     if "mainSetupMenu" in layoutKeys:
         gd.topLevelMenu.appendScreenList(buildMainSetupMenu())
+    gd.topLevelMenu.screens[0].displayThis()
+    gd.screenChosen = gd.topLevelMenu
+
+def deleteMenu():
+    global thisData
+    charlieimage.dispLogo("Restarting...")
+    gd.thisData.update(getConfig.getData(gd.URL))
+    gd.wifiList = getConfig.getID_List(gd.URL3)
+    thisData = gd.thisData
+    gd.menuStack.clear()
+    del gd.topLevelMenu.screens[:]
+    gc.collect()
+    gd.menuCreate()
 
 gd.menuCreate = createMenus
 gd.menuCreate()
-
-gd.topLevelMenu.screens[0].displayThis()
-gd.screenChosen = gd.topLevelMenu
-maxn = len(masterList) - 1
-
+gd.menuDelete = deleteMenu
 
 def detect_edges(callbackFn):
     """designate threaded callbacks for all button presses."""
