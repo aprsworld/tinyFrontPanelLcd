@@ -310,6 +310,15 @@ def draw_confirmation(line1, line2, line3, fillNum, fillBg):
     print 331
 
 
+def createIfaceTitle(iface):
+    if(iface.startswith("wlan")):
+        return "Wireless (" + iface + ")"
+    elif(iface.startswith("eth")):
+        return "Ethernet (" + iface + ")"
+    else:
+        return iface
+
+
 def safeget(dct, *keys):
     for key in keys:
         try:
@@ -367,7 +376,7 @@ def buildNetworkStatus():
     networkStatusScreen = screens.Screen("subMenu", "Network Status", " ", "networkStatus")
     iFaceList = getInterfaceList()
     for iface in iFaceList:
-        newScreen = screens.Screen("subMenu", iface["subkey"], " ", iface["subkey"])
+        newScreen = screens.Screen("subMenu", createIfaceTitle(iface["subkey"]), " ", iface["subkey"])
         print 366, iface
         for item in layout["network-status"][iface["keyType"]]:
             if isinstance(layout["network-status"][iface["keyType"]][item], dict):
@@ -427,7 +436,7 @@ def buildMainSetupMenu():
             networkSettings = createScreen("", "Network Setup", "submenu", "", "Network Setup")
             for iface in iFaceList:
                 gd.interfaceSettings[iface["subkey"]] = dict()
-                newScreen = screens.Screen("subMenu", iface["subkey"], " ", iface["subkey"])
+                newScreen = screens.Screen("subMenu", createIfaceTitle(iface["subkey"]), " ", iface["subkey"])
                 for item in layout[toplevel]["network-setup"][iface["keyType"]]:
                     if isinstance(layout[toplevel]["network-setup"][iface["keyType"]][item], dict):
                         x = createScreen("", item, "subMenu", "", item)
@@ -468,9 +477,9 @@ maxn = len(masterList) - 1
 
 def detect_edges(callbackFn):
     """designate threaded callbacks for all button presses."""
-    GPIO.add_event_detect(17, GPIO.FALLING, callback=callbackFn, bouncetime=200)
-    GPIO.add_event_detect(18, GPIO.FALLING, callback=callbackFn, bouncetime=200)
-    GPIO.add_event_detect(27, GPIO.FALLING, callback=callbackFn, bouncetime=200)
+    GPIO.add_event_detect(17, GPIO.FALLING, callback=callbackFn, bouncetime=300)
+    GPIO.add_event_detect(18, GPIO.FALLING, callback=callbackFn, bouncetime=300)
+    GPIO.add_event_detect(27, GPIO.FALLING, callback=callbackFn, bouncetime=300)
 
 detect_edges(button_callback)
 print wifiList

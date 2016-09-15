@@ -97,6 +97,8 @@ disp.display()
 # Set up globals for drawing
 width = disp.width
 height = disp.height
+print height
+
 image = Image.new('1', (width, height))
 draw = ImageDraw.Draw(image)
 fillNum = 255
@@ -206,7 +208,7 @@ def draw_screen(s, line2, line3, fillNum, fillBg):
 
     x = 0
     top = 2
-    draw.rectangle((1, 0, width - 1, top + 9), outline=1, fill=fillNum)
+    draw.rectangle((1, 1, width - 1, top + 9), outline=1, fill=fillNum)
 
     draw.text((center_text(s, 0), top), str(s), font=font, fill=fillBg)
     draw.text((x, top + 10), str(line2), font=font, fill=fillNum)
@@ -226,7 +228,7 @@ def draw_screen_ul(s, line2, line3, fillNum, fillBg, underline_pos, underline_wi
 
     x = 0
     top = 2
-    draw.rectangle((1, 0, width - 1, top + 9), outline=1, fill=fillNum)
+    draw.rectangle((1, 1, width - 1, top + 9), outline=1, fill=fillNum)
     draw.text((center_text(s, 0), top), s, font=font, fill=fillBg)
     draw.text((x, top + 10), line2, font=font, fill=fillNum)
     draw.text((center_text(line3, 0), top + 20), line3, font=font, fill=fillNum)

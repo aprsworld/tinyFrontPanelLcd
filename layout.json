@@ -57,80 +57,80 @@
             }
         }
     },
-	"magWebProStatus": {
-		"hostName": [
-			"stringScreen",
-			"readonly"
-		]
-	},
-	"tools": {
-		"sendConfig": [
-			"confSend",
-			"editable"
-		]
-	},
-	"dateAndTime": [
-		"datetimescreen",
-		"readonly"
-	],
-	"mainSetupMenu": {
-		"allowWebConfig": [
-			"booleanscreen",
-			"editable"
-		],
-		"setTime": [
-			"dateandtime",
-			"editable"
-		],
-		"network-setup": {
-			"eth-iface": {
-				"method": [
-					"methodscreen",
-					"editable"
-				],
-				"address": [
-					"networkscreen",
-					"editable"
-				],
-				"netmask": [
-					"networkscreen",
-					"editable"
-				],
-				"gateway": [
-					"networkscreen",
-					"editable"
-				]
-			},
-			"wifi-iface": {
-				"ssid": [
-					"ssidchooser",
-					"editable"
-				],
-				"method": [
-					"methodscreen",
-					"editable"
-				],
-				"password": [
-					"wificreds",
-					"editable"
-				],
-				"securityType": [
-					"securitychanger",
-					"editable"
-				],
-				"address": [
-					"networkscreen",
-					"editable"
-				],
-				"netmask": [
-					"networkscreen",
-					"editable"
-				],
-				"gateway": [
-					"networkscreen",
-					"editable"
-				]
-			}
-		}
-	}
+    "magWebProStatus": {
+        "hostName": [
+            "stringScreen",
+            "readonly"
+        ]
+    },
+    "tools": {
+        "sendConfig": [
+            "confSend",
+            "editable"
+        ]
+    },
+    "dateAndTime": [
+        "datetimescreen",
+        "readonly"
+    ],
+    "mainSetupMenu": {
+        "network-setup": {
+            "eth-iface": {
+                "method": [
+                    "methodscreen",
+                    "editable"
+                ],
+                "address": [
+                    "networkscreen",
+                    "editable"
+                ],
+                "netmask": [
+                    "networkscreen",
+                    "editable"
+                ],
+                "gateway": [
+                    "networkscreen",
+                    "editable"
+                ]
+            },
+            "wifi-iface": {
+                "ssid": [
+                    "ssidchooser",
+                    "editable"
+                ],
+                "method": [
+                    "methodscreen",
+                    "editable"
+                ],
+                "password": [
+                    "wificreds",
+                    "editable"
+                ],
+                "securityType": [
+                    "securitychanger",
+                    "editable"
+                ],
+                "address": [
+                    "networkscreen",
+                    "editable"
+                ],
+                "netmask": [
+                    "networkscreen",
+                    "editable"
+                ],
+                "gateway": [
+                    "networkscreen",
+                    "editable"
+                ]
+            },
+            "allowWebConfig": [
+                "booleanscreen",
+                "editable"
+            ],
+            "setTime": [
+                "dateandtime",
+                "editable"
+            ]
+        }
+    }
 }
