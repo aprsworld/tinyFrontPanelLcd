@@ -429,7 +429,6 @@ def buildMainSetupMenu():
     iFaceList = getInterfaceList()
     mainSetupMenu = screens.Screen("subMenu", "Main Setup Menu", " ", "mainSetupMenu")
     toplevel = "mainSetupMenu"
-    print 433, layout["mainSetupMenu"].keys()
     for key in layout["mainSetupMenu"].keys():
         if key.lower() == "allowwebconfig":
             mainSetupMenu.appendScreenList(screens.BooleanScreen("editable", "Allow Web Configuration", "Allow", "Allow", "Don't Allow"))
@@ -479,10 +478,13 @@ def createMenus():
     gd.screenChosen = gd.topLevelMenu
 
 def deleteMenu():
-    global thisData
+    global thisData, wifiList
     charlieimage.dispLogo("Restarting...")
+    del gd.thisData
+    gd.thisData = gd.AutoVivification()
     gd.thisData.update(getConfig.getData(gd.URL))
     gd.wifiList = getConfig.getID_List(gd.URL3)
+    wifiList = gd.wifiList
     thisData = gd.thisData
     gd.menuStack.clear()
     del gd.topLevelMenu.screens[:]
