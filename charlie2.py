@@ -429,6 +429,7 @@ def buildMainSetupMenu():
     iFaceList = getInterfaceList()
     mainSetupMenu = screens.Screen("subMenu", "Main Setup Menu", " ", "mainSetupMenu")
     toplevel = "mainSetupMenu"
+    print 433, layout["mainSetupMenu"].keys()
     for key in layout["mainSetupMenu"].keys():
         if key.lower() == "allowwebconfig":
             mainSetupMenu.appendScreenList(screens.BooleanScreen("editable", "Allow Web Configuration", "Allow", "Allow", "Don't Allow"))

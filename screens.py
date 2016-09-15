@@ -1192,16 +1192,16 @@ class confSend(Screen):
             else:
                 print result
                 self.navigation = self.incrLine
-                draw_warning2(result['message'], 255, 0, masterList[n])
+                gd.draw_confirmation('FAILED', result['message'], '', 255, 0)
         elif(addorsub == 1):
             self.navigation = self.incrLine
-            draw_warning('canceled', 'Returning to main menu', 255, 0, masterList[n])
+            gd.draw_confirmation('CANCELED', 'Returning to main menu', '', 255, 0)
         elif(addorsub == 2):
             self.displayThis()
 
     def displayEdit(self, underline_pos, underline_width):
         """screen to display when editting value."""
-        draw_screen_ul(self.title, "Are You Sure?", self.navigation, 255, 0, 0, 0)
+        gd.draw_screen_ul(self.title, "Are You Sure?", self.navigation, 255, 0, 0, 0)
 
 class RestartScript(Screen):
     """Class for sending config. Extends Screen."""
