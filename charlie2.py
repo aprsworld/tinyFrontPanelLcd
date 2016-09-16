@@ -271,7 +271,12 @@ def retrieveData(physical, logical, requestedData):
         }
     if requestedData == "ssid" or requestedData == "password":
         print 280, requestedData
-        return safeget(dataDict, requestedData).replace('\"', '')
+        x = safeget(dataDict, requestedData)
+        print x
+        if not isinstance(x, dict):
+            return x.replace('\"', '')
+        else:
+            return "None"
     elif requestedData == "method":
         result = safeget(dataDict, requestedData)
         if result is None:
@@ -406,6 +411,10 @@ def buildNetworkStatus():
 def buildMagWebProStatus():
     global layout
     magWebProStatus = screens.Screen("subMenu", "MagWebPro Status", " ", "magWebProStatus")
+    for item in layout["magWebProStatus"]:
+        res = layout["magWebProStatus"]
+        x = screens.HostName("Host Name")
+        magWebProStatus.appendScreenList(x)
     return magWebProStatus
 
 

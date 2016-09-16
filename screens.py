@@ -8,6 +8,7 @@ import ctypes
 import ctypes.util
 import time
 import math
+import socket
 
 URL = gd.URL
 URL2 = gd.URL2
@@ -35,7 +36,7 @@ def changeSecurityType(interface, newSecurity, oldSecurity):
     wpaSecurity = {"ssid": "wpa-ssid", "passphrase": "wpa-psk"}
     noneSecurity = {"ssid": "wireless-essid", "passphrase": "wireless-key"}
     securityLookup = {"wep": wepSecurity, "wpa": wpaSecurity, "wpa2": wpaSecurity, "none": noneSecurity}
-
+    print newSecurity, oldSecurity
     # variables to hold values for readability purposes
     newPassPhrase = securityLookup[newSecurity.lower()]["passphrase"]
     oldPassPhrase = securityLookup[oldSecurity.lower()]["passphrase"]
@@ -62,13 +63,24 @@ def changeSecurityType(interface, newSecurity, oldSecurity):
         if configAddress.get("wpa-psk", False) is not False:
             configAddress.pop("wpa-psk")
         if configAddress.get("wpa-ssid", False) is not False:
-            configAddress.pop("wpa-ssid")
+            configAddress["wireless-essid"] = configAddress.pop("wpa-ssid")
+    elif newSecurity.lower() == "none" and (oldSecurity.lower() == "wep"):
+        if configAddress.get("wpa-scan-ssid", False) is not False:
+            configAddress.pop("wpa-scan-ssid")
+        if configAddress.get("wpa-ap-scan", False) is not False:
+            configAddress.pop("wpa-ap-scan")
+        if configAddress.get("wpa-psk", False) is not False:
+            configAddress.pop("wpa-psk")
+        if configAddress.get("wireless-key", False) is not False:
+            configAddress.pop("wireless-key")
+        if configAddress.get("wpa-ssid", False) is not False:
+            configAddress["wireless-essid"] = configAddress.pop("wpa-ssid")
     elif oldSecurity.lower() == "wep":
         print 67, configAddress
         if configAddress.get("wireless-ssid", False) is not False:
             configAddress.pop("wireless-ssid")
         if configAddress.get("wireless-key", False) is not False:
-            configAddress.pop("wireless-ssid")
+            configAddress.pop("wireless-key")
     elif newSecurity.lower() == "wpa" or newSecurity.lower() == "wpa2":
         configAddress["wpa-scan-ssid"] = "1"
         configAddress["wpa-ap-scan"] = "1"
@@ -239,6 +251,27 @@ class Screen:
             return {"line1": self.warn1, "line2": self.warn2}
 # --------------------End of Screen Class Definition -----------------------
 
+class HostName(Screen):
+    """displays host name."""
+    def __init__(self, title):
+        global humanTranslations
+        self.type = "readOnly"
+        self.screenType = "IntScreen"
+        self.titleOrig = title
+        self.interface = "hostname"
+        if title in humanTranslations:
+            self.title = humanTranslations[title]
+        else:
+            self.title = title
+        self.dataName = title
+        self.value = socket.gethostname()
+        if(self.type == "readOnly"):
+            self.navigation = self.navLine
+        elif(self.type == "subMenu"):
+            self.navigation = self.navLine
+        else:
+            self.navigation = self.incrLine
+        self.editMode = False
 
 class IntScreen(Screen):
     """A number screen class. Extends Screen."""
@@ -756,6 +789,7 @@ class DateTimeScreen(Screen):
             self.underline_width = 0
             self.childIndex == self.valueLength + 1
         self.timeChange = tdelta(years=self.year, months=self.month, days=self.day, hours=self.hour, minutes=self.minute, seconds=self.second)
+
         print self.timeChange
         self.date = dt.now() + self.timeChange
         self.value = self.date.strftime("%Y-%m-%d %H:%M:%S")
@@ -768,6 +802,7 @@ class DateTimeScreen(Screen):
         self.date = dt.now() + self.timeChange
         self.value = self.date.strftime("%Y-%m-%d %H:%M:%S")
         # If we are on the time screen, update the screen every second as well
+        print inView.title, gd.action_up_now, gd.action_select_now, gd.action_select_now
         if inView.title == self.title and not gd.action_up_now and not gd.action_select_now and not gd.action_select_now:
             # if inView.title == self.title:
             print "update"
@@ -783,9 +818,9 @@ class DateTimeScreen(Screen):
     def print_some_times(self):
         """call print_time every second."""
         try:
-            t = Timer(1, self.print_time)
-            t.daemon = True
-            t.start()
+            self.timer = Timer(1, self.print_time)
+            self.timer.daemon = True
+            self.timer.start()
         except (KeyboardInterrupt, SystemExit):
             print '\n! Received keyboard interrupt, quitting threads.\n'
             return
@@ -929,10 +964,13 @@ class TempScreen(StringScreen):
     def changeConfig(self):
         prevMenu = gd.menuStack.peek()
         prevMenu.value = self.value
+        print 967, prevMenu.value
+        prevMenu.changeConfig()
         prevMenu.valList.insert(0,self.value)
         self.value = "ssidname"
         gd.screenChosen = gd.menuStack.pop()
         gd.screenChosen.childIndex = 0
+
 
 manualEntry = TempScreen("editable", "Manual SSID Entry", "ssidname")
 
@@ -999,10 +1037,12 @@ class SsidChooser(ListScreen):
     def changeConfig(self):
         global thisData
         security = gd.interfaceSettings[self.interface]["security"]
-        print security
-        if not security == "WEP" or security == None:
+        print 1040, security, self.value
+        if security.lower() == "wpa" or security.lower() == "wpa2":
+            print 1042
             thisData['config'][self.interface]['protocol']['inet']["wpa-ssid"] = self.value
         else:
+            print 1045
             thisData['config'][self.interface]['protocol']['inet']["wireless-essid"] = self.value
 
     def screenChosen(self):
@@ -1044,6 +1084,8 @@ class SecurityChanger(ListScreen):
         self.titleOrig = title
         self.childIndex = 0
         self.valList = ['WPA', 'WPA2', 'WEP', 'NONE']
+        if(security is False):
+            security = "NONE"
         self.prevVal = security.upper()
         self.value = security.upper()
         self.editMode = False
