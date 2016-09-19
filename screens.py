@@ -72,9 +72,9 @@ def changeSecurityType(interface, newSecurity, oldSecurity):
             if configAddress.get("wpa-ap-scan", False) is not False:
                 configAddress.pop("wpa-ap-scan")
             if configAddress.get("wpa-psk", False) is not False:
-                configAddress.pop("wpa-psk")
+                configAddress["wireless-key"] = configAddress.pop("wpa-psk")
             if configAddress.get("wpa-ssid", False) is not False:
-                configAddress.pop("wpa-ssid")
+                configAddress["wireless-essid"] = configAddress.pop("wpa-ssid")
     elif oldSecurity.lower() == "none":
         if newSecurity.lower() == "wep":
             pass
@@ -156,8 +156,8 @@ class Screen:
         self.screenType = "GeneralScreen"
         self.interfaceType = interface
         # String: Line one on the LCD Screen
-        if title in humanTranslations:
-            self.title = humanTranslations[title]
+        if title in gd.humanTranslations:
+            self.title = gd.humanTranslations[title]
         else:
             self.title = title
         self.titleOrig = title
@@ -575,8 +575,8 @@ class StringScreen(Screen):
         self.type = type
         self.screenType = "StringScreen"
         # String: Line one on the LCD Screen
-        if title in humanTranslations:
-            self.title = humanTranslations[title]
+        if title in gd.humanTranslations:
+            self.title = gd.humanTranslations[title]
         else:
             self.title = title
         self.dataName = title
@@ -846,7 +846,6 @@ class DateTimeScreen(Screen):
         self.date = dt.now() + self.timeChange
         self.value = self.date.strftime("%Y-%m-%d %H:%M:%S")
         # If we are on the time screen, update the screen every second as well
-        print inView.title, gd.action_up_now, gd.action_select_now, gd.action_select_now
         if inView.title == self.title and not gd.action_up_now and not gd.action_select_now and not gd.action_select_now:
             # if inView.title == self.title:
             print "update"
@@ -1011,10 +1010,9 @@ class TempScreen(StringScreen):
         print 967, prevMenu.value
         prevMenu.changeConfig()
         prevMenu.valList.insert(0,self.value)
-        self.value = "ssidname"
         gd.screenChosen = gd.menuStack.pop()
         gd.screenChosen.childIndex = 0
-
+        gd.screenChosen.navigation = gd.screenChosen.incrLine
 
 manualEntry = TempScreen("editable", "Manual SSID Entry", "ssidname")
 
@@ -1060,20 +1058,25 @@ class SsidChooser(ListScreen):
             if(self.childIndex < 0):
                 self.childIndex = len(self.valList) - 1
             self.value = self.valList[self.childIndex]
+            self.displayEdit(index, 0)
+
         elif(addorsub == 1):
             self.childIndex += 1
             if(self.childIndex > len(self.valList) - 1):
                 self.childIndex = 0
             self.value = self.valList[self.childIndex]
+            self.displayEdit(index, 0)
+
         elif(addorsub == 2):
             if self.valList[self.childIndex] == "Manual Entry":
                 gd.menuStack.push(self)
                 manualEntry.editMode = True
                 gd.screenChosen = manualEntry
+                gd.screenChosen.displayThis()
             else:
                 pass
-        self.value
-        self.displayEdit(index, 0)
+                self.displayEdit(index, 0)
+
 
     def setVal(self, val):
         self.value = val
@@ -1335,7 +1338,7 @@ class RestartScript(Screen):
 
     def displayEdit(self, underline_pos, underline_width):
         """screen to display when editting value."""
-        gd.draw_screen_ul(self.title, "Are You Sure?", self.navigation, 255, 0, 0, 0)
+        gd.draw_screen_ul(self.title, " ", self.navigation, 255, 0, 0, 0)
 
 
 class WifiScan(Screen):

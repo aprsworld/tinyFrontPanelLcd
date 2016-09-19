@@ -412,6 +412,14 @@ def buildNetworkStatus():
                 newScreen.appendScreenList(x)
                 print newScreen.screens
         networkStatusScreen.appendScreenList(newScreen)
+    if "General-Net-Settings" in layout["network-status"]:
+        newScreen = screens.Screen("subMenu", "General Net Settings", " ", "general-net-settings")
+        for item in layout["network-status"]["General-Net-Settings"]:
+            res = layout["network-status"]["General-Net-Settings"][item]
+            x = screens.HostName("Host Name")
+            newScreen.appendScreenList(x)
+            print newScreen.screens
+        networkStatusScreen.appendScreenList(newScreen)
     print networkStatusScreen.screens
     return networkStatusScreen
 
@@ -448,7 +456,7 @@ def buildMainSetupMenu():
     toplevel = "mainSetupMenu"
     for key in layout["mainSetupMenu"].keys():
         if key.lower() == "allowwebconfig":
-            mainSetupMenu.appendScreenList(screens.BooleanScreen("editable", "Allow Web Configuration", "Yes", "Yes", "No"))
+            mainSetupMenu.appendScreenList(screens.BooleanScreen("readOnly", "Allow Web Configuration", "Yes", "Yes", "No"))
         elif key.lower() == "settime":
             mainSetupMenu.appendScreenList(screens.DateTimeScreen("editable", "Edit Date and Time"))
         elif key.lower() == "wifiscan":

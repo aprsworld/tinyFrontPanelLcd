@@ -146,6 +146,7 @@ humanTranslations = {
     'qdisc': 'Queueing Discipline',
     'group': 'Group',
     'ESSID': 'Extended SSID',
+    'ssid': 'Wireless SSID',
     'RTS thr': 'RTS Threshold',
     'Framgent thr': 'Fragment Threshold',
     'securityType': 'Security Type',
@@ -211,7 +212,7 @@ def draw_screen(s, line2, line3, fillNum, fillBg):
     """for drawing the next screen."""
     global disp, n, maxn, Image, ImageDraw, draw, font
     # Draw a black filled box to clear the image.
-    draw.rectangle((0, 0, width + 10, height + 10), outline=0, fill=fillBg)
+    draw.rectangle((-10, -10, width + 10, height + 10), outline=0, fill=fillBg)
 
     x = 0
     top = 2
@@ -231,7 +232,7 @@ def draw_screen_ul(s, line2, line3, fillNum, fillBg, underline_pos, underline_wi
     global disp, n, maxn, Image, ImageDraw, draw
 
     # Draw a black filled box to clear the image.
-    draw.rectangle((0, 0, width + 10, height + 10), outline=0, fill=fillBg)
+    draw.rectangle((-10, -10, width + 10, height + 10), outline=0, fill=fillBg)
 
     x = 0
     top = 2

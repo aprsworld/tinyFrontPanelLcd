@@ -55,7 +55,13 @@
                     "readonly"
                 ]
             }
-        }
+        },
+		"General-Net-Settings": {
+			"hostName": [
+				"stringScreen",
+				"readonly"
+			]	
+		}
     },
     "magWebProStatus": {
         "hostName": [
@@ -138,7 +144,7 @@
         ],
         "allowWebConfig": [
             "booleanscreen",
-            "editable"
+            "readonly"
         ]
     }
 }
