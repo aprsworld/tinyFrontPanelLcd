@@ -68,10 +68,6 @@
             "confSend",
             "editable"
         ],
-        "wifiScan": [
-            "wifiscan",
-            "editable"
-        ],
         "restartscript": [
             "restartscript",
             "editable"
@@ -132,12 +128,16 @@
                 ]
             }
         },
-        "allowWebConfig": [
-            "booleanscreen",
+		"wifiScan": [
+            "wifiscan",
             "editable"
         ],
         "setTime": [
             "dateandtime",
+            "editable"
+        ],
+        "allowWebConfig": [
+            "booleanscreen",
             "editable"
         ]
     }

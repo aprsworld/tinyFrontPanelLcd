@@ -45,7 +45,49 @@ def changeSecurityType(interface, newSecurity, oldSecurity):
     configAddress = thisData['config'][interface]["protocol"]["inet"]
     print "CHANGE SECURITY", "old_ssid:", old_ssid, "new_ssid", new_ssid
 
+    if oldSecurity.lower() == "wep":
+        if newSecurity.lower() == "none":
+            if configAddress.get("wireless-key", False) is not False:
+                configAddress.pop("wireless-key")
+        elif newSecurity.lower() == "wpa" or newSecurity.lower() == "wpa2":
+            if configAddress.get("wireless-essid", False) is not False:
+                configAddress["wpa-ssid"] = configAddress.pop("wireless-essid")
+            if configAddress.get("wireless-key", False) is not False:
+                configAddress["wpa-psk"] = configAddress.pop("wireless-key")
+            configAddress["wpa-scan-ssid"] = "1"
+            configAddress["wpa-ap-scan"] = "1"
+    elif oldSecurity.lower() == "wpa" or oldSecurity.lower() == "wpa2":
+        if newSecurity.lower() == "none":
+            if configAddress.get("wpa-scan-ssid", False) is not False:
+                configAddress.pop("wpa-scan-ssid")
+            if configAddress.get("wpa-ap-scan", False) is not False:
+                configAddress.pop("wpa-ap-scan")
+            if configAddress.get("wpa-psk", False) is not False:
+                configAddress["wireless-key"] = configAddress.pop("wpa-psk")
+            if configAddress.get("wpa-ssid", False) is not False:
+                configAddress["wireless-essid"] = configAddress.pop("wpa-ssid")
+        elif newSecurity.lower() == "wep":
+            if configAddress.get("wpa-scan-ssid", False) is not False:
+                configAddress.pop("wpa-scan-ssid")
+            if configAddress.get("wpa-ap-scan", False) is not False:
+                configAddress.pop("wpa-ap-scan")
+            if configAddress.get("wpa-psk", False) is not False:
+                configAddress.pop("wpa-psk")
+            if configAddress.get("wpa-ssid", False) is not False:
+                configAddress.pop("wpa-ssid")
+    elif oldSecurity.lower() == "none":
+        if newSecurity.lower() == "wep":
+            pass
+        elif newSecurity.lower() == "wpa" or newSecurity.lower() == "wpa2":
+            if configAddress.get("wireless-essid", False) is not False:
+                configAddress["wpa-ssid"] = configAddress.pop("wireless-essid")
+            if configAddress.get("wireless-key", False) is not False:
+                configAddress["wpa-psk"] = configAddress.pop("wireless-key")
+            configAddress["wpa-scan-ssid"] = "1"
+            configAddress["wpa-ap-scan"] = "1"
+
     # loop through Screen List and change the title of the screen
+    '''
     if newSecurity.lower() == "wep" and (oldSecurity.lower() == "wpa" or oldSecurity.lower() == "wpa2"):
         if configAddress.get("wpa-scan-ssid", False) is not False:
             configAddress.pop("wpa-scan-ssid")
@@ -84,7 +126,7 @@ def changeSecurityType(interface, newSecurity, oldSecurity):
     elif newSecurity.lower() == "wpa" or newSecurity.lower() == "wpa2":
         configAddress["wpa-scan-ssid"] = "1"
         configAddress["wpa-ap-scan"] = "1"
-
+    '''
 
 class Screen:
     """
@@ -390,6 +432,8 @@ class NetworkScreen(Screen):
             self.title = title
         self.dataName = title
         # String: line two on the LCD Screen
+        if addr is None:
+            addr = "000.000.000.000"
         addr = addr.split(".")
         self.addr0 = addr0 = int(addr[0])
         self.addr1 = addr1 = int(addr[1])
@@ -1038,7 +1082,7 @@ class SsidChooser(ListScreen):
         global thisData
         security = gd.interfaceSettings[self.interface]["security"]
         print 1040, security, self.value
-        if security.lower() == "wpa" or security.lower() == "wpa2":
+        if (security is not None) and (security.lower() == "wpa" or security.lower() == "wpa2"):
             print 1042
             thisData['config'][self.interface]['protocol']['inet']["wpa-ssid"] = self.value
         else:
@@ -1084,10 +1128,13 @@ class SecurityChanger(ListScreen):
         self.titleOrig = title
         self.childIndex = 0
         self.valList = ['WPA', 'WPA2', 'WEP', 'NONE']
-        if(security is False):
+        if(security is False or security == None):
             security = "NONE"
-        self.prevVal = security.upper()
-        self.value = security.upper()
+            self.value = "NONE"
+            self.prevVal = "NONE"
+        else:
+            self.prevVal = security.upper()
+            self.value = security.upper()
         self.editMode = False
         # check if in list. if so, then set the index to that item
         if(self.value in self.valList):

@@ -367,15 +367,23 @@ def createScreen(editable, title, screentype, value, interface):
 def getInterfaceList():
     global thisData
     interfaceList = list()
+    print 370, thisData.keys()
     for key in thisData.keys():
         if key.startswith("eth") or key.startswith("wlan"):
             if key.startswith("eth"):
                 keyType = "eth-iface"
             elif key.startswith("wlan"):
                 keyType = "wifi-iface"
+            i = 0
             for subkey in thisData[key].keys():
                 if subkey.startswith(key) and not subkey.endswith("secondary"):
+                    i += 1
                     interfaceList.append({"key": key, "subkey": subkey, "keyType": keyType})
+            if i == 0:
+                interfaceList.append({"key": key, "subkey": key, "keyType": keyType})
+            # for subkey in thisData[key].keys():
+            #     if subkey.startswith(key) and not subkey.endswith("secondary"):
+
     print 253, interfaceList
     return interfaceList
 
@@ -440,9 +448,11 @@ def buildMainSetupMenu():
     toplevel = "mainSetupMenu"
     for key in layout["mainSetupMenu"].keys():
         if key.lower() == "allowwebconfig":
-            mainSetupMenu.appendScreenList(screens.BooleanScreen("editable", "Allow Web Configuration", "Allow", "Allow", "Don't Allow"))
+            mainSetupMenu.appendScreenList(screens.BooleanScreen("editable", "Allow Web Configuration", "Yes", "Yes", "No"))
         elif key.lower() == "settime":
             mainSetupMenu.appendScreenList(screens.DateTimeScreen("editable", "Edit Date and Time"))
+        elif key.lower() == "wifiscan":
+            mainSetupMenu.appendScreenList(screens.WifiScan("editable", "Wifi Scan"))
         elif key.lower() == "network-setup":
             networkSettings = createScreen("", "Network Setup", "submenu", "", "Network Setup")
             for iface in iFaceList:
