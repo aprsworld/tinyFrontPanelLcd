@@ -21,10 +21,12 @@
 
 import Adafruit_GPIO.SPI as SPI
 import Adafruit_SSD1306
+import sys
 
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
+sys.path.append('/home/pi/Adafruit_Python_SSD1306/tiny_front_panel_lcd')
 
 # Raspberry Pi pin configuration:
 RST = 24
@@ -79,5 +81,3 @@ def dispLogo(message):
     disp.image(image.rotate(180))
 
     disp.display()
-
-dispLogo("Booting up...")

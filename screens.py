@@ -1216,15 +1216,15 @@ class MethodScreen(Screen):
             self.value = self.val0
             print type(thisData['config'])
             print thisData['config']
-            thisData['config'][self.interface]['protocol']['inet']['method'] = self.value
+            thisData['config'][self.interface]['protocol']['inet']['method'] = self.value.lower()
             print thisData
             # thisData['config'][masterList[n].interfaceType]['protocol']['inet'].update({'method': self.value})
         elif(addorsub == 1):
             self.value = self.val1
-            thisData['config'][self.interface]['protocol']['inet']['method'] = self.value
+            thisData['config'][self.interface]['protocol']['inet']['method'] = self.value.lower()
             resetFromStatic(self.interface)
         elif(addorsub == 2):
-            thisData['config'][self.interface]['protocol']['inet']['method'] = self.value
+            thisData['config'][self.interface]['protocol']['inet']['method'] = self.value.lower()
             print thisData['config'][self.interface]['protocol']['inet']['method']
             self.value = self.value
             print self.value
@@ -1290,6 +1290,7 @@ class confSend(Screen):
                 gd.draw_confirmation('FAILED', result['message'], '', 255, 0)
         elif(addorsub == 1):
             self.navigation = self.incrLine
+            gd.screenChosen = gd.menuStack.pop()
             gd.draw_confirmation('CANCELED', 'Returning to main menu', '', 255, 0)
         elif(addorsub == 2):
             self.displayThis()

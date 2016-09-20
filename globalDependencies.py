@@ -204,7 +204,7 @@ def draw_confirmation(line1, line2, line3, fillNum, fillBg):
     disp.image(image.rotate(180))
     disp.display()
     print 326
-    t = Timer(1, drawAndEnable)
+    t = Timer(1.5, drawAndEnable)
     print 329
     t.setDaemon(True)
     t.start()
