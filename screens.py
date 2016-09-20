@@ -9,6 +9,7 @@ import ctypes.util
 import time
 import math
 import socket
+import charlieimage
 
 URL = gd.URL
 URL2 = gd.URL2
@@ -842,10 +843,12 @@ class DateTimeScreen(Screen):
     def print_time(self):
         """update the value of the time screen print_some_times calls this every second."""
         global timeScreen, masterList
-        self.print_some_times()
         self.date = dt.now() + self.timeChange
         self.value = self.date.strftime("%Y-%m-%d %H:%M:%S")
+        self.print_some_times()
+
         # If we are on the time screen, update the screen every second as well
+
         if inView.title == self.title and not gd.action_up_now and not gd.action_select_now and not gd.action_select_now:
             # if inView.title == self.title:
             print "update"
@@ -1161,9 +1164,8 @@ class SecurityChanger(ListScreen):
             if(self.childIndex > len(self.valList) - 1):
                 self.childIndex = 0
         elif(addorsub == 2):
-
             pass
-        print self.valList, self.childIndex
+        print 1169, self.valList, self.childIndex
         self.value = self.valList[self.childIndex]
         self.displayEdit(index, 0)
 
@@ -1232,7 +1234,7 @@ class MethodScreen(Screen):
         # update config and screens for this interface
         global thisData
         # changeSecurityType(self.interface, self.value, self.prevVal)
-        gd.interfaceSettings[self.interface]["method"] = self.value
+        gd.interfaceSettings[self.interface]["method"] = self.value.lower()
         print thisData['config']
 
 
@@ -1279,7 +1281,8 @@ class confSend(Screen):
                 #     text_file.write("Data: {0}".format(thisData['config']))
                 getConfig.sendConfig(URL2, thisData['config'])
                 self.navigation = self.incrLine
-                gd.draw_confirmation("S A V E D !", "Sent valid config", "RESTARTING", 255, 0)
+                charlieimage.dispLogo("Saved! Restarting...")
+                # gd.draw_confirmation("S A V E D !", "Sent valid config", "RESTARTING", 255, 0)
                 # print thisData['config']
             else:
                 print result

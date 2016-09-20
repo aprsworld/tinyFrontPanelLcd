@@ -132,8 +132,8 @@ humanTranslations = {
     'method': 'Addressing Method',
     'dhcp': 'DHCP',
     'static': 'Static',
-    'brd': 'Broadcast',
-    'broadcast': 'Broadcast',
+    'brd': 'Broadcast Address',
+    'broadcast': 'Broadcast Address',
     'netmask': 'Netmask',
     'gateway': 'Gateway',
     'address': 'IP Address',
@@ -155,7 +155,9 @@ humanTranslations = {
     'ESSID': 'Current WIFI SSID',
     'dateAndTime': 'Date and Time',
     'magWebProStatus': 'MagWebPro Status',
-    'mainSetupMenu': 'Main Setup Menu'
+    'mainSetupMenu': 'Main Setup Menu',
+    'signallevel': 'Signal Level',
+    'linkquality': 'Link Quality'
 }
 
 charSetIndex = 0

@@ -1,4 +1,5 @@
-#screens
+# charlie2
+import sys
 import Adafruit_SSD1306
 from PIL import Image
 from PIL import ImageDraw
@@ -10,6 +11,7 @@ import time
 from datetime import datetime as dt
 from dateutil.relativedelta import relativedelta as tdelta
 import charlieimage
+charlieimage.dispLogo("Booting up...")
 import globalDependencies as gd
 import getConfig
 import validate
@@ -20,7 +22,7 @@ import screens
 from threading import Timer
 from collections import defaultdict
 
-
+print sys.path
 layout = dict()
 layout = getConfig.get_layout(gd.LAYOUT_URL)
 layoutKeys = layout.keys()
@@ -68,7 +70,7 @@ def button_callback(channel):
                 if not gd.screenChosen.type == gd.topLevelMenu.type:
                     gd.screenChosen.setChildIndex(0)
                     gd.screenChosen = gd.menuStack.pop()
-                    draw_confirmation("End Reached", "Returning to", "parent menu.", gd.fillNum, gd.fillBg)
+                    draw_confirmation("Last Screen Reached", "Returning to", "parent menu.", gd.fillNum, gd.fillBg)
                 else:
                     gd.screenChosen.childIndex = 0
                     gd.screenChosen.screens[gd.screenChosen.childIndex].displayThis()
@@ -83,7 +85,7 @@ def button_callback(channel):
                 if not gd.screenChosen.type == gd.topLevelMenu.type:
                     gd.screenChosen.setChildIndex(0)
                     gd.screenChosen = gd.menuStack.pop()
-                    draw_confirmation("End Reached", "Returning to", "parent menu.", gd.fillNum, gd.fillBg)
+                    draw_confirmation("Last Screen Reached", "Returning to", "parent menu.", gd.fillNum, gd.fillBg)
                 else:
                     gd.screenChosen.childIndex = gd.screenChosen.valueLength
                     gd.screenChosen.screens[gd.screenChosen.childIndex].displayThis()
@@ -122,7 +124,7 @@ def button_callback(channel):
             gd.screenChosen.editMode = True
             gd.screenChosen.navigation = gd.screenChosen.editLine
             gd.screenChosen.editVal(gd.screenChosen.childIndex, 2)
-            if not gd.screenChosen.value == "Manual Entry" and (gd.screenChosen.childIndex > gd.screenChosen.valueLength or gd.screenChosen.screenType == "BooleanScreen"):
+            if not gd.screenChosen.value == "Manual Entry" and (gd.screenChosen.childIndex > gd.screenChosen.valueLength or gd.screenChosen.screenType == "ListScreen" or gd.screenChosen.screenType == "BooleanScreen"):
                 print "else"
                 gd.screenChosen.childIndex = 0
                 gd.screenChosen.editMode = False
@@ -255,7 +257,8 @@ def retrieveData(physical, logical, requestedData):
             "gateway": safeget(thisData, physical, logical, "inet", requestedData),
             "netmask": safeget(thisData, physical, logical, "inet", requestedData),
             "state": safeget(thisData, physical, requestedData),
-            "hwaddress": safeget(thisData, physical, requestedData)
+            "hwaddress": safeget(thisData, physical, requestedData),
+            "brd": safeget(thisData, physical, logical, "inet", requestedData)
         }
     else:
         dataDict = {
@@ -266,8 +269,11 @@ def retrieveData(physical, logical, requestedData):
             "state": safeget(thisData, physical, requestedData),
             "ssid": safeget(thisData, physical, "wireless", "settings", "ESSID"),
             "password": safeget(thisData, "config", logical, "protocol", "inet", "wireless-key") or safeget(thisData, "config", logical, "protocol", "inet", "wpa-psk"),
-            "securityType": safeget(wifiList, physical, safeget(thisData, physical, "wireless", "settings", "ESSID").replace('\"',''), "auth"),
-            "hwaddress": safeget(thisData, physical, requestedData)
+            "securityType": safeget(wifiList, physical, safeget(thisData, physical, "wireless", "settings", "ESSID").replace('\"', ''), "auth"),
+            "hwaddress": safeget(thisData, physical, requestedData),
+            "linkquality": safeget(thisData, physical, "wireless", "settings", "Link Quality"),
+            "signallevel": safeget(thisData, physical, "wireless", "settings", "Signal level"),
+            "brd": safeget(thisData, physical, logical, "inet", requestedData)
         }
     if requestedData == "ssid" or requestedData == "password":
         print 280, requestedData
@@ -456,7 +462,7 @@ def buildMainSetupMenu():
     toplevel = "mainSetupMenu"
     for key in layout["mainSetupMenu"].keys():
         if key.lower() == "allowwebconfig":
-            mainSetupMenu.appendScreenList(screens.BooleanScreen("readOnly", "Allow Web Configuration", "Yes", "Yes", "No"))
+            mainSetupMenu.appendScreenList(screens.BooleanScreen("readOnly", "Allow Web Config", "Yes", "Yes", "No"))
         elif key.lower() == "settime":
             mainSetupMenu.appendScreenList(screens.DateTimeScreen("editable", "Edit Date and Time"))
         elif key.lower() == "wifiscan":

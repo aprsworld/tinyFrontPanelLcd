@@ -17,6 +17,10 @@
                 "stringscreen",
                 "readonly"
             ],
+			"brd": [
+				"stringscreen",
+                "readonly"	
+			],
             "advanced-settings": {
                 "hwaddress": [
                     "stringscreen",
@@ -49,11 +53,23 @@
                 "stringscreen",
                 "readonly"
             ],
+			"brd": [
+				"stringscreen",
+                "readonly"	
+			],
             "advanced-settings": {
                 "hwaddress": [
                     "stringscreen",
                     "readonly"
-                ]
+                ],
+				"signallevel": [
+					"stringscreen",
+                    "readonly"
+				],
+				"linkquality": [
+					"stringscreen",
+                    "readonly"
+				]
             }
         },
 		"General-Net-Settings": {
