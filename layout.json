@@ -17,16 +17,15 @@
                 "stringscreen",
                 "readonly"
             ],
-			"brd": [
+            "brd": [
+                "stringscreen",
+                "readonly"
+            ],
+			"hwaddress": [
 				"stringscreen",
-                "readonly"	
-			],
-            "advanced-settings": {
-                "hwaddress": [
-                    "stringscreen",
-                    "readonly"
-                ]
-            }
+				"readonly"
+			]
+            
         },
         "wifi-iface": {
             "state": [
@@ -53,31 +52,30 @@
                 "stringscreen",
                 "readonly"
             ],
-			"brd": [
+            "brd": [
+                "stringscreen",
+                "readonly"
+            ],
+			"hwaddress": [
 				"stringscreen",
-                "readonly"	
-			],
-            "advanced-settings": {
-                "hwaddress": [
-                    "stringscreen",
-                    "readonly"
-                ],
-				"signallevel": [
-					"stringscreen",
-                    "readonly"
-				],
-				"linkquality": [
-					"stringscreen",
-                    "readonly"
-				]
-            }
-        },
-		"General-Net-Settings": {
-			"hostName": [
-				"stringScreen",
 				"readonly"
-			]	
-		}
+			],
+			"signallevel": [
+				"stringscreen",
+				"readonly"
+			],
+			"linkquality": [
+				"stringscreen",
+				"readonly"
+			]
+            
+        },
+        "General-Net-Settings": {
+            "hostName": [
+                "stringScreen",
+                "readonly"
+            ]
+        }
     },
     "magWebProStatus": {
         "hostName": [
@@ -150,7 +148,7 @@
                 ]
             }
         },
-		"wifiScan": [
+        "wifiScan": [
             "wifiscan",
             "editable"
         ],

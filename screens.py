@@ -255,6 +255,8 @@ class Screen:
         set values in the config.
         """
         return self.titleOrig
+    def setHrTitle(self, title):
+        self.title = title
 
     def setTitle(self, title):
         """Sets the displayed title"""
