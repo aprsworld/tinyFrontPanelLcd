@@ -320,18 +320,18 @@ def draw_confirmation(line1, line2, line3, fillNum, fillBg):
     global disp, n, maxn, Image, ImageDraw, draw, font
     # Draw a black filled fox to clear the image.
     print 309
-    draw.rectangle((0, 0, gd.width - 1, gd.height - 1), outline=1, fill=fillBg)
+    gd.draw.rectangle((0, 0, gd.width - 1, gd.height - 1), outline=1, fill=fillBg)
     print 311
 
     top = 2
-    draw.rectangle((1, 0, gd.width - 1, top + 9), outline=1, fill=fillNum)
-    draw.text((gd.center_text(line1, 0), top), line1, font=font, fill=fillBg)
-    draw.text((gd.center_text(line2, 0), top + 9), line2, font=font, fill=fillNum)
-    draw.text((gd.center_text(line3, 0), top + 18), line3, font=font, fill=fillNum)
+    gd.draw.rectangle((1, 0, gd.width - 1, top + 9), outline=1, fill=fillNum)
+    gd.draw.text((gd.center_text(line1, 0), top), line1, font=font, fill=fillBg)
+    gd.draw.text((gd.center_text(line2, 0), top + 9), line2, font=font, fill=fillNum)
+    gd.draw.text((gd.center_text(line3, 0), top + 18), line3, font=font, fill=fillNum)
     print 318
 
-    disp.image(gd.image.rotate(180))
-    disp.display()
+    gd.disp.image(gd.image.rotate(180))
+    gd.disp.display()
     print 326
     t = Timer(1, drawAndEnable)
     print 329
