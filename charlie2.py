@@ -11,7 +11,7 @@ import time
 from datetime import datetime as dt
 from dateutil.relativedelta import relativedelta as tdelta
 import charlieimage
-charlieimage.dispLogo("Booting up..." + unichr(1))
+charlieimage.dispLogo("Booting...")
 import globalDependencies as gd
 import getConfig
 import validate
@@ -46,6 +46,17 @@ def button_callback(channel):
     Args:
         channel: the button that was pressed
     """
+    if gd.logoFlag is False:
+        gd.logoFlag = True
+        # Initialize library.
+        gd.disp.begin()
+        # Clear display.
+        gd.disp.clear()
+        gd.disp.display()
+        gd.topLevelMenu.screens[0].displayThis()
+        gd.screenChosen = gd.topLevelMenu
+        return
+
     global thisData, disable, charSetIndex
     if gd.action_screen_update:
         print "sleeping"
@@ -527,8 +538,6 @@ def createMenus():
         gd.topLevelMenu.appendScreenList(buildTools())
     if "mainSetupMenu" in layoutKeys:
         gd.topLevelMenu.appendScreenList(buildMainSetupMenu())
-    gd.topLevelMenu.screens[0].displayThis()
-    gd.screenChosen = gd.topLevelMenu
 
 def deleteMenu():
     global thisData, wifiList
@@ -555,6 +564,10 @@ def detect_edges(callbackFn):
     GPIO.add_event_detect(27, GPIO.FALLING, callback=callbackFn, bouncetime=300)
 
 detect_edges(button_callback)
+charlieimage.dispLogo("Press Any Button...")
+while(gd.logoFlag is False):
+    time.sleep(1)
+
 print wifiList
 try:
     raw_input("Press Enter to quit\n>")

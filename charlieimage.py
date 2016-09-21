@@ -26,7 +26,6 @@ import sys
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
-sys.path.append('/home/pi/Adafruit_Python_SSD1306/tiny_front_panel_lcd')
 
 # Raspberry Pi pin configuration:
 RST = 24

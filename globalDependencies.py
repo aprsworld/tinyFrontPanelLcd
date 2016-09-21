@@ -89,19 +89,13 @@ screenChosen = None
 topLevelMenu = None
 menuCreate = None
 menuDelete = None
+logoFlag = False
 interfaceSettings = dict()
 wifiList = getConfig.getID_List(URL3)
 
 # OLED I2C display, 128x32 pixels
 RST = 24
 disp = Adafruit_SSD1306.SSD1306_128_32(rst=RST)
-# Initialize library.
-disp.begin()
-
-# Clear display.
-disp.clear()
-disp.display()
-
 # Set up globals for drawing
 width = disp.width
 height = disp.height
