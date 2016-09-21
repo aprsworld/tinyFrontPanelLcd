@@ -44,6 +44,33 @@ class Stack:
         while self.size() > 1:
             self.pop()
 
+class ResetableTimer:
+
+    def __init__(self):
+        self.timer = None
+
+    def run(self, seconds):
+        self.timer = Timer(30, self.callBack)
+        self.timer.daemon = True
+        self.timer.start()
+
+    def reset(self, seconds):
+        self.timer.cancel()
+        self.run(seconds)
+
+    def cancel(self):
+        self.timer.cancel()
+
+    def callBack(self):
+        print "Default"
+
+class ScreenSleepTimer(ResetableTimer):
+    def callBack(self):
+        global screenSleepFlag, disp
+        screenSleepFlag = True
+        print screenSleepFlag
+        clear_screen()
+
 class AutoVivification(dict):
     """
     Implementation of perl's autovivification feature.
@@ -90,6 +117,8 @@ topLevelMenu = None
 menuCreate = None
 menuDelete = None
 logoFlag = False
+screenSleepFlag = False
+screenSleepTimer = ScreenSleepTimer()
 interfaceSettings = dict()
 wifiList = getConfig.getID_List(URL3)
 
@@ -205,6 +234,11 @@ def draw_confirmation(line1, line2, line3, fillNum, fillBg):
     t.setDaemon(True)
     t.start()
     print 331
+
+def clear_screen():
+    draw.rectangle((-10, -10, width + 10, height + 10), outline=0, fill=fillBg)
+    disp.image(image.rotate(180))
+    disp.display()
 
 def draw_screen(s, line2, line3, fillNum, fillBg):
     """for drawing the next screen."""

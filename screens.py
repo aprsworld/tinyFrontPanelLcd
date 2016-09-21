@@ -852,7 +852,7 @@ class DateTimeScreen(Screen):
         self.print_some_times()
 
         # If we are on the time screen, update the screen every second as well
-        if not inView == None:
+        if not inView == None and gd.screenSleepFlag is False:
             if inView.title == self.title and gd.logoFlag and not gd.action_up_now and not gd.action_select_now and not gd.action_select_now:
                 # if inView.title == self.title:
                 print "update"

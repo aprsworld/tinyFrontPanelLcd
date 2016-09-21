@@ -46,6 +46,14 @@ def button_callback(channel):
     Args:
         channel: the button that was pressed
     """
+    if gd.screenSleepFlag is True:
+        gd.screenSleepFlag = False
+        gd.screenSleepTimer.run(30)
+        if gd.screenChosen.type == "subMenu" or gd.screenChosen.type == "topMenu":
+            gd.screenChosen.screens[gd.screenChosen.childIndex].displayThis()
+        else:
+            gd.screenChosen.displayThis()
+        return
     if gd.logoFlag is False:
         gd.logoFlag = True
         # Initialize library.
@@ -55,8 +63,9 @@ def button_callback(channel):
         gd.disp.display()
         gd.topLevelMenu.screens[0].displayThis()
         gd.screenChosen = gd.topLevelMenu
+        gd.screenSleepTimer.run(30)
         return
-
+    gd.screenSleepTimer.reset(30)
     global thisData, disable, charSetIndex
     if gd.action_screen_update:
         print "sleeping"
@@ -436,7 +445,6 @@ def buildNetworkStatus():
         for item in layout["network-status"]["General-Net-Settings"]:
             res = layout["network-status"]["General-Net-Settings"][item]
             x = screens.HostName("Host Name")
-            print 427,res
             x.setHrTitle(res[2])
             newScreen.appendScreenList(x)
             print newScreen.screens
@@ -565,6 +573,7 @@ def detect_edges(callbackFn):
 
 detect_edges(button_callback)
 charlieimage.dispLogo("Press Any Button...")
+gd.screenSleepFlag = False
 while(gd.logoFlag is False):
     time.sleep(1)
 
