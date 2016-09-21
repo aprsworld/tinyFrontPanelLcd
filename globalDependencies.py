@@ -157,7 +157,9 @@ humanTranslations = {
     'magWebProStatus': 'MagWebPro Status',
     'mainSetupMenu': 'Main Setup Menu',
     'signallevel': 'Signal Level',
-    'linkquality': 'Link Quality'
+    'linkquality': 'Link Quality',
+    'restartscript': 'Discard All Changes',
+    'sendconfig': 'Save Changes/Reboot'
 }
 
 charSetIndex = 0

@@ -3,162 +3,195 @@
         "eth-iface": {
             "state": [
                 "stringscreen",
-                "readonly"
+                "readonly",
+                "Link State"
             ],
             "address": [
                 "stringscreen",
-                "readonly"
+                "readonly",
+                "IP Address"
             ],
             "netmask": [
                 "stringscreen",
-                "readonly"
+                "readonly",
+                "Network Mask"
             ],
             "gateway": [
                 "stringscreen",
-                "readonly"
+                "readonly",
+                "Gateway"
             ],
             "brd": [
                 "stringscreen",
-                "readonly"
+                "readonly",
+                "Broadcast Address"
             ],
-			"hwaddress": [
-				"stringscreen",
-				"readonly"
-			]
-            
+            "hwaddress": [
+                "stringscreen",
+                "readonly",
+                "Hardware Address"
+            ]
         },
         "wifi-iface": {
             "state": [
                 "stringscreen",
-                "readonly"
+                "readonly",
+                "Link State"
             ],
             "ssid": [
                 "stringscreen",
-                "readonly"
+                "readonly",
+                "Wifi SSID"
             ],
             "securityType": [
                 "stringscreen",
-                "readonly"
+                "readonly",
+                "Security Type"
             ],
             "address": [
                 "stringscreen",
-                "readonly"
+                "readonly",
+                "IP Address"
             ],
             "netmask": [
                 "stringscreen",
-                "readonly"
+                "readonly",
+                "Network Mask"
             ],
             "gateway": [
                 "stringscreen",
-                "readonly"
+                "readonly",
+                "Gateway"
             ],
             "brd": [
                 "stringscreen",
-                "readonly"
+                "readonly",
+                "Broadcast Address"
             ],
-			"hwaddress": [
-				"stringscreen",
-				"readonly"
-			],
-			"signallevel": [
-				"stringscreen",
-				"readonly"
-			],
-			"linkquality": [
-				"stringscreen",
-				"readonly"
-			]
-            
+            "hwaddress": [
+                "stringscreen",
+                "readonly",
+                "Hardware Address"
+            ],
+            "signallevel": [
+                "stringscreen",
+                "readonly",
+                "Signal Level"
+            ],
+            "linkquality": [
+                "stringscreen",
+                "readonly",
+                "link Quality"
+            ]
         },
         "General-Net-Settings": {
             "hostName": [
                 "stringScreen",
-                "readonly"
+                "readonly",
+                "Host Name"
             ]
         }
     },
     "magWebProStatus": {
         "hostName": [
             "stringScreen",
-            "readonly"
+            "readonly",
+			"Host Name"
         ]
     },
     "tools": {
         "sendConfig": [
             "confSend",
-            "editable"
+            "editable",
+			"Save Changes/Reboot"
         ],
         "restartscript": [
             "restartscript",
-            "editable"
+            "editable",
+			"Discard All Changes"
         ]
     },
     "dateAndTime": [
         "datetimescreen",
-        "readonly"
+        "readonly",
+		"Date and Time"
     ],
     "mainSetupMenu": {
         "network-setup": {
             "eth-iface": {
                 "method": [
                     "methodscreen",
-                    "editable"
+                    "editable",
+					"Addressing Method"
                 ],
                 "address": [
                     "networkscreen",
-                    "editable"
+                    "editable",
+					"Change IP Address"
                 ],
                 "netmask": [
                     "networkscreen",
-                    "editable"
+                    "editable",
+					"Change Netmask"
                 ],
                 "gateway": [
                     "networkscreen",
-                    "editable"
+                    "editable",
+					"Change Gateway"
                 ]
             },
             "wifi-iface": {
                 "ssid": [
                     "ssidchooser",
-                    "editable"
+                    "editable",
+					"Choose SSID"
                 ],
                 "method": [
                     "methodscreen",
-                    "editable"
+                    "editable",
+					"Addressing Method"
                 ],
                 "password": [
                     "wificreds",
-                    "editable"
+                    "editable",
+					"Change Password"
                 ],
                 "securityType": [
                     "securitychanger",
-                    "editable"
+                    "editable",
+					"Change Security Type"
                 ],
                 "address": [
                     "networkscreen",
-                    "editable"
+                    "editable",
+					"Change IP Address"
                 ],
                 "netmask": [
                     "networkscreen",
-                    "editable"
+                    "editable",
+					"Change Netmask"
                 ],
                 "gateway": [
                     "networkscreen",
-                    "editable"
+                    "editable",
+					"Change Gateway"
                 ]
             }
         },
         "wifiScan": [
             "wifiscan",
-            "editable"
+            "editable",
+			"Wifi Scan"
         ],
         "setTime": [
             "dateandtime",
-            "editable"
+            "editable",
+			"Edit Date and Time"
         ],
         "allowWebConfig": [
             "booleanscreen",
-            "readonly"
+            "readonly",
+			"Allow Web Config"
         ]
     }
 }

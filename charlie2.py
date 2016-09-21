@@ -11,7 +11,7 @@ import time
 from datetime import datetime as dt
 from dateutil.relativedelta import relativedelta as tdelta
 import charlieimage
-charlieimage.dispLogo("Booting up...")
+charlieimage.dispLogo("Booting up..." + unichr(1))
 import globalDependencies as gd
 import getConfig
 import validate
@@ -409,12 +409,14 @@ def buildNetworkStatus():
                         val = retrieveData(iface["key"], iface["subkey"], subItem)
                         res = layout["network-status"][iface["keyType"]][item][subItem]
                         subscreen = createScreen(res[1], subItem, res[0], val, iface["key"])
+                        subscreen.setHrTitle(res[2])
                         x.appendScreenList(subscreen)
                 newScreen.appendScreenList(x)
             else:
                 val = retrieveData(iface["key"], iface["subkey"], item)
                 res = layout["network-status"][iface["keyType"]][item]
                 x = createScreen(res[1], item, res[0], val, iface["key"])
+                x.setHrTitle(res[2])
                 newScreen.appendScreenList(x)
                 print newScreen.screens
         networkStatusScreen.appendScreenList(newScreen)
@@ -423,6 +425,8 @@ def buildNetworkStatus():
         for item in layout["network-status"]["General-Net-Settings"]:
             res = layout["network-status"]["General-Net-Settings"][item]
             x = screens.HostName("Host Name")
+            print 427,res
+            x.setHrTitle(res[2])
             newScreen.appendScreenList(x)
             print newScreen.screens
         networkStatusScreen.appendScreenList(newScreen)
@@ -434,15 +438,18 @@ def buildMagWebProStatus():
     global layout
     magWebProStatus = screens.Screen("subMenu", "MagWebPro Status", " ", "magWebProStatus")
     for item in layout["magWebProStatus"]:
-        res = layout["magWebProStatus"]
+        res = layout["magWebProStatus"][item]
         x = screens.HostName("Host Name")
+        x.setHrTitle(res[2])
         magWebProStatus.appendScreenList(x)
     return magWebProStatus
 
 
 def buildDateAndTime():
     global layout
+    res = layout["dateAndTime"]
     dateAndTime = screens.DateTimeScreen("readOnly", "Date and Time")
+    dateAndTime.setHrTitle(res[2])
     return dateAndTime
 
 
@@ -452,6 +459,7 @@ def buildTools():
     for item in layout["tools"]:
         res = layout["tools"][item]
         x = createScreen(res[1], item, res[0], "", "")
+        x.setHrTitle(res[2])
         toolsScreen.appendScreenList(x)
     return toolsScreen
 
@@ -462,11 +470,20 @@ def buildMainSetupMenu():
     toplevel = "mainSetupMenu"
     for key in layout["mainSetupMenu"].keys():
         if key.lower() == "allowwebconfig":
-            mainSetupMenu.appendScreenList(screens.BooleanScreen("readOnly", "Allow Web Config", "Yes", "Yes", "No"))
+            res = layout[toplevel][key]
+            x = screens.BooleanScreen("readOnly", "Allow Web Config", "Yes", "Yes", "No")
+            x.setHrTitle(res[2])
+            mainSetupMenu.appendScreenList(x)
         elif key.lower() == "settime":
-            mainSetupMenu.appendScreenList(screens.DateTimeScreen("editable", "Edit Date and Time"))
+            res = layout[toplevel][key]
+            x = screens.DateTimeScreen("editable", "Edit Date and Time")
+            x.setHrTitle(res[2])
+            mainSetupMenu.appendScreenList(x)
         elif key.lower() == "wifiscan":
-            mainSetupMenu.appendScreenList(screens.WifiScan("editable", "Wifi Scan"))
+            res = layout[toplevel][key]
+            x = screens.WifiScan("editable", "Wifi Scan")
+            x.setHrTitle(res[2])
+            mainSetupMenu.appendScreenList(x)
         elif key.lower() == "network-setup":
             networkSettings = createScreen("", "Network Setup", "submenu", "", "Network Setup")
             for iface in iFaceList:
@@ -481,13 +498,16 @@ def buildMainSetupMenu():
                             else:
                                 val = retrieveData(iface["key"], iface["subkey"], subItem)
                                 res = layout["network-status"][iface["keyType"]][item][subItem]
+                                print res
                                 subscreen = createScreen(res[1], subItem, res[0], val, iface["key"])
+                                subscreen.setHrTitle(res[2])
                                 x.appendScreenList(subscreen)
                         newScreen.appendScreenList(x)
                     else:
                         val = retrieveData(iface["key"], iface["subkey"], item)
                         res = layout[toplevel]["network-setup"][iface["keyType"]][item]
                         x = createScreen(res[1], item, res[0], val, iface["key"])
+                        x.setHrTitle(res[2])
                         newScreen.appendScreenList(x)
                         print newScreen.screens
                 networkSettings.appendScreenList(newScreen)
