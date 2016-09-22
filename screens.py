@@ -349,7 +349,10 @@ class Screen:
             return {"line1": self.warn1, "line2": self.warn2}
 
     def updateSelf(self):
-        print self.title
+        if not self.editMode:
+            gd.action_screen_update = True
+            self.displayThis()
+            gd.action_screen_update = False
 # --------------------End of Screen Class Definition -----------------------
 class EndScreen(Screen):
     def __init__(self):

@@ -72,6 +72,23 @@ class ScreenSleepTimer(ResetableTimer):
         clear_screen()
 
 class DataUpdateTimer(ResetableTimer):
+    goback = False
+
+    def drawAnts(self):
+        global disp, n, maxn, Image, ImageDraw, draw, height, width, antOffSet
+
+        if antOffSet < 12 and antOffSet > 0:
+            if self.goback is False:
+                antOffSet += 1
+            else:
+                antOffSet -= 1
+        elif antOffSet >= 12:
+            antOffSet = 11
+            self.goback = True
+        elif antOffSet <= 0:
+            antOffSet = 1
+            self.goback = False
+
     def callBack(self):
         global inView
         if screenSleepFlag or inView is None:
@@ -80,6 +97,8 @@ class DataUpdateTimer(ResetableTimer):
         else:
             self.run(updateLength)
             inView.updateSelf()
+            self.drawAnts()
+
 
 class AutoVivification(dict):
     """
@@ -136,6 +155,7 @@ interfaceSettings = dict()
 wifiList = getConfig.getID_List(URL3)
 endScreen = None
 updatedData = AutoVivification()
+antOffSet = 0
 
 # OLED I2C display, 128x32 pixels
 RST = 24
@@ -257,13 +277,16 @@ def clear_screen():
 
 def draw_screen_center(s, line2, line3, fillNum, fillBg):
     """for drawing the next screen."""
-    global disp, n, maxn, Image, ImageDraw, draw, font
+    global disp, n, maxn, Image, ImageDraw, draw, font, antOffSet
+
     # Draw a black filled box to clear the image.
     draw.rectangle((-10, -10, width + 10, height + 10), outline=0, fill=fillBg)
 
     x = 0
     top = 2
     draw.rectangle((1, 1, width - 1, top + 9), outline=1, fill=fillNum)
+    draw.rectangle((0, 1, width - 1, 1), fill=0)
+    draw.rectangle([(antOffSet * 10) + 1, 1, (antOffSet * 10) + 11, 1], fill=255)
 
     draw.text((center_text(s, 0), top), str(s), font=font, fill=fillBg)
     draw.text((center_text(line2, 0), top + 10), str(line2), font=font, fill=fillNum)
@@ -276,13 +299,15 @@ def draw_screen_center(s, line2, line3, fillNum, fillBg):
 
 def draw_screen(s, line2, line3, fillNum, fillBg):
     """for drawing the next screen."""
-    global disp, n, maxn, Image, ImageDraw, draw, font
+    global disp, n, maxn, Image, ImageDraw, draw, font, antOffSet
     # Draw a black filled box to clear the image.
     draw.rectangle((-10, -10, width + 10, height + 10), outline=0, fill=fillBg)
 
     x = 0
     top = 2
     draw.rectangle((1, 1, width - 1, top + 9), outline=1, fill=fillNum)
+    draw.rectangle((0, 1, width - 1, 1), fill=0)
+    draw.rectangle([(antOffSet * 10) + 1, 1, (antOffSet * 10) + 11, 1], fill=255)
 
     draw.text((center_text(s, 0), top), str(s), font=font, fill=fillBg)
     draw.text((x, top + 10), str(line2), font=font, fill=fillNum)

@@ -160,7 +160,7 @@ def button_callback(channel):
                 gd.screenChosen.navigation = gd.screenChosen.incrLine
                 gd.screenChosen.changeConfig()
                 print thisData["config"]
-                if gd.screenChosen.value.lower() == "return w/o saving":
+                if isinstance(gd.screenChosen.value, basestring) and gd.screenChosen.value.lower() == "return w/o saving":
                     gd.screenChosen = gd.menuStack.pop()
                     draw_confirmation("No Changes Made", " Returning", "to previous menu.", gd.fillNum, gd.fillBg)
                 else:
