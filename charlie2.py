@@ -64,8 +64,10 @@ def button_callback(channel):
         gd.topLevelMenu.screens[0].displayThis()
         gd.screenChosen = gd.topLevelMenu
         gd.screenSleepTimer.run(gd.timeOutLength)
+        gd.dataUpdateTimer.run(gd.updateLength)
         return
     gd.screenSleepTimer.reset(gd.timeOutLength)
+    gd.dataUpdateTimer.reset(gd.updateLength)
     global thisData, disable, charSetIndex
     if gd.action_screen_update:
         print "sleeping"
@@ -368,7 +370,7 @@ def safeget(dct, *keys):
             return None
     return dct
 
-def createScreen(editable, title, screentype, value, interface):
+def createScreen(editable, title, screentype, value, interface, phys):
     print screentype
     if editable.lower() == "readonly":
         editable = "readOnly"
@@ -402,6 +404,8 @@ def createScreen(editable, title, screentype, value, interface):
         return screens.RestartScript(editable, title, "Are you sure?")
     elif screentype.lower() == "hiddenssid":
         return screens.HiddenSSID(editable, title, "samplessid", interface)
+    elif screentype.lower() == "statusscreen":
+        return screens.statusScreen(editable, title, value, interface, phys)
 
 def getInterfaceList():
     global thisData
@@ -441,14 +445,14 @@ def buildNetworkStatus():
                     else:
                         val = retrieveData(iface["key"], iface["subkey"], subItem)
                         res = layout["network-status"][iface["keyType"]][item][subItem]
-                        subscreen = createScreen(res[1], subItem, res[0], val, iface["key"])
+                        subscreen = createScreen(res[1], subItem, res[0], val, iface["key"], iface["subkey"])
                         subscreen.setHrTitle(res[2])
                         x.appendScreenList(subscreen)
                 newScreen.appendScreenList(x)
             else:
                 val = retrieveData(iface["key"], iface["subkey"], item)
                 res = layout["network-status"][iface["keyType"]][item]
-                x = createScreen(res[1], item, res[0], val, iface["key"])
+                x = createScreen(res[1], item, res[0], val, iface["key"], iface["subkey"])
                 x.setHrTitle(res[2])
                 newScreen.appendScreenList(x)
                 print newScreen.screens
@@ -490,7 +494,7 @@ def buildTools():
     toolsScreen = screens.Screen("subMenu", "Tools", " ", "tools")
     for item in layout["tools"]:
         res = layout["tools"][item]
-        x = createScreen(res[1], item, res[0], "", "")
+        x = createScreen(res[1], item, res[0], "", "", "")
         x.setHrTitle(res[2])
         toolsScreen.appendScreenList(x)
     return toolsScreen
@@ -517,13 +521,13 @@ def buildMainSetupMenu():
             x.setHrTitle(res[2])
             mainSetupMenu.appendScreenList(x)
         elif key.lower() == "network-setup":
-            networkSettings = createScreen("", "Network Setup", "submenu", "", "Network Setup")
+            networkSettings = createScreen("", "Network Setup", "submenu", "", "Network Setup", "")
             for iface in iFaceList:
                 gd.interfaceSettings[iface["subkey"]] = dict()
                 newScreen = screens.Screen("subMenu", createIfaceTitle(iface["subkey"]), " ", iface["subkey"])
                 for item in layout[toplevel]["network-setup"][iface["keyType"]]:
                     if isinstance(layout[toplevel]["network-setup"][iface["keyType"]][item], dict):
-                        x = createScreen("", item, "subMenu", "", item)
+                        x = createScreen("", item, "subMenu", "", item, "")
                         print item, 514
                         for subItem in layout[toplevel]["network-setup"][iface["keyType"]][item]:
                             if isinstance(subItem, basestring) and isinstance(layout[toplevel]["network-setup"][iface["keyType"]][item][subItem], dict):
@@ -532,14 +536,14 @@ def buildMainSetupMenu():
                                 val = retrieveData(iface["key"], iface["subkey"], subItem)
                                 res = layout[toplevel]["network-setup"][iface["keyType"]][item][subItem]
                                 print res
-                                subscreen = createScreen(res[1], subItem, res[0], val, iface["key"])
+                                subscreen = createScreen(res[1], subItem, res[0], val, iface["key"], iface["subkey"])
                                 subscreen.setHrTitle(res[2])
                                 x.appendScreenList(subscreen)
                         newScreen.appendScreenList(x)
                     else:
                         val = retrieveData(iface["key"], iface["subkey"], item)
                         res = layout[toplevel]["network-setup"][iface["keyType"]][item]
-                        x = createScreen(res[1], item, res[0], val, iface["key"])
+                        x = createScreen(res[1], item, res[0], val, iface["key"], iface["subkey"])
                         x.setHrTitle(res[2])
                         newScreen.appendScreenList(x)
                         print newScreen.screens

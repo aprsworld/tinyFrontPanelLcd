@@ -2,84 +2,84 @@
     "network-status": {
         "eth-iface": {
             "state": [
-                "stringscreen",
+                "statusscreen",
                 "readonly",
                 "Link State"
             ],
             "address": [
-                "stringscreen",
+                "statusscreen",
                 "readonly",
                 "IP Address"
             ],
             "netmask": [
-                "stringscreen",
+                "statusscreen",
                 "readonly",
                 "Network Mask"
             ],
             "gateway": [
-                "stringscreen",
+                "statusscreen",
                 "readonly",
                 "Gateway"
             ],
             "brd": [
-                "stringscreen",
+                "statusscreen",
                 "readonly",
                 "Broadcast Address"
             ],
             "hwaddress": [
-                "stringscreen",
+                "statusscreen",
                 "readonly",
                 "Hardware Address"
             ]
         },
         "wifi-iface": {
             "state": [
-                "stringscreen",
+                "statusscreen",
                 "readonly",
                 "Link State"
             ],
             "ssid": [
-                "stringscreen",
+                "statusscreen",
                 "readonly",
                 "Wifi SSID"
             ],
             "securityType": [
-                "stringscreen",
+                "statusscreen",
                 "readonly",
                 "Security Type"
             ],
             "address": [
-                "stringscreen",
+                "statusscreen",
                 "readonly",
                 "IP Address"
             ],
             "netmask": [
-                "stringscreen",
+                "statusscreen",
                 "readonly",
                 "Network Mask"
             ],
             "gateway": [
-                "stringscreen",
+                "statusscreen",
                 "readonly",
                 "Gateway"
             ],
             "brd": [
-                "stringscreen",
+                "statusscreen",
                 "readonly",
                 "Broadcast Address"
             ],
             "hwaddress": [
-                "stringscreen",
+                "statusscreen",
                 "readonly",
                 "Hardware Address"
             ],
             "signallevel": [
-                "stringscreen",
+                "statusscreen",
                 "readonly",
                 "Signal Level"
             ],
             "linkquality": [
-                "stringscreen",
+                "statusscreen",
                 "readonly",
                 "link Quality"
             ]

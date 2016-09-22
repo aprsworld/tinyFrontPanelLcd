@@ -50,7 +50,7 @@ class ResetableTimer:
         self.timer = None
 
     def run(self, seconds):
-        self.timer = Timer(30, self.callBack)
+        self.timer = Timer(seconds, self.callBack)
         self.timer.daemon = True
         self.timer.start()
 
@@ -70,6 +70,16 @@ class ScreenSleepTimer(ResetableTimer):
         screenSleepFlag = True
         print screenSleepFlag
         clear_screen()
+
+class DataUpdateTimer(ResetableTimer):
+    def callBack(self):
+        global inView
+        if screenSleepFlag or inView is None:
+            pass
+            self.run(updateLength)
+        else:
+            self.run(updateLength)
+            inView.updateSelf()
 
 class AutoVivification(dict):
     """
@@ -118,11 +128,14 @@ menuCreate = None
 menuDelete = None
 logoFlag = False
 timeOutLength = 30
+updateLength = 1
 screenSleepFlag = False
 screenSleepTimer = ScreenSleepTimer()
+dataUpdateTimer = DataUpdateTimer()
 interfaceSettings = dict()
 wifiList = getConfig.getID_List(URL3)
 endScreen = None
+updatedData = AutoVivification()
 
 # OLED I2C display, 128x32 pixels
 RST = 24

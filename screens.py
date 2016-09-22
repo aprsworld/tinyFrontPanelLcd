@@ -20,6 +20,58 @@ charSetIndex = gd.charSetIndex
 charSet = gd.charSet
 gd.inView
 
+def safeget(dct, *keys):
+    for key in keys:
+        try:
+            dct = dct[key]
+        except KeyError:
+            return None
+    return dct
+
+def retrieveData(physical, logical, requestedData):
+    if physical.startswith("eth"):
+        dataDict = {
+            "address": safeget(gd.updatedData, physical, logical, "inet", requestedData),
+            "method": safeget(gd.updatedData, "config", logical, "protocol", "inet", requestedData),
+            "gateway": safeget(gd.updatedData, physical, logical, "inet", requestedData),
+            "netmask": safeget(gd.updatedData, physical, logical, "inet", requestedData),
+            "state": safeget(gd.updatedData, physical, requestedData),
+            "hwaddress": safeget(gd.updatedData, physical, requestedData),
+            "brd": safeget(gd.updatedData, physical, logical, "inet", requestedData)
+        }
+    else:
+        dataDict = {
+            "address": safeget(gd.updatedData, physical, logical, "inet", requestedData),
+            "gateway": safeget(gd.updatedData, physical, logical, "inet", requestedData),
+            "method": safeget(gd.updatedData, "config", logical, "protocol", "inet", requestedData),
+            "netmask": safeget(gd.updatedData, physical, logical, "inet", requestedData),
+            "state": safeget(gd.updatedData, physical, requestedData),
+            "ssid": safeget(gd.updatedData, physical, "wireless", "settings", "ESSID"),
+            "password": safeget(gd.updatedData, "config", logical, "protocol", "inet", "wireless-key") or safeget(thisData, "config", logical, "protocol", "inet", "wpa-psk"),
+            "securityType": safeget(gd.wifiList, physical, safeget(thisData, physical, "wireless", "settings", "ESSID").replace('\"', ''), "auth"),
+            "hwaddress": safeget(gd.updatedData, physical, requestedData),
+            "linkquality": safeget(gd.updatedData, physical, "wireless", "settings", "Link Quality"),
+            "signallevel": safeget(gd.updatedData, physical, "wireless", "settings", "Signal level"),
+            "brd": safeget(gd.updatedData, physical, logical, "inet", requestedData)
+        }
+    if requestedData == "ssid" or requestedData == "password":
+        print 280, requestedData
+        x = safeget(dataDict, requestedData)
+        print x
+        if not isinstance(x, dict):
+            return x.replace('\"', '')
+        else:
+            return "None"
+    elif requestedData == "method":
+        result = safeget(dataDict, requestedData)
+        if result is None:
+            return "DHCP"
+        else:
+            return result
+    else:
+        return safeget(dataDict, requestedData)
+
+
 def resetFromStatic(interface):
     """Reset values when method changed from DHCP to Static."""
     global thisData
@@ -295,6 +347,9 @@ class Screen:
             return {"line1": 'default warning', "line2": "line2"}
         else:
             return {"line1": self.warn1, "line2": self.warn2}
+
+    def updateSelf(self):
+        print self.title
 # --------------------End of Screen Class Definition -----------------------
 class EndScreen(Screen):
     def __init__(self):
@@ -660,6 +715,46 @@ class StringScreen(Screen):
         self.value = word
         self.displayEdit(index, 6)
 
+class statusScreen(StringScreen):
+    def __init__(self, type, title, value, interface, physInterface):
+        """Our initialization for the screen stringclass."""
+        # String: type of screen - "readOnly", "subMenu", "editable"
+        global humanTranslations
+        self.type = type
+        self.screenType = "StringScreen"
+        # String: Line one on the LCD Screen
+        if title in gd.humanTranslations:
+            self.title = gd.humanTranslations[title]
+        else:
+            self.title = title
+        self.dataName = title
+        self.titleOrig = title
+        # String: line two on the LCD Screen
+        self.childIndex = 0
+        self.value = value
+        self.valueLength = 18
+        self.edit = False
+        self.editMode = False
+        self.interface = interface
+        self.physInterface = physInterface
+        # String: line Three on the LCD Screen
+        # Can be either <--    Select    -->   OR   (-)    Select    (+)
+        if(self.type == "readOnly"):
+            self.navigation = self.navLine
+        elif(self.type == "subMenu"):
+            self.navigation = self.navLine
+        else:
+            self.navigation = self.incrLine
+
+    def updateSelf(self):
+        gd.action_screen_update = True
+        gd.updatedData.update(getConfig.getData(gd.URL))
+        self.value = retrieveData(self.physInterface, self.interface, self.titleOrig)
+        print self.value
+        self.displayThis()
+        gd.action_screen_update = False
+
+
 class WifiCreds(StringScreen):
     """
     Class definition for WifiCredentials class.
@@ -822,7 +917,14 @@ class DateTimeScreen(Screen):
             self.navigation = self.navLine
         else:
             self.navigation = self.incrLine
-        self.print_some_times()
+        # self.print_some_times()
+
+    def displayThis(self):
+        """Draw our screen."""
+        self.date = dt.now() + self.timeChange
+        self.value = self.date.strftime("%Y-%m-%d %H:%M:%S")
+        gd.inView = self
+        gd.draw_screen(self.title, self.value, self.navigation, 255, 0)
 
     def editVal(self, index, addorsub):
         """edit val of screen with new data."""
@@ -862,6 +964,19 @@ class DateTimeScreen(Screen):
         self.date = dt.now() + self.timeChange
         self.value = self.date.strftime("%Y-%m-%d %H:%M:%S")
         self.displayEdit(self.underline_pos, self.underline_width)
+
+    def updateSelf(self):
+        self.date = dt.now() + self.timeChange
+        self.value = self.date.strftime("%Y-%m-%d %H:%M:%S")
+        if not gd.inView == None and gd.screenSleepFlag is False:
+            gd.action_screen_update = True
+            if(self.edit):
+                self.displayEdit(self.underline_pos, self.underline_width)
+            else:
+                self.displayThis()
+            gd.action_screen_update = False
+        elif gd.inView.title == self.title or gd.action_up_now or gd.action_down_now:
+            print "conflict"
 
     def print_time(self):
         """update the value of the time screen print_some_times calls this every second."""
@@ -1400,7 +1515,7 @@ class RestartScript(Screen):
 
         # String: line two on the LCD Screen
         self.childIndex = 0
-        self.value = value
+        self.value = ""
         self.val0 = "Yes"
         self.val1 = "No"
         self.incrLine = "<--    Send    -->"
