@@ -151,8 +151,12 @@ def button_callback(channel):
                 gd.screenChosen.navigation = gd.screenChosen.incrLine
                 gd.screenChosen.changeConfig()
                 print thisData["config"]
-                gd.screenChosen = gd.menuStack.pop()
-                draw_confirmation("S A V E D !", " Returning", "to previous menu.", gd.fillNum, gd.fillBg)
+                if gd.screenChosen.value.lower() == "return w/o saving":
+                    gd.screenChosen = gd.menuStack.pop()
+                    draw_confirmation("No Changes Made", " Returning", "to previous menu.", gd.fillNum, gd.fillBg)
+                else:
+                    gd.screenChosen = gd.menuStack.pop()
+                    draw_confirmation("S A V E D !", " Returning", "to previous menu.", gd.fillNum, gd.fillBg)
                 # gd.screenChosen.screens[gd.screenChosen.childIndex].displayThis()
         elif gd.screenChosen.type == "readOnly":
             pass
@@ -389,6 +393,8 @@ def createScreen(editable, title, screentype, value, interface):
         return screens.WifiScan(editable, title)
     elif screentype.lower() == "restartscript":
         return screens.RestartScript(editable, title, "Are you sure?")
+    elif screentype.lower() == "hiddenssid":
+        return screens.HiddenSSID(editable, title, "samplessid", interface)
 
 def getInterfaceList():
     global thisData
@@ -511,12 +517,13 @@ def buildMainSetupMenu():
                 for item in layout[toplevel]["network-setup"][iface["keyType"]]:
                     if isinstance(layout[toplevel]["network-setup"][iface["keyType"]][item], dict):
                         x = createScreen("", item, "subMenu", "", item)
-                        for subItem in layout["network-status"][iface["keyType"]][item]:
-                            if isinstance(layout["network-status"][iface["keyType"]][item][subItem], dict):
+                        print item, 514
+                        for subItem in layout[toplevel]["network-setup"][iface["keyType"]][item]:
+                            if isinstance(subItem, basestring) and isinstance(layout[toplevel]["network-setup"][iface["keyType"]][item][subItem], dict):
                                 pass
                             else:
                                 val = retrieveData(iface["key"], iface["subkey"], subItem)
-                                res = layout["network-status"][iface["keyType"]][item][subItem]
+                                res = layout[toplevel]["network-setup"][iface["keyType"]][item][subItem]
                                 print res
                                 subscreen = createScreen(res[1], subItem, res[0], val, iface["key"])
                                 subscreen.setHrTitle(res[2])

@@ -1046,8 +1046,10 @@ class SsidChooser(ListScreen):
         self.titleOrig = title
         self.childIndex = 0
         self.valList = gd.getConfig.hasKeys(gd.wifiList)
-        self.valList.append("Manual Entry")
+        # self.valList.append("Manual Entry")
+        self.valList.append("Return w/o saving")
         self.value = self.valList[0]
+        self.incrLine = "<--     Begin    -->"
         self.editLine = "Prev   Choose   Next"
         self.editMode = False
         if(self.type == "readOnly"):
@@ -1092,7 +1094,9 @@ class SsidChooser(ListScreen):
         global thisData
         security = gd.interfaceSettings[self.interface]["security"]
         print 1040, security, self.value
-        if (security is not None) and (security.lower() == "wpa" or security.lower() == "wpa2"):
+        if self.valList[self.childIndex].lower() == "return w/o saving":
+            pass
+        elif (security is not None) and (security.lower() == "wpa" or security.lower() == "wpa2"):
             print 1042
             thisData['config'][self.interface]['protocol']['inet']["wpa-ssid"] = self.value
         else:
@@ -1103,7 +1107,7 @@ class SsidChooser(ListScreen):
         """Screen is chosen - sets child index to zero and displays first child."""
         print("screenChosen " + self.title)
         self.valsList = gd.getConfig.hasKeys(gd.wifiList)
-        self.valList.append("Manual Entry")
+        self.valsList.append("Return w/o saving")
         self.valueLength = len(self.valsList)
         self.childIndex = 0
         self.screens[self.childIndex].displayThis()
@@ -1112,8 +1116,64 @@ class SsidChooser(ListScreen):
         global inView
         inView = self
         self.valList = gd.getConfig.hasKeys(gd.wifiList)
-        self.valList.append("Manual Entry")
-        gd.draw_screen(self.title, self.value, self.navigation, 255, 0)
+        self.valList.append("Return w/o saving")
+        gd.draw_screen(self.title, " ", self.navigation, 255, 0)
+
+
+class HiddenSSID(StringScreen):
+    """
+    Class for setting hidden ssid.
+
+    extends StringScreen
+    """
+
+    def __init__(self, type, title, value, interface):
+        """Our initialization for the HiddenSSID stringclass."""
+        # String: type of screen - "readOnly", "subMenu", "editable"
+        global humanTranslations
+        self.type = type
+        self.screenType = "StringScreen"
+        # String: Line one on the LCD Screen
+        if title in humanTranslations:
+            self.title = humanTranslations[title]
+        else:
+            self.title = title
+        self.interface = interface
+        self.dataName = title
+        self.titleOrig = title
+        # String: line two on the LCD Screen
+        self.childIndex = 0
+        self.value = value
+        self.valueLength = 18
+        self.edit = False
+
+        # String: line Three on the LCD Screen
+        # Can be either <--    Select    -->   OR   (-)    Select    (+)
+        if(self.type == "readOnly"):
+            self.navigation = self.navLine
+        elif(self.type == "subMenu"):
+            self.navigation = self.navLine
+        else:
+            self.navigation = self.incrLine
+
+    def getTitle(self):
+        return self.titleOrig
+
+    def setTitle(self, title):
+        self.titleOrig = title
+
+    def changeConfig(self):
+        """Change the setting in the config so that we can send it to piNetConfig."""
+        global thisData
+        print thisData['config']
+        print self.value.lower()
+        security = gd.interfaceSettings[self.interface]["security"]
+        if (security is not None) and (security.lower() == "wpa" or security.lower() == "wpa2"):
+            print 1042
+            thisData['config'][self.interface]['protocol']['inet']["wpa-ssid"] = self.value.strip()
+        else:
+            print 1045
+            thisData['config'][self.interface]['protocol']['inet']["wireless-essid"] = self.value.strip()
 
 
 class SecurityChanger(ListScreen):

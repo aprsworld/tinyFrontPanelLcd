@@ -96,25 +96,25 @@
         "hostName": [
             "stringScreen",
             "readonly",
-			"Host Name"
+            "Host Name"
         ]
     },
     "tools": {
         "sendConfig": [
             "confSend",
             "editable",
-			"Save Changes/Reboot"
+            "Save Changes/Reboot"
         ],
         "restartscript": [
             "restartscript",
             "editable",
-			"Discard All Changes"
+            "Discard All Changes"
         ]
     },
     "dateAndTime": [
         "datetimescreen",
         "readonly",
-		"Date and Time"
+        "Date and Time"
     ],
     "mainSetupMenu": {
         "network-setup": {
@@ -122,76 +122,88 @@
                 "method": [
                     "methodscreen",
                     "editable",
-					"Addressing Method"
+                    "Addressing Method"
                 ],
                 "address": [
                     "networkscreen",
                     "editable",
-					"Change IP Address"
+                    "Change IP Address"
                 ],
                 "netmask": [
                     "networkscreen",
                     "editable",
-					"Change Netmask"
+                    "Change Netmask"
                 ],
                 "gateway": [
                     "networkscreen",
                     "editable",
-					"Change Gateway"
+                    "Change Gateway"
                 ]
             },
             "wifi-iface": {
-                "ssid": [
-                    "ssidchooser",
-                    "editable",
-					"Choose SSID"
-                ],
+                "SSID Options": {
+                    "ssid": [
+                        "stringscreen",
+                        "readonly",
+                        "Current SSID"
+                    ],
+                    "wifiScan": [
+                        "wifiscan",
+                        "editable",
+                        "Wifi Scan"
+                    ],
+                    "networks": [
+                        "ssidChooser",
+                        "editable",
+                        "Choose an SSID"
+                    ],
+					"manualEntry": [
+						"HiddenSSID",
+						"editable",
+						"Manual SSID Entry"
+					]
+                },
                 "method": [
                     "methodscreen",
                     "editable",
-					"Addressing Method"
+                    "Addressing Method"
                 ],
                 "password": [
                     "wificreds",
                     "editable",
-					"Change Password"
+                    "Change Password"
                 ],
                 "securityType": [
                     "securitychanger",
                     "editable",
-					"Change Security Type"
+                    "Change Security Type"
                 ],
                 "address": [
                     "networkscreen",
                     "editable",
-					"Change IP Address"
+                    "Change IP Address"
                 ],
                 "netmask": [
                     "networkscreen",
                     "editable",
-					"Change Netmask"
+                    "Change Netmask"
                 ],
                 "gateway": [
                     "networkscreen",
                     "editable",
-					"Change Gateway"
+                    "Change Gateway"
                 ]
             }
         },
-        "wifiScan": [
-            "wifiscan",
-            "editable",
-			"Wifi Scan"
-        ],
         "setTime": [
             "dateandtime",
             "editable",
-			"Edit Date and Time"
+            "Edit Date and Time"
         ],
         "allowWebConfig": [
             "booleanscreen",
             "readonly",
-			"Allow Web Config"
+            "Allow Web Config"
         ]
     }
 }
