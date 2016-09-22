@@ -49,6 +49,7 @@ def button_callback(channel):
     if gd.screenSleepFlag is True:
         gd.screenSleepFlag = False
         gd.screenSleepTimer.run(gd.timeOutLength)
+        gd.dataUpdateTimer.reset(gd.updateLength)
         if gd.screenChosen.type == "subMenu" or gd.screenChosen.type == "topMenu":
             gd.screenChosen.screens[gd.screenChosen.childIndex].displayThis()
         else:

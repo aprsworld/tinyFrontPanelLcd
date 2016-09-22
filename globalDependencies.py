@@ -67,6 +67,7 @@ class ResetableTimer:
 class ScreenSleepTimer(ResetableTimer):
     def callBack(self):
         global screenSleepFlag, disp
+        dataUpdateTimer.cancel()
         screenSleepFlag = True
         print screenSleepFlag
         clear_screen()
