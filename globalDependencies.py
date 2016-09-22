@@ -117,10 +117,12 @@ topLevelMenu = None
 menuCreate = None
 menuDelete = None
 logoFlag = False
+timeOutLength = 30
 screenSleepFlag = False
 screenSleepTimer = ScreenSleepTimer()
 interfaceSettings = dict()
 wifiList = getConfig.getID_List(URL3)
+endScreen = None
 
 # OLED I2C display, 128x32 pixels
 RST = 24
@@ -238,6 +240,25 @@ def draw_confirmation(line1, line2, line3, fillNum, fillBg):
 def clear_screen():
     draw.rectangle((-10, -10, width + 10, height + 10), outline=0, fill=fillBg)
     disp.image(image.rotate(180))
+    disp.display()
+
+def draw_screen_center(s, line2, line3, fillNum, fillBg):
+    """for drawing the next screen."""
+    global disp, n, maxn, Image, ImageDraw, draw, font
+    # Draw a black filled box to clear the image.
+    draw.rectangle((-10, -10, width + 10, height + 10), outline=0, fill=fillBg)
+
+    x = 0
+    top = 2
+    draw.rectangle((1, 1, width - 1, top + 9), outline=1, fill=fillNum)
+
+    draw.text((center_text(s, 0), top), str(s), font=font, fill=fillBg)
+    draw.text((center_text(line2, 0), top + 10), str(line2), font=font, fill=fillNum)
+    draw.text((center_text(line3, 0), top + 20), str(line3), font=font, fill=fillNum)
+
+    disp.image(image.rotate(180))
+
+    # disp.image(image)
     disp.display()
 
 def draw_screen(s, line2, line3, fillNum, fillBg):

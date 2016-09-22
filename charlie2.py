@@ -48,7 +48,7 @@ def button_callback(channel):
     """
     if gd.screenSleepFlag is True:
         gd.screenSleepFlag = False
-        gd.screenSleepTimer.run(30)
+        gd.screenSleepTimer.run(gd.timeOutLength)
         if gd.screenChosen.type == "subMenu" or gd.screenChosen.type == "topMenu":
             gd.screenChosen.screens[gd.screenChosen.childIndex].displayThis()
         else:
@@ -63,9 +63,9 @@ def button_callback(channel):
         gd.disp.display()
         gd.topLevelMenu.screens[0].displayThis()
         gd.screenChosen = gd.topLevelMenu
-        gd.screenSleepTimer.run(30)
+        gd.screenSleepTimer.run(gd.timeOutLength)
         return
-    gd.screenSleepTimer.reset(30)
+    gd.screenSleepTimer.reset(gd.timeOutLength)
     global thisData, disable, charSetIndex
     if gd.action_screen_update:
         print "sleeping"
@@ -87,13 +87,15 @@ def button_callback(channel):
             gd.screenChosen.editVal(gd.screenChosen.childIndex, 1)
         else:
             if gd.screenChosen.childIndex == gd.screenChosen.valueLength:
+                # check if we are in the top level menu or not
                 if not gd.screenChosen.type == gd.topLevelMenu.type:
-                    gd.screenChosen.setChildIndex(0)
-                    gd.screenChosen = gd.menuStack.pop()
-                    draw_confirmation("Last Screen Reached", "Returning to", "parent menu.", gd.fillNum, gd.fillBg)
+                    gd.screenChosen.childIndex += 1
+                    gd.endScreen.displayThis()
                 else:
                     gd.screenChosen.childIndex = 0
                     gd.screenChosen.screens[gd.screenChosen.childIndex].displayThis()
+            elif gd.screenChosen.childIndex > gd.screenChosen.valueLength:
+                gd.endScreen.displayThis()
             else:
                 gd.screenChosen.childIndex += 1
                 gd.screenChosen.screens[gd.screenChosen.childIndex].displayThis()
@@ -103,12 +105,13 @@ def button_callback(channel):
         else:
             if gd.screenChosen.childIndex == 0:
                 if not gd.screenChosen.type == gd.topLevelMenu.type:
-                    gd.screenChosen.setChildIndex(0)
-                    gd.screenChosen = gd.menuStack.pop()
-                    draw_confirmation("Last Screen Reached", "Returning to", "parent menu.", gd.fillNum, gd.fillBg)
+                    gd.screenChosen.childIndex -= 1
+                    gd.endScreen.displayThis()
                 else:
                     gd.screenChosen.childIndex = gd.screenChosen.valueLength
                     gd.screenChosen.screens[gd.screenChosen.childIndex].displayThis()
+            elif gd.screenChosen.childIndex < 0:
+                gd.endScreen.displayThis()
             else:
                 gd.screenChosen.childIndex -= 1
                 gd.screenChosen.screens[gd.screenChosen.childIndex].displayThis()
@@ -116,7 +119,11 @@ def button_callback(channel):
         print gd.screenChosen.type
         if gd.screenChosen.type == "subMenu" or gd.screenChosen.type == "topMenu":
             print 97, gd.screenChosen.screens
-            if hasattr(gd.screenChosen.screens[gd.screenChosen.childIndex], "screens") and len(gd.screenChosen.screens[gd.screenChosen.childIndex].screens) < 1:
+            if gd.inView.title == gd.endScreen.title:
+                gd.screenChosen.setChildIndex(0)
+                gd.screenChosen = gd.menuStack.pop()
+                gd.screenChosen.screens[gd.screenChosen.childIndex].displayThis()
+            elif hasattr(gd.screenChosen.screens[gd.screenChosen.childIndex], "screens") and len(gd.screenChosen.screens[gd.screenChosen.childIndex].screens) < 1:
                 pass
             else:
                 gd.menuStack.push(gd.screenChosen)
@@ -571,6 +578,7 @@ def deleteMenu():
 gd.menuCreate = createMenus
 gd.menuCreate()
 gd.menuDelete = deleteMenu
+gd.endScreen = screens.EndScreen()
 
 def detect_edges(callbackFn):
     """designate threaded callbacks for all button presses."""

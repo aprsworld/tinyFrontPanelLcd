@@ -18,7 +18,7 @@ humanTranslations = gd.humanTranslations
 thisData = gd.thisData
 charSetIndex = gd.charSetIndex
 charSet = gd.charSet
-inView = gd.inView
+gd.inView
 
 def resetFromStatic(interface):
     """Reset values when method changed from DHCP to Static."""
@@ -218,8 +218,7 @@ class Screen:
 
     def displayThis(self):
         """Draw our screen."""
-        global inView
-        inView = self
+        gd.inView = self
         gd.draw_screen(self.title, self.value, self.navigation, 255, 0)
 
     def displayEdit(self, underline_pos, underline_width):
@@ -297,6 +296,27 @@ class Screen:
         else:
             return {"line1": self.warn1, "line2": self.warn2}
 # --------------------End of Screen Class Definition -----------------------
+class EndScreen(Screen):
+    def __init__(self):
+        self.type = "endScreen"
+        self.screenType = "endScreen"
+        self.titleOrig = "End Reached"
+        self.title = "End Reached"
+        self.interface = "end"
+        self.value = "Press Select to go"
+        self.incrLine = "to parent menu"
+        self.navigation = "to parent menu"
+        self.editMode = False
+
+    def editVal(a, b):
+        gd.screenChosen.setChildIndex(0)
+        gd.screenChosen = gd.menuStack.pop()
+        gd.screenChosen.screens[gd.screenChosen.childIndex].displayThis()
+
+    def displayThis(self):
+        """Draw our screen."""
+        gd.inView = self
+        gd.draw_screen_center(self.title, self.value, self.navigation, 255, 0)
 
 class HostName(Screen):
     """displays host name."""
@@ -541,8 +561,7 @@ class NetworkScreen(Screen):
 
     def displayThis(self):
         """Draw our screen."""
-        global inView
-        inView = self
+        gd.inView = self
         if gd.interfaceSettings[self.interface]["method"].lower() == "dhcp":
             self.type = "readonly"
             self.navigation = self.navLine
@@ -852,9 +871,9 @@ class DateTimeScreen(Screen):
         self.print_some_times()
 
         # If we are on the time screen, update the screen every second as well
-        if not inView == None and gd.screenSleepFlag is False:
-            if inView.title == self.title and gd.logoFlag and not gd.action_up_now and not gd.action_select_now and not gd.action_select_now:
-                # if inView.title == self.title:
+        if not gd.inView == None and gd.screenSleepFlag is False:
+            if gd.inView.title == self.title and gd.logoFlag and not gd.action_up_now and not gd.action_select_now and not gd.action_select_now:
+                # if gd.inView.title == self.title:
                 print "update"
                 gd.action_screen_update = True
                 if(self.edit):
@@ -862,7 +881,7 @@ class DateTimeScreen(Screen):
                 else:
                     self.displayThis()
                 gd.action_screen_update = False
-            elif inView.title == self.title or gd.action_up_now or gd.action_down_now:
+            elif gd.inView.title == self.title or gd.action_up_now or gd.action_down_now:
                 print "conflict"
 
     def print_some_times(self):
@@ -1113,8 +1132,7 @@ class SsidChooser(ListScreen):
         self.screens[self.childIndex].displayThis()
 
     def displayThis(self):
-        global inView
-        inView = self
+        gd.inView = self
         self.valList = gd.getConfig.hasKeys(gd.wifiList)
         self.valList.append("Return w/o saving")
         gd.draw_screen(self.title, " ", self.navigation, 255, 0)
