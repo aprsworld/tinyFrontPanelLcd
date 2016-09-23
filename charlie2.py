@@ -53,10 +53,13 @@ def button_callback(channel):
         gd.screenSleepFlag = False
         gd.screenSleepTimer.run(gd.timeOutLength)
         gd.dataUpdateTimer.reset(gd.updateLength)
-        if gd.screenChosen.type == "subMenu" or gd.screenChosen.type == "topMenu":
+        '''if gd.screenChosen.type == "subMenu" or gd.screenChosen.type == "topMenu":
             gd.screenChosen.screens[gd.screenChosen.childIndex].displayThis()
+            print "if"
         else:
-            gd.screenChosen.displayThis()
+            print "else"
+            gd.screenChosen.displayThis()'''
+        gd.inView.displayThis()
         return
     # check if starting for the first time
     if gd.logoFlag is False:

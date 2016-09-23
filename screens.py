@@ -1307,6 +1307,7 @@ class HiddenSSID(StringScreen):
         self.value = value
         self.valueLength = 18
         self.edit = False
+        self.editMode = False;
 
         # String: line Three on the LCD Screen
         # Can be either <--    Select    -->   OR   (-)    Select    (+)
