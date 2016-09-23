@@ -207,6 +207,7 @@ class Screen:
         global humanTranslations
         self.type = type
         self.screenType = "GeneralScreen"
+        self.objectType = "screen"
         self.interfaceType = interface
         # String: Line one on the LCD Screen
         if title in gd.humanTranslations:
@@ -365,6 +366,7 @@ class EndScreen(Screen):
         self.incrLine = "to parent menu"
         self.navigation = "to parent menu"
         self.editMode = False
+        self.objectType = "endscreen"
 
     def editVal(a, b):
         gd.screenChosen.setChildIndex(0)
@@ -397,6 +399,7 @@ class HostName(Screen):
         else:
             self.navigation = self.incrLine
         self.editMode = False
+        self.objectType = "hostname"
 
 class IntScreen(Screen):
     """A number screen class. Extends Screen."""
@@ -425,6 +428,7 @@ class IntScreen(Screen):
         else:
             self.navigation = self.incrLine
         self.editMode = False
+        self.objectType = "intscreen"
 
     def editVal(self, index, addorsub):
         """Edits the integer value of this screen."""
@@ -537,6 +541,7 @@ class NetworkScreen(Screen):
         else:
             self.navigation = self.incrLine
         self.editMode = False
+        self.objectType = "networkscreen"
 
     def editVal(self, addrNum, addorsub):
         """Edit the value of a network screen.
@@ -622,12 +627,15 @@ class NetworkScreen(Screen):
         gd.inView = self
         if gd.interfaceSettings[self.interface]["method"].lower() == "dhcp":
             self.type = "readonly"
+            self.value = "Disabled while DHCP"
             self.navigation = self.navLine
         elif self.editMode == True:
             self.type = "editable"
+            self.value = self.formatAddr(str(self.addr0)) + "." + self.formatAddr(str(self.addr1)) + "." + self.formatAddr(str(self.addr2)) + "." + self.formatAddr(str(self.addr3))
             self.navigation = self.editLine
         else:
             self.type = "editable"
+            self.value = self.formatAddr(str(self.addr0)) + "." + self.formatAddr(str(self.addr1)) + "." + self.formatAddr(str(self.addr2)) + "." + self.formatAddr(str(self.addr3))
             self.navigation = self.incrLine
 
         gd.draw_screen(self.title, self.value, self.navigation, 255, 0)
@@ -669,6 +677,7 @@ class StringScreen(Screen):
         self.valueLength = 18
         self.edit = False
         self.editMode = False
+        self.objectType = "stringscreen"
 
         # String: line Three on the LCD Screen
         # Can be either <--    Select    -->   OR   (-)    Select    (+)
@@ -740,6 +749,8 @@ class statusScreen(StringScreen):
         self.editMode = False
         self.interface = interface
         self.physInterface = physInterface
+        self.objectType = "statusscreen"
+
         # String: line Three on the LCD Screen
         # Can be either <--    Select    -->   OR   (-)    Select    (+)
         if(self.type == "readOnly"):
@@ -787,6 +798,8 @@ class WifiCreds(StringScreen):
         self.interface = interface
         self.titleOrig = title
         self.editMode = False
+        self.objectType = "wificreds"
+
         # String: line Three on the LCD Screen
         # Can be either <--    Select    -->   OR   (-)    Select    (+)
         if(self.type == "readOnly"):
@@ -871,6 +884,7 @@ class BooleanScreen(Screen):
         else:
             self.navigation = self.incrLine
         self.editMode = False
+        self.objectType = "booleanscreen"
 
     def editVal(self, index, addorsub):
         if(addorsub == 0):
@@ -910,6 +924,7 @@ class DateTimeScreen(Screen):
         self.minute = 0
         self.edit = False
         self.editMode = False
+        self.objectType = "datetimescreen"
 
         self.timeChange = tdelta(years=self.year, months=self.month, days=self.day, hours=self.hour, minutes=self.minute, seconds=self.second)
         # String: line Three on the LCD Screen
@@ -1125,6 +1140,7 @@ class ListScreen(Screen):
             self.navigation = self.navLine
         else:
             self.navigation = self.incrLine
+        self.objectType = "listscreen"
 
     def editVal(self, index, addorsub):
         print self.valList
@@ -1173,6 +1189,7 @@ class SsidChooser(ListScreen):
         global humanTranslations, ssidListGlobal
         self.type = type
         self.screenType = "ListScreen"
+        self.objectType = "ssidchooser"
         self.valueLength = -1
         if title in humanTranslations:
             self.title = humanTranslations[title]
@@ -1183,9 +1200,11 @@ class SsidChooser(ListScreen):
         self.titleOrig = title
         self.childIndex = 0
         self.valList = gd.getConfig.hasKeys(gd.wifiList)
+        self.valList.sort()
         # self.valList.append("Manual Entry")
         self.valList.append("Return w/o saving")
         self.value = self.valList[0]
+        self.prevVal = self.value
         self.incrLine = "<--     Begin    -->"
         self.editLine = "Prev   Choose   Next"
         self.editMode = False
@@ -1220,7 +1239,10 @@ class SsidChooser(ListScreen):
                 gd.screenChosen = manualEntry
                 gd.screenChosen.displayThis()
             else:
-                pass
+                if not self.value.lower() == "return w/o saving":
+                    self.prevVal = self.value
+                else:
+                    self.value = self.prevVal
                 self.displayEdit(index, 0)
 
 
@@ -1243,15 +1265,17 @@ class SsidChooser(ListScreen):
     def screenChosen(self):
         """Screen is chosen - sets child index to zero and displays first child."""
         print("screenChosen " + self.title)
-        self.valsList = gd.getConfig.hasKeys(gd.wifiList)
-        self.valsList.append("Return w/o saving")
-        self.valueLength = len(self.valsList)
+        self.valList = gd.getConfig.hasKeys(gd.wifiList)
+        self.valList.sort()
+        self.valList.append("Return w/o saving")
+        self.valueLength = len(self.valList)
         self.childIndex = 0
         self.screens[self.childIndex].displayThis()
 
     def displayThis(self):
         gd.inView = self
         self.valList = gd.getConfig.hasKeys(gd.wifiList)
+        self.valList.sort()
         self.valList.append("Return w/o saving")
         gd.draw_screen(self.title, " ", self.navigation, 255, 0)
 
@@ -1269,6 +1293,7 @@ class HiddenSSID(StringScreen):
         global humanTranslations
         self.type = type
         self.screenType = "StringScreen"
+        self.objectType = "hiddenssid"
         # String: Line one on the LCD Screen
         if title in humanTranslations:
             self.title = humanTranslations[title]
@@ -1324,6 +1349,8 @@ class SecurityChanger(ListScreen):
         global humanTranslations
         self.type = type
         self.screenType = "ListScreen"
+        self.objectType = "securitychanger"
+
         self.valueLength = 0
         if title in humanTranslations:
             self.title = humanTranslations[title]
@@ -1333,7 +1360,7 @@ class SecurityChanger(ListScreen):
         self.interface = interface
         self.titleOrig = title
         self.childIndex = 0
-        self.valList = ['WPA', 'WPA2', 'WEP', 'NONE']
+        self.valList = ['WPA', 'WPA2', 'WEP', 'NONE', 'Return w/o saving']
         if(security is False or security == None):
             security = "NONE"
             self.value = "NONE"
@@ -1372,10 +1399,15 @@ class SecurityChanger(ListScreen):
     def changeConfig(self):
         # update config and screens for this interface
         global thisData
-        changeSecurityType(self.interface, self.value, self.prevVal)
-        gd.interfaceSettings[self.interface]["security"] = self.value
-        self.prevVal = self.value
-        print thisData['config']
+        print 1381, self.valList[self.childIndex].lower()
+        if self.value.lower() == "return w/o saving":
+            pass
+            self.value = self.prevVal
+        else:
+            changeSecurityType(self.interface, self.value, self.prevVal)
+            gd.interfaceSettings[self.interface]["security"] = self.value
+            self.prevVal = self.value
+            print thisData['config']
 
 
 class MethodScreen(Screen):
@@ -1387,6 +1419,8 @@ class MethodScreen(Screen):
         global humanTranslations
         self.type = type
         self.screenType = "BooleanScreen"
+        self.objectType = "methodscreen"
+
         self.valueLength = 0
         # String: Line one on the LCD Screen
         if title in humanTranslations:
@@ -1446,6 +1480,8 @@ class confSend(Screen):
         # String: type of screen - "readOnly", "subMenu", "editable"
         self.type = type
         self.screenType = "confScreen"
+        self.objectType = "confsend"
+
         self.valueLength = 0
         # String: Line one on the LCD Screen
         global humanTranslations
@@ -1507,6 +1543,8 @@ class RestartScript(Screen):
         # String: type of screen - "readOnly", "subMenu", "editable"
         self.type = type
         self.screenType = "confScreen"
+        self.objectType = "restartscript"
+
         self.valueLength = 0
         # String: Line one on the LCD Screen
         global humanTranslations
@@ -1552,6 +1590,7 @@ class WifiScan(Screen):
         # String: type of screen - "readOnly", "subMenu", "editable"
         self.type = type
         self.screenType = "BooleanScreen"
+        self.objectType = "wifiscan"
         self.valueLength = 0
         # String: Line one on the LCD Screen
         global humanTranslations
@@ -1580,9 +1619,9 @@ class WifiScan(Screen):
         self.value = "Scanning..."
         self.displayThis()
         gd.wifiList = getConfig.getID_List(URL3)
-        self.editMode = False
         self.value = "Scan for Wifi Networks"
         self.navigation = self.incrLine
         print gd.wifiList
         gd.screenChosen = gd.menuStack.pop()
-        gd.draw_confirmation("Finished Scanning", "Returning to", "parent menu.", gd.fillNum, gd.fillBg)
+        gd.dataUpdateTimer.cancel()
+        gd.draw_wifi_conf("Finished Scanning", "Switching to", "SSID List.", gd.fillNum, gd.fillBg)

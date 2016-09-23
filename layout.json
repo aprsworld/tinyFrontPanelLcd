@@ -141,7 +141,7 @@
                 ]
             },
             "wifi-iface": {
-                "SSID Options": {
+                "SSID Selection": {
                     "ssid": [
                         "stringscreen",
                         "readonly",

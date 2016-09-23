@@ -244,14 +244,31 @@ def screen_select(screenNum):
     masterList[screenNum].displayThis()
 
 def drawAndEnable():
-    global screenChosen
+    global screenChosen, action_screen_update, updateLength
     screenChosen.screens[screenChosen.childIndex].displayThis()
+    screenChosen.screens[screenChosen.childIndex].editMode = False
+    action_screen_update = False
+    dataUpdateTimer.reset(updateLength)
+
+def switchToWifiList():
+    global screenChosen, action_screen_update, updateLength
+    for idx, screen in enumerate(screenChosen.screens):
+        if screenChosen.screens[idx].objectType == "ssidchooser":
+            screenChosen.childIndex = idx
+            menuStack.push(screenChosen)
+            screenChosen = screenChosen.screens[screenChosen.childIndex]
+            screenChosen.editMode = True
+            screenChosen.navigation = screenChosen.editLine
+            screenChosen.editVal(screenChosen.childIndex, 2)
+            action_screen_update = False
+            break
 
 def draw_confirmation(line1, line2, line3, fillNum, fillBg):
     """for drawing an error."""
-    global disp, n, maxn, Image, ImageDraw, draw, font
+    global disp, n, maxn, Image, ImageDraw, draw, font, action_screen_update
     # Draw a black filled fox to clear the image.
     print 309
+    action_screen_update = True
     draw.rectangle((0, 0, width - 1, height - 1), outline=1, fill=fillBg)
     print 311
 
@@ -266,6 +283,31 @@ def draw_confirmation(line1, line2, line3, fillNum, fillBg):
     disp.display()
     print 326
     t = Timer(1.5, drawAndEnable)
+    print 329
+    t.setDaemon(True)
+    t.start()
+    print 331
+
+def draw_wifi_conf(line1, line2, line3, fillNum, fillBg):
+    """for drawing an error."""
+    global disp, n, maxn, Image, ImageDraw, draw, font, action_screen_update
+    # Draw a black filled fox to clear the image.
+    print 309
+    action_screen_update = True
+    draw.rectangle((0, 0, width - 1, height - 1), outline=1, fill=fillBg)
+    print 311
+
+    top = 2
+    draw.rectangle((1, 0, width - 1, top + 9), outline=1, fill=fillNum)
+    draw.text((center_text(line1, 0), top), line1, font=font, fill=fillBg)
+    draw.text((center_text(line2, 0), top + 9), line2, font=font, fill=fillNum)
+    draw.text((center_text(line3, 0), top + 18), line3, font=font, fill=fillNum)
+    print 318
+
+    disp.image(image.rotate(180))
+    disp.display()
+    print 326
+    t = Timer(1.5, switchToWifiList)
     print 329
     t.setDaemon(True)
     t.start()
