@@ -155,6 +155,7 @@ dataUpdateTimer = DataUpdateTimer()
 interfaceSettings = dict()
 wifiList = getConfig.getID_List(URL3)
 endScreen = None
+popSave = None
 updatedData = AutoVivification()
 antOffSet = 0
 
@@ -262,6 +263,12 @@ def switchToWifiList():
             screenChosen.editVal(screenChosen.childIndex, 2)
             action_screen_update = False
             break
+    else:
+        global screenChosen, action_screen_update, updateLength
+        screenChosen.screens[screenChosen.childIndex].displayThis()
+        screenChosen.screens[screenChosen.childIndex].editMode = False
+        action_screen_update = False
+        dataUpdateTimer.reset(updateLength)
 
 def draw_confirmation(line1, line2, line3, fillNum, fillBg):
     """for drawing an error."""

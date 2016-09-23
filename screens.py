@@ -1535,6 +1535,34 @@ class confSend(Screen):
         """screen to display when editting value."""
         gd.draw_screen_ul(self.title, "Are You Sure?", self.navigation, 255, 0, 0, 0)
 
+class quickSave(confSend):
+    def editVal(self, index, addorsub):
+        global level
+        if(addorsub == 0):
+            print thisData['config']
+            result = validate.config_validate(thisData['config'])
+            print result
+            if result is True:
+                # TEMPORARY
+                # with open("Output.txt", "w") as text_file:
+                #     text_file.write("Data: {0}".format(thisData['config']))
+                getConfig.sendConfig(URL2, thisData['config'])
+                self.navigation = self.incrLine
+                charlieimage.dispLogo("Saved! Restarting...")
+                # gd.draw_confirmation("S A V E D !", "Sent valid config", "RESTARTING", 255, 0)
+                # print thisData['config']
+            else:
+                print result
+                self.navigation = self.incrLine
+                gd.draw_confirmation('FAILED', result['message'], '', 255, 0)
+        elif(addorsub == 1):
+            self.navigation = self.incrLine
+            gd.menuStack.pop()
+            gd.screenChosen = gd.menuStack.pop()
+            gd.draw_confirmation("Returning", 'Returning to main menu', '', 255, 0)
+        elif(addorsub == 2):
+            self.displayThis()
+
 class RestartScript(Screen):
     """Class for sending config. Extends Screen."""
 

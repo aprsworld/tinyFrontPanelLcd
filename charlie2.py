@@ -46,6 +46,9 @@ def button_callback(channel):
     Args:
         channel: the button that was pressed
     """
+    global thisData, disable, charSetIndex
+
+    # check if screen is asleep
     if gd.screenSleepFlag is True:
         gd.screenSleepFlag = False
         gd.screenSleepTimer.run(gd.timeOutLength)
@@ -55,6 +58,7 @@ def button_callback(channel):
         else:
             gd.screenChosen.displayThis()
         return
+    # check if starting for the first time
     if gd.logoFlag is False:
         gd.logoFlag = True
         # Initialize library.
@@ -67,17 +71,19 @@ def button_callback(channel):
         gd.screenSleepTimer.run(gd.timeOutLength)
         gd.dataUpdateTimer.run(gd.updateLength)
         return
+    # reset sleep and update timers every time a button is pressed
     gd.screenSleepTimer.reset(gd.timeOutLength)
     gd.dataUpdateTimer.reset(gd.updateLength)
-    global thisData, disable, charSetIndex
+
+    # Check global flags to make sure two threads are not updating the screen simultaneously
     if gd.action_screen_update:
         print "sleeping"
         time.sleep(.1)
     if gd.action_up_now or gd.action_select_now or gd.action_down_now or gd.action_screen_update:
         print "simultaneous press", channel
         return
-    print "button press"
 
+    # set global flags to avoid similtaneous button presses
     if(17 == channel):
         gd.action_up_now = True
     elif(18 == channel):
@@ -85,10 +91,17 @@ def button_callback(channel):
     elif(27 == channel):
         gd.action_select_now = True
 
+    # main if statement - differentiates between three buttons.
+    # a stack is used to store the state of previous menuStack
+    # a global "screenChosen" object is used to keep track of the current menuStack
+    # a global "inView" object is used to keep track of the screen that is in view but not selected
     if channel == 17:
+        # if the screen is in edit mode, then buttons are in control of editing the screenChosen
+        # not switching between menus
         if gd.screenChosen.editMode == True:
             gd.screenChosen.editVal(gd.screenChosen.childIndex, 1)
         else:
+            # if we are at the last screen
             if gd.screenChosen.childIndex == gd.screenChosen.valueLength:
                 # check if we are in the top level menu or not
                 if not gd.screenChosen.type == gd.topLevelMenu.type:
@@ -97,8 +110,10 @@ def button_callback(channel):
                 else:
                     gd.screenChosen.childIndex = 0
                     gd.screenChosen.screens[gd.screenChosen.childIndex].displayThis()
+            # display end screen
             elif gd.screenChosen.childIndex > gd.screenChosen.valueLength:
                 gd.endScreen.displayThis()
+            # at any screen in between
             else:
                 gd.screenChosen.childIndex += 1
                 gd.screenChosen.screens[gd.screenChosen.childIndex].displayThis()
@@ -118,16 +133,28 @@ def button_callback(channel):
             else:
                 gd.screenChosen.childIndex -= 1
                 gd.screenChosen.screens[gd.screenChosen.childIndex].displayThis()
+    # case for middle "select" button
     elif channel == 27:
         print gd.screenChosen.type
+        # if we are not at a "leaf node" in the menu
         if gd.screenChosen.type == "subMenu" or gd.screenChosen.type == "topMenu":
             print 97, gd.screenChosen.screens
+            # if select is pressed when viewing an "end screen"
             if gd.inView.title == gd.endScreen.title:
                 gd.screenChosen.setChildIndex(0)
-                gd.screenChosen = gd.menuStack.pop()
-                gd.screenChosen.screens[gd.screenChosen.childIndex].displayThis()
+                # case for main setup menu to display a save changes screen
+                if gd.screenChosen.titleOrig.lower() == "main setup menu":
+                    gd.menuStack.push(gd.screenChosen)
+                    gd.screenChosen = gd.popSave
+                    gd.screenChosen.editMode = True
+                    gd.screenChosen.navigation = gd.screenChosen.editLine
+                    gd.screenChosen.editVal(gd.screenChosen.childIndex, 2)
+                else:
+                    gd.screenChosen = gd.menuStack.pop()
+                    gd.screenChosen.screens[gd.screenChosen.childIndex].displayThis()
             elif hasattr(gd.screenChosen.screens[gd.screenChosen.childIndex], "screens") and len(gd.screenChosen.screens[gd.screenChosen.childIndex].screens) < 1:
                 pass
+            # deside if child screen is a submenu or not
             else:
                 gd.menuStack.push(gd.screenChosen)
                 gd.screenChosen = gd.screenChosen.screens[gd.screenChosen.childIndex]
@@ -144,6 +171,7 @@ def button_callback(channel):
                     gd.screenChosen.editVal(gd.screenChosen.childIndex, 2)
                 else:
                     gd.screenChosen = gd.menuStack.pop()
+        # if the screen can be edited, we jump into edit mode
         elif gd.screenChosen.type == "editable":
             print 117, gd.screenChosen.value
             if gd.screenChosen.editMode == True and (gd.screenChosen.screenType == "DateTimeScreen" or gd.screenChosen.screenType == "StringScreen" or gd.screenChosen.screenType == "NetworkScreen"):
@@ -168,8 +196,10 @@ def button_callback(channel):
                     gd.screenChosen = gd.menuStack.pop()
                     draw_confirmation("S A V E D !", " Returning", "to previous menu.", gd.fillNum, gd.fillBg)
                 # gd.screenChosen.screens[gd.screenChosen.childIndex].displayThis()
+        # no action if screen is readonly
         elif gd.screenChosen.type == "readOnly":
             pass
+    # disable all flags so that another button can be pressed
     gd.action_up_now = False
     gd.action_select_now = False
     gd.action_down_now = False
@@ -584,6 +614,7 @@ gd.menuCreate = createMenus
 gd.menuCreate()
 gd.menuDelete = deleteMenu
 gd.endScreen = screens.EndScreen()
+gd.popSave = screens.quickSave("editable", "Save changes/reboot?", "")
 
 def detect_edges(callbackFn):
     """designate threaded callbacks for all button presses."""
