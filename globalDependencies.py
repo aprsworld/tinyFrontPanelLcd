@@ -150,6 +150,7 @@ logoFlag = False
 timeOutLength = 30
 updateLength = 1
 screenSleepFlag = False
+configChangedFlag = False
 screenSleepTimer = ScreenSleepTimer()
 dataUpdateTimer = DataUpdateTimer()
 interfaceSettings = dict()

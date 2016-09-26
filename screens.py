@@ -483,8 +483,10 @@ class IntScreen(Screen):
         """Change the setting in the config so that we can send it to piNetConfig."""
         global thisData
         print thisData['config']
-        thisData['config'][self.interface]['protocol']['inet'][self.titleOrig] = str(self.value)
-        print thisData['config']
+        if not thisData['config'][self.interface]['protocol']['inet'][self.titleOrig] == str(self.value):
+            thisData['config'][self.interface]['protocol']['inet'][self.titleOrig] = str(self.value)
+            gd.configChangedFlag = True
+            print thisData['config']
 
     def formatVal(self, val):
         """append spaces on to beginning of addresses."""
@@ -619,7 +621,9 @@ class NetworkScreen(Screen):
         """Change the setting in the config so that we can send it to piNetConfig."""
         global thisData
         print thisData['config']
-        gd.thisData['config'][self.interface]['protocol']['inet'][self.titleOrig] = str(self.addr0)+"."+str(self.addr1)+"."+str(self.addr2)+"."+str(self.addr3)
+        if not gd.thisData['config'][self.interface]['protocol']['inet'][self.titleOrig] == str(self.addr0)+"."+str(self.addr1)+"."+str(self.addr2)+"."+str(self.addr3):
+            gd.thisData['config'][self.interface]['protocol']['inet'][self.titleOrig] = str(self.addr0)+"."+str(self.addr1)+"."+str(self.addr2)+"."+str(self.addr3)
+            gd.configChangedFlag = True
         print thisData['config']
 
     def displayThis(self):
@@ -851,9 +855,13 @@ class WifiCreds(StringScreen):
         # WPA keys need quotes around them
         security = gd.interfaceSettings[self.interface]["security"]
         if not security == "WEP" or security is None:
-            thisData['config'][self.interface]['protocol']['inet']['wpa-psk'] = '\"' + self.value.strip() + '\"'
+            if not thisData['config'][self.interface]['protocol']['inet']['wpa-psk'] == '\"' + self.value.strip() + '\"':
+                thisData['config'][self.interface]['protocol']['inet']['wpa-psk'] = '\"' + self.value.strip() + '\"'
+                gd.configChangedFlag = True
         else:
-            thisData['config'][self.interface]['protocol']['inet']['wireless-key'] = self.value.strip()
+            if not thisData['config'][self.interface]['protocol']['inet']['wireless-key'] == self.value.strip():
+                thisData['config'][self.interface]['protocol']['inet']['wireless-key'] = self.value.strip()
+                gd.configChangedFlag = True
         print thisData['config']
 
 class BooleanScreen(Screen):
@@ -1257,10 +1265,14 @@ class SsidChooser(ListScreen):
             pass
         elif (security is not None) and (security.lower() == "wpa" or security.lower() == "wpa2"):
             print 1042
-            thisData['config'][self.interface]['protocol']['inet']["wpa-ssid"] = self.value
+            if not thisData['config'][self.interface]['protocol']['inet']["wpa-ssid"] == self.value:
+                thisData['config'][self.interface]['protocol']['inet']["wpa-ssid"] = self.value
+                gd.configChangedFlag = True
         else:
             print 1045
-            thisData['config'][self.interface]['protocol']['inet']["wireless-essid"] = self.value
+            if not thisData['config'][self.interface]['protocol']['inet']["wireless-essid"] == self.value:
+                thisData['config'][self.interface]['protocol']['inet']["wireless-essid"] = self.value
+                gd.configChangedFlag = True
 
     def screenChosen(self):
         """Screen is chosen - sets child index to zero and displays first child."""
@@ -1332,10 +1344,15 @@ class HiddenSSID(StringScreen):
         security = gd.interfaceSettings[self.interface]["security"]
         if (security is not None) and (security.lower() == "wpa" or security.lower() == "wpa2"):
             print 1042
-            thisData['config'][self.interface]['protocol']['inet']["wpa-ssid"] = self.value.strip()
+            if not thisData['config'][self.interface]['protocol']['inet']["wpa-ssid"] == self.value.strip():
+                thisData['config'][self.interface]['protocol']['inet']["wpa-ssid"] = self.value.strip()
+                gd.configChangedFlag = True
+
         else:
             print 1045
-            thisData['config'][self.interface]['protocol']['inet']["wireless-essid"] = self.value.strip()
+            if not thisData['config'][self.interface]['protocol']['inet']["wireless-essid"] == self.value.strip():
+                thisData['config'][self.interface]['protocol']['inet']["wireless-essid"] = self.value.strip()
+                gd.configChangedFlag = True
 
 
 class SecurityChanger(ListScreen):
@@ -1451,13 +1468,15 @@ class MethodScreen(Screen):
             self.value = self.val0
             print type(thisData['config'])
             print thisData['config']
-            thisData['config'][self.interface]['protocol']['inet']['method'] = self.value.lower()
-            print thisData
-            # thisData['config'][masterList[n].interfaceType]['protocol']['inet'].update({'method': self.value})
+            if not thisData['config'][self.interface]['protocol']['inet']['method'] == self.value.lower():
+                thisData['config'][self.interface]['protocol']['inet']['method'] = self.value.lower()
+                print thisData
+                # thisData['config'][masterList[n].interfaceType]['protocol']['inet'].update({'method': self.value})
         elif(addorsub == 1):
             self.value = self.val1
-            thisData['config'][self.interface]['protocol']['inet']['method'] = self.value.lower()
-            resetFromStatic(self.interface)
+            if not thisData['config'][self.interface]['protocol']['inet']['method'] == self.value.lower():
+                thisData['config'][self.interface]['protocol']['inet']['method'] = self.value.lower()
+                resetFromStatic(self.interface)
         elif(addorsub == 2):
             thisData['config'][self.interface]['protocol']['inet']['method'] = self.value.lower()
             print thisData['config'][self.interface]['protocol']['inet']['method']
@@ -1518,7 +1537,7 @@ class confSend(Screen):
                 #     text_file.write("Data: {0}".format(thisData['config']))
                 getConfig.sendConfig(URL2, thisData['config'])
                 self.navigation = self.incrLine
-                charlieimage.dispLogo("Saved! Restarting...")
+                charlieimage.dispLogo("Saved! Rebooting...")
                 # gd.draw_confirmation("S A V E D !", "Sent valid config", "RESTARTING", 255, 0)
                 # print thisData['config']
             else:
@@ -1549,12 +1568,13 @@ class quickSave(confSend):
                 #     text_file.write("Data: {0}".format(thisData['config']))
                 getConfig.sendConfig(URL2, thisData['config'])
                 self.navigation = self.incrLine
-                charlieimage.dispLogo("Saved! Restarting...")
+                charlieimage.dispLogo("Saved! Rebooting...")
                 # gd.draw_confirmation("S A V E D !", "Sent valid config", "RESTARTING", 255, 0)
                 # print thisData['config']
             else:
                 print result
                 self.navigation = self.incrLine
+                gd.screenChosen = gd.menuStack.pop()
                 gd.draw_confirmation('FAILED', result['message'], '', 255, 0)
         elif(addorsub == 1):
             self.navigation = self.incrLine

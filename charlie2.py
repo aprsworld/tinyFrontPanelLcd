@@ -146,7 +146,7 @@ def button_callback(channel):
             if gd.inView.title == gd.endScreen.title:
                 gd.screenChosen.setChildIndex(0)
                 # case for main setup menu to display a save changes screen
-                if gd.screenChosen.titleOrig.lower() == "main setup menu":
+                if gd.screenChosen.titleOrig.lower() == "main setup menu" and gd.configChangedFlag:
                     gd.menuStack.push(gd.screenChosen)
                     gd.screenChosen = gd.popSave
                     gd.screenChosen.editMode = True
@@ -510,7 +510,7 @@ gd.menuCreate = createMenus
 gd.menuCreate()
 gd.menuDelete = deleteMenu
 gd.endScreen = screens.EndScreen()
-gd.popSave = screens.quickSave("editable", "Save changes/reboot?", "")
+gd.popSave = screens.quickSave("editable", "Changes were Detected", "Save changes/reboot?")
 
 def detect_edges(callbackFn):
     """designate threaded callbacks for all button presses."""
