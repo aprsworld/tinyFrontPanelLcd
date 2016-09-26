@@ -419,8 +419,9 @@ class IntScreen(Screen):
         else:
             self.title = title
         self.dataName = title
-        self.valueLength = len(str(value)) - 1
-        self.value = self.formatVal(value)
+        self.valueLength = 4
+        self.childIndex = 0
+        self.value = self.formatVal(str(value))
         if(self.type == "readOnly"):
             self.navigation = self.navLine
         elif(self.type == "subMenu"):
@@ -444,6 +445,7 @@ class IntScreen(Screen):
         if(addorsub == 0):
             addAmt = addAmt * -1
         if(addorsub == 2):
+            self.childIndex +=1
             addAmt = 0
         value = int(self.value)
         if(not value == 0):
@@ -494,6 +496,12 @@ class IntScreen(Screen):
         for x in range(length, 4):
             val = " " + val
         return val
+
+class PacketScreen(IntScreen):
+    """Used for adjusting number of sent packets on ping"""
+    def changeConfig(self):
+        gd.pingDict["numPackets"] = self.value
+
 
 class NetworkScreen(Screen):
     """A networking screen class. Extends Screen."""
@@ -731,6 +739,45 @@ class StringScreen(Screen):
         self.value = word
         self.displayEdit(index, 6)
 
+class PingHostScreen(StringScreen):
+    """Used for changing the host of ping."""
+    def editVal(self, index, addorsub):
+        global charSet, charSetIndex
+        addrType = gd.pingDict["type"]
+        if addrType.lower() == "ip":
+            thisSet = gd.ipSet
+        else:
+            thisSet = gd.charSet
+        word = self.value
+        print "|"+word[index - 1:index]+"|"
+        if(word[index - 1:index] == '' and index != 0):
+            self.childIndex = self.valueLength + 1
+            return
+        print charSetIndex, (len(thisSet) - 1), index
+        if(charSetIndex >= len(thisSet) - 1):
+            charSetIndex = 0
+        if(charSetIndex < 0):
+            charSetIndex = len(thisSet) - 1
+        if(addorsub == 0):
+            addAmt = -1
+        elif(addorsub == 2):
+            self.displayEdit(index, 6)
+            return
+        else:
+            addAmt = 1
+        if(index < len(word) and word[index] in thisSet and thisSet.index(word[index]) + addAmt < len(thisSet)):
+            charSetIndex = thisSet.index(word[index]) + addAmt
+        else:
+            charSetIndex = 0
+        print charSetIndex
+        char = thisSet[charSetIndex]
+        word = word[:index] + char + word[index + 1:]
+        self.value = word
+        self.displayEdit(index, 6)
+
+    def changeConfig(self):
+        gd.pingDict["address"] = self.value.strip()
+
 class statusScreen(StringScreen):
     def __init__(self, type, title, value, interface, physInterface):
         """Our initialization for the screen stringclass."""
@@ -902,6 +949,10 @@ class BooleanScreen(Screen):
         elif(addorsub == 2):
             self.value = self.value
         self.displayThis()
+
+class PingType(BooleanScreen):
+    def changeConfig(self):
+        gd.pingDict["type"] = self.value
 
 class DateTimeScreen(Screen):
     """Class for dateTime screens. Extends Screen."""
@@ -1555,6 +1606,37 @@ class confSend(Screen):
         """screen to display when editting value."""
         gd.draw_screen_ul(self.title, "Are You Sure?", self.navigation, 255, 0, 0, 0)
 
+class pingSend(confSend):
+    def editVal(self, index, addorsub):
+        if(addorsub == 0):
+            i = 1
+            lost = 0
+            rate = 0
+            while i <= int(gd.pingDict["numPackets"]):
+                print gd.pingDict["numPackets"]
+                res = getConfig.ping(gd.pingDict["address"])
+                if "fail" in res:
+                    lost += 1
+                    rate = lost/i*100
+                    line2 = " | ".join((str(i) + "/" + str(gd.pingDict["numPackets"]), res["fail"]))
+                    gd.draw_screen_center(res["line0"], "Fail    | " + str(rate) + "% lost", line2, gd.fillNum, gd.fillBg)
+                else:
+                    line2 = " | ".join((str(i) + "/" + str(gd.pingDict["numPackets"]), res["line2"]))
+                    gd.draw_screen_center(res["line0"], "Success | " + str(rate) + "% lost", line2, gd.fillNum, gd.fillBg)
+                time.sleep(2)
+                i += 1
+            self.navigation = self.incrLine
+            gd.screenChosen = gd.menuStack.pop()
+            gd.draw_confirmation("Returning", 'Returning to main menu', '', 255, 0)
+        elif(addorsub == 1):
+            self.navigation = self.incrLine
+            gd.screenChosen = gd.menuStack.pop()
+            gd.draw_confirmation("Returning", 'Returning to main menu', '', 255, 0)
+        elif(addorsub == 2):
+            self.displayThis()
+
+    def changeConfig(self):
+        pass
 class quickSave(confSend):
     def editVal(self, index, addorsub):
         global level

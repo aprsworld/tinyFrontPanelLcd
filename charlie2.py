@@ -323,6 +323,8 @@ def createScreen(editable, title, screentype, value, interface, phys):
         return screens.MethodScreen(editable, title, value, interface)
     elif screentype.lower() == "confsend":
         return screens.confSend(editable, title, value)
+    elif screentype.lower() == "pingsend":
+        return screens.pingSend(editable, title, value)
     elif screentype.lower() == "datetimescreen":
         return screens.DateTimeScreen(editable, title)
     elif screentype.lower() == "wifiscan":
@@ -333,6 +335,12 @@ def createScreen(editable, title, screentype, value, interface, phys):
         return screens.HiddenSSID(editable, title, "samplessid", interface)
     elif screentype.lower() == "statusscreen":
         return screens.statusScreen(editable, title, value, interface, phys)
+    elif screentype.lower() == "packetscreen":
+        return screens.PacketScreen(editable, title, gd.pingDict["numPackets"], "")
+    elif screentype.lower() == "pinghostscreen":
+        return screens.PingHostScreen(editable, title, gd.pingDict["address"])
+    elif screentype.lower() == "pingtype":
+        return screens.PingType(editable, title, gd.pingDict["type"], "IP", "HostName")
 
 def getInterfaceList():
     global thisData
@@ -420,10 +428,19 @@ def buildTools():
     global layout
     toolsScreen = screens.Screen("subMenu", "Tools", " ", "tools")
     for item in layout["tools"]:
-        res = layout["tools"][item]
-        x = createScreen(res[1], item, res[0], "", "", "")
-        x.setHrTitle(res[2])
-        toolsScreen.appendScreenList(x)
+        if isinstance(layout["tools"][item], dict):
+            subscreen = createScreen("", item, "subMenu", "", item, "")
+            for subItem in layout["tools"][item]:
+                res = layout["tools"][item][subItem]
+                x = createScreen(res[1], item, res[0], "", "", "")
+                x.setHrTitle(res[2])
+                subscreen.appendScreenList(x)
+            toolsScreen.appendScreenList(subscreen)
+        else:
+            res = layout["tools"][item]
+            x = createScreen(res[1], item, res[0], "", "", "")
+            x.setHrTitle(res[2])
+            toolsScreen.appendScreenList(x)
     return toolsScreen
 
 def buildMainSetupMenu():

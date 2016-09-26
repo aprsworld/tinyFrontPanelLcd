@@ -109,7 +109,29 @@
             "restartscript",
             "editable",
             "Discard All Changes"
-        ]
+        ],
+		"ping": {
+			"addressType": [
+				"pingtype",
+				"editable",
+				"Address Type"
+			],
+			"address": [
+				"pinghostscreen",
+				"editable",
+				"Destination Address"
+			],
+			"packets": [
+				"packetscreen",
+				"readonly",
+				"Number of Packets"
+			],
+			"sendPing": [
+				"pingSend",
+				"editable",
+				"Send Ping"
+			]
+		}
     },
     "dateAndTime": [
         "datetimescreen",

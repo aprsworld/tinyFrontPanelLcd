@@ -231,6 +231,12 @@ charSet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
            ':', '?', '[', ']', '=', '-', '+', '_', '#', '!', ' ']
 # charset for WEP keys
 charHexaSet = [' ', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F']
+ipSet = ['.', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+pingDict = {
+    'type': 'ip',
+    'address': '8.8.8.8',
+    'numPackets': 4
+}
 
 def detect_edges(callbackFn):
     """designate threaded callbacks for all button presses."""

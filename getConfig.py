@@ -6,6 +6,8 @@ import urllib2
 import collections
 import subprocess
 from collections import OrderedDict
+import time
+
 def getData(url):
     """Get data from a resource defined bu url."""
     data = urllib.urlopen(url).read()
@@ -71,20 +73,27 @@ def get_layout(url):
     d = json.load(open(url), object_pairs_hook=OrderedDict)
     return d
 
-def ping(hostname, packets):
+def ping(hostname):
     try:
-        response = subprocess.check_output(['ping', '-c', packets, hostname])
+        response = subprocess.check_output(['ping', '-c', "1", hostname])
         # print 80, response
 
         if "Destination host unreachable" in response:
             # print hostname+" unreachable"
             print "debug"
-
+            result = {"fail": "Host Unreachable", "line0": "Ping " + hostname, "line1": "result", "line2": "test"}
+            return result
         else:
-            print "debug"
-            # print hostname+" Running"
-        print '\n'.join(response.split('\n')[8:])
+            print response
+            splits = response.split('\n')[1].split(' ')
+            print splits
+            result = {"line0": "Ping " + splits[3], "line1": "result", "line2": splits[6] + splits[7]}
+            return result
+            # print '\n'.join(response.split('\n')[8:])
     except:
+        result = {"fail": "Invalid Host", "line0": "Ping " + hostname, "line1": "result", "line2": "test"}
+        return result
         print "Invalid Hostname"
+    time.sleep(1)
 
-# ping("8.8.8.8", "5")
+# ping("8.8.8.8")
