@@ -64,13 +64,18 @@ class ResetableTimer:
     def callBack(self):
         print "Default"
 
+
 class ScreenSleepTimer(ResetableTimer):
     def callBack(self):
         global screenSleepFlag, disp
-        dataUpdateTimer.cancel()
-        screenSleepFlag = True
-        print screenSleepFlag
-        clear_screen()
+        if inView.editMode:
+            pass
+        else:
+            dataUpdateTimer.cancel()
+            screenSleepFlag = True
+            print screenSleepFlag
+            clear_screen()
+
 
 class DataUpdateTimer(ResetableTimer):
     goback = False

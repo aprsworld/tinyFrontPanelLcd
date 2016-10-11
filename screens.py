@@ -1539,7 +1539,12 @@ class MethodScreen(Screen):
         # update config and screens for this interface
         global thisData
         # changeSecurityType(self.interface, self.value, self.prevVal)
-        gd.interfaceSettings[self.interface]["method"] = self.value.lower()
+        if(gd.interfaceSettings[self.interface]["method"] == self.value.lower()):
+            gd.interfaceSettings[self.interface]["method"] = self.value.lower()
+        else:
+            gd.interfaceSettings[self.interface]["method"] = self.value.lower()
+            gd.configChangedFlag = True
+
         print thisData['config']
 
 
