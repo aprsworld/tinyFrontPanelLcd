@@ -269,9 +269,14 @@ This is a configuration with eth0 and wlan0 interfaces. The wlan0 is configured 
   }
 ```
 
+### dhcpcd.conf
 
+  There was an issue where two IP addresses would be assigned to the same interface. This was because /etc/network/interfaces and /etc/dhcpcd.conf were both assigning DHCP leases to the interface in question. In order to avoid this, there is a line at the bottom of dhcpcd.conf that tells the service to ignore certain interfaces. This needs to be configured at setup to deny all interfaces that are set up on the device. The line within the file is delimited by spaces and looks like this:
+
+  denyinterfaces eth0 wlan0
+
+  any other interfaces that need to be added to the list can just be added to the end separated by spaces.
+  
 ### Readme TODO
 
 * screen flow diagrams
-* sample Configurations
-* screen explanations
