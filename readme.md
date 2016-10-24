@@ -114,7 +114,7 @@ This section is mainly regarding the classes for Screens. The main screen class 
   * **underline_pos and underline_width**
     passed to methods that display the screen on the lcd. These are used to determine the size and position of the cursor that appears under characters in the value string.
 
-  **Class Methods:**
+**Class Methods:**
 
   * **initScreenList(self, screens)**
     Takes in an array of screens and initializes the screens attribute of the object
@@ -158,6 +158,30 @@ This section is mainly regarding the classes for Screens. The main screen class 
   * **updateSelf(self)**
     used for current settings screens: updates the value depending on which class extends
 
+#### Classes that extend screenChosen
+
+**StringScreen**
+
+  This screen has a value that represents a string. It is used for things like manual entry of SSID or wifi pass key. It can also be used to display a read only setting. For items that are not readonly, it will reference a character map which is essentially an array of characters. It iterates through the indexes in the array and displays a character depending on the numerical index.
+
+**NetworkScreen**
+
+  This screen has a value that consists of 4 octets. It is used to display an ip4 address.
+  When editing this screen, the octets are treated as integers  between 0-255. The user can edit the hundreds place, tens place, and ones place. This allows the user to quickly increment the number instead of tapping the button 255 times.
+
+**BooleanScreen**
+
+  This screen has two values passed to its __init__ method. The actual value of the screen will be one of these values.
+
+**DateTimeScreen**
+
+  This screen has a value that represents date in the following format: YYYY-MM-DD hh:mm:ss. It can be read only or editable.
+
+**ListScreen**
+
+  This screen is meant for any setting that has a list of possible values. An use case is a list of SSIDs to choose from. The __init__ function accepts an argument called "valsList" which is the array that holds all of the possible values.
+
+All other screen classes are slight variations of the above with their own specific use case.
 
 ### Readme TODO
 
