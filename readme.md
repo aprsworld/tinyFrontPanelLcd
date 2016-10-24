@@ -158,7 +158,7 @@ This section is mainly regarding the classes for Screens. The main screen class 
   * **updateSelf(self)**
     used for current settings screens: updates the value depending on which class extends
 
-#### Classes that extend screenChosen
+#### Classes that extend screen:
 
 **StringScreen**
 
@@ -182,6 +182,93 @@ This section is mainly regarding the classes for Screens. The main screen class 
   This screen is meant for any setting that has a list of possible values. An use case is a list of SSIDs to choose from. The __init__ function accepts an argument called "valsList" which is the array that holds all of the possible values.
 
 All other screen classes are slight variations of the above with their own specific use case.
+
+### Sample Configurations
+
+#### Configuration example 1
+
+This is a configuration with eth0 and wlan0 interfaces. The wlan0 is configured to connect to an SSID (aprsworld) using WPA/WPA2 encryption.
+
+```
+"config": {
+      "lo": {
+          "allow": "auto",
+          "protocol": {
+              "inet": {
+                  "method": "loopback"
+              }
+          }
+      },
+      "eth0": {
+          "allow": "auto",
+          "protocol": {
+              "inet": {
+                  "method": "dhcp"
+              }
+          }
+      },
+      "wlan0": {
+          "allow": [
+              "hotplug",
+              "auto"
+          ],
+          "protocol": {
+              "inet": {
+                  "method": "dhcp",
+                  "wpa-ssid": "aprsworld",
+                  "wpa-ap-scan": "1",
+                  "wpa-scan-ssid": "1",
+                  "wpa-psk": "\"zestopenguin\""
+              }
+          }
+      },
+      "system": []
+  }
+```
+
+#### Configuration example 2
+
+This is a configuration with eth0 and wlan0 interfaces. The wlan0 is configured to connect to an SSID (linksys) using WEP encryption and static addressing.
+
+```
+"config": {
+      "lo": {
+          "allow": "auto",
+          "protocol": {
+              "inet": {
+                  "method": "loopback"
+              }
+          }
+      },
+      "eth0": {
+          "allow": "auto",
+          "protocol": {
+              "inet": {
+                  "method": "dhcp"
+              }
+          }
+      },
+      "wlan0": {
+          "allow": [
+              "hotplug",
+              "auto"
+          ],
+          "protocol": {
+              "inet": {
+                  "method": "static",
+                  "wireless-essid": "linksys",
+                  "wireless-key": "086FE7A474",
+                  "address": "192.168.10.247",
+                  "netmask": "255.255.255.0",
+                  "gateway": "192.168.10.1"
+
+              }
+          }
+      },
+      "system": []
+  }
+```
+
 
 ### Readme TODO
 
