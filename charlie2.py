@@ -318,7 +318,8 @@ def createScreen(editable, title, screentype, value, interface, phys):
     elif screentype.lower() == "wificreds":
         return screens.WifiCreds(editable, title, value, interface)
     elif screentype.lower() == "methodscreen":
-        gd.interfaceSettings[interface]["method"] = value
+        print interface, phys
+        gd.interfaceSettings[phys]["method"] = value
         print gd.interfaceSettings
         return screens.MethodScreen(editable, title, value, interface)
     elif screentype.lower() == "confsend":
@@ -468,6 +469,7 @@ def buildMainSetupMenu():
             networkSettings = createScreen("", "Network Setup", "submenu", "", "Network Setup", "")
             for iface in iFaceList:
                 gd.interfaceSettings[iface["subkey"]] = dict()
+                print gd.interfaceSettings[iface["subkey"]]
                 newScreen = screens.Screen("subMenu", createIfaceTitle(iface["subkey"]), " ", iface["subkey"])
                 for item in layout[toplevel]["network-setup"][iface["keyType"]]:
                     if isinstance(layout[toplevel]["network-setup"][iface["keyType"]][item], dict):
