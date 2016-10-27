@@ -369,10 +369,13 @@ def getInterfaceList():
 def buildNetworkStatus():
     networkStatusScreen = screens.Screen("subMenu", "Network Status", " ", "networkStatus")
     iFaceList = getInterfaceList()
+    # iterate through interfaces in list
     for iface in iFaceList:
         newScreen = screens.Screen("subMenu", createIfaceTitle(iface["subkey"]), " ", iface["subkey"])
         print 366, iface
+        # iterate through layout template using iface["keyType"] to determine whether wifi or ethernet
         for item in layout["network-status"][iface["keyType"]]:
+            # if there is an interface block found within the logical interface block, we proceed. Otherwise we create a default set of screens for setup purposes
             if isinstance(layout["network-status"][iface["keyType"]][item], dict):
                 x = createScreen("", item, "subMenu", "", item)
                 for subItem in layout["network-status"][iface["keyType"]][item]:
@@ -446,9 +449,11 @@ def buildTools():
 
 def buildMainSetupMenu():
     global layout
+    # get list of interfaces so that we can grab pertinent information from them
     iFaceList = getInterfaceList()
     mainSetupMenu = screens.Screen("subMenu", "Main Setup Menu", " ", "mainSetupMenu")
     toplevel = "mainSetupMenu"
+    # iterate through keys in the layout, pick out unique keys, and build the network setup menu
     for key in layout["mainSetupMenu"].keys():
         if key.lower() == "allowwebconfig":
             res = layout[toplevel][key]
@@ -465,13 +470,17 @@ def buildMainSetupMenu():
             x = screens.WifiScan("editable", "Wifi Scan")
             x.setHrTitle(res[2])
             mainSetupMenu.appendScreenList(x)
+        # Found the network setup key - we switch to templating wifi and ethernet interface menus using layout file
         elif key.lower() == "network-setup":
             networkSettings = createScreen("", "Network Setup", "submenu", "", "Network Setup", "")
+            # iterate through interfaces and create screens for them
             for iface in iFaceList:
                 gd.interfaceSettings[iface["subkey"]] = dict()
                 print gd.interfaceSettings[iface["subkey"]]
                 newScreen = screens.Screen("subMenu", createIfaceTitle(iface["subkey"]), " ", iface["subkey"])
+                # iterate through template for the keytype given by iface["keyType"] and create the menu structure bbased on the template
                 for item in layout[toplevel]["network-setup"][iface["keyType"]]:
+                    # if there is an interface block found within the logical interface block, we proceed. Otherwise we create a default set of screens for setup purposes
                     if isinstance(layout[toplevel]["network-setup"][iface["keyType"]][item], dict):
                         x = createScreen("", item, "subMenu", "", item, "")
                         print item, 514
@@ -493,11 +502,12 @@ def buildMainSetupMenu():
                         x.setHrTitle(res[2])
                         newScreen.appendScreenList(x)
                         print newScreen.screens
+            # append everything in a tree-structure
                 networkSettings.appendScreenList(newScreen)
             mainSetupMenu.appendScreenList(networkSettings)
     return mainSetupMenu
 
-
+# create top-level menus
 def createMenus():
     global layoutKeys
     if "network-status" in layoutKeys:

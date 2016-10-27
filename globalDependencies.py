@@ -135,33 +135,54 @@ def autoVivify(d):
         # recursive adaptation of child dictionary elements
         d = AutoVivification({k: autoVivify(v) for k, v in d.iteritems()})
     return d
-
+# URLS for AJAX calls
 URL = "http://localhost/piNetConfig/netconfig.php"
 URL2 = "http://localhost/piNetConfig/netconfig.php"
 URL3 = "http://localhost/piNetConfig/netconfig-scan.php"
 LAYOUT_URL = "layout.json"
+# initialize object that holds future incoming data
 thisData = AutoVivification()
+# load data into object
 thisData.update(getConfig.getData(URL))
+# make the config its own seperate object that is autovivified
 thisConfig = thisData['config'] = autoVivify(thisData['config'])
+# list of ethernet interfaces
 ethernetInterfaces = list()
+# list of wifi Interfaces
 wifiInterfaces = list()
+# masterList of screens used in old version, but not currently used
 masterList = list()
+# stack that we used to keep track of depth within menu structure
 menuStack = Stack()
+# current screen
 screenChosen = None
+# keeps track of top level menus
 topLevelMenu = None
+# variables to hold menu creation and deletion function for all files to access
 menuCreate = None
 menuDelete = None
+# flag that keeps track of whether or not logo is being displayed
 logoFlag = False
+# global variable for keeping track of timeoutLength
 timeOutLength = 30
+# global variable that dictates time between current settings updates
 updateLength = 1
+# keeps track of whether the screen is asleep or not
 screenSleepFlag = False
+# dirty flag for keeping track of if the config has changed
 configChangedFlag = False
+# variables that allow access to timers
 screenSleepTimer = ScreenSleepTimer()
 dataUpdateTimer = DataUpdateTimer()
+# dictionary that keeps track of interface settings
 interfaceSettings = dict()
+# list of wifi SSIDs and security that can be updated
 wifiList = getConfig.getID_List(URL3)
+# global variable so that end screen can be accessed by all files
 endScreen = None
+# global variable so that popSave screen (triggered by configChangedFlag) can be access by all files
 popSave = None
+# variable to hold udpated data
 updatedData = AutoVivification()
 antOffSet = 0
 
@@ -194,6 +215,7 @@ action_screen_update = False
 n = 0
 inView = None
 
+# dictionary that translates incoming data into human readable values
 humanTranslations = {
     'method': 'Addressing Method',
     'dhcp': 'DHCP',
@@ -308,7 +330,7 @@ def draw_confirmation(line1, line2, line3, fillNum, fillBg):
     print 331
 
 def draw_wifi_conf(line1, line2, line3, fillNum, fillBg):
-    """for drawing an error."""
+    """for drawing confirmation screen for wifi"""
     global disp, n, maxn, Image, ImageDraw, draw, font, action_screen_update
     # Draw a black filled fox to clear the image.
     print 309
@@ -359,6 +381,7 @@ def draw_screen_center(s, line2, line3, fillNum, fillBg):
     # disp.image(image)
     disp.display()
 
+# function for drawing a screen - called by most screen objects within their displaythis() method
 def draw_screen(s, line2, line3, fillNum, fillBg):
     """for drawing the next screen."""
     global disp, n, maxn, Image, ImageDraw, draw, font, antOffSet
@@ -380,6 +403,7 @@ def draw_screen(s, line2, line3, fillNum, fillBg):
     # disp.image(image)
     disp.display()
 
+# function for editing a screen - called by most screen objects within their editVal() method
 def draw_screen_ul(s, line2, line3, fillNum, fillBg, underline_pos, underline_width):
     """for drawing the next screen."""
     global disp, n, maxn, Image, ImageDraw, draw
@@ -400,11 +424,13 @@ def draw_screen_ul(s, line2, line3, fillNum, fillBg, underline_pos, underline_wi
     # disp.image(image)
     disp.display()
 
+# centers text on a screen
 def center_text(text, borderWidth):
     """Center text on the LCD Screen."""
     strlen = len(str(text)) * 6
     return (128 + borderWidth - strlen) / 2
 
+# keeps a valid octet when adding and subtracting
 def configureOctet(value, addAmt):
     """chooses what to display in an ip address' octet."""
     if(not value == 0):
