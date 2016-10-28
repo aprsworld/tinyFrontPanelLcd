@@ -306,7 +306,7 @@ def createScreen(editable, title, screentype, value, interface, phys):
     if screentype.lower() == "stringscreen":
         return screens.StringScreen(editable, title, value)
     elif screentype.lower() == "networkscreen":
-        return screens.NetworkScreen(editable, title, value, interface)
+        return screens.NetworkScreen(editable, title, value, phys)
     elif screentype.lower() == "submenu":
         return screens.Screen(screentype, title, value, interface)
     elif screentype.lower() == "securitychanger":
@@ -371,13 +371,16 @@ def buildNetworkStatus():
     iFaceList = getInterfaceList()
     # iterate through interfaces in list
     for iface in iFaceList:
+        print iface, "_________________________________________________________________________________________"
         newScreen = screens.Screen("subMenu", createIfaceTitle(iface["subkey"]), " ", iface["subkey"])
         print 366, iface
         # iterate through layout template using iface["keyType"] to determine whether wifi or ethernet
         for item in layout["network-status"][iface["keyType"]]:
             # if there is an interface block found within the logical interface block, we proceed. Otherwise we create a default set of screens for setup purposes
             if isinstance(layout["network-status"][iface["keyType"]][item], dict):
+
                 x = createScreen("", item, "subMenu", "", item)
+
                 for subItem in layout["network-status"][iface["keyType"]][item]:
                     if isinstance(layout["network-status"][iface["keyType"]][item][subItem], dict):
                         pass
@@ -391,6 +394,7 @@ def buildNetworkStatus():
             else:
                 val = retrieveData(iface["key"], iface["subkey"], item)
                 res = layout["network-status"][iface["keyType"]][item]
+                print iface["subkey"], res, val, "_________________________", item
                 x = createScreen(res[1], item, res[0], val, iface["key"], iface["subkey"])
                 x.setHrTitle(res[2])
                 newScreen.appendScreenList(x)
