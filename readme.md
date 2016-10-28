@@ -276,7 +276,17 @@ This is a configuration with eth0 and wlan0 interfaces. The wlan0 is configured 
   denyinterfaces eth0 wlan0
 
   any other interfaces that need to be added to the list can just be added to the end separated by spaces.
-  
+
+### Startup script
+
+  There is a way to enable the python scripts at startup and have it startup by itself. This is beneficial because when the user makes changes to the configuration and reboots the system, it will come up automatically after it starts up. This is done by putting this line:
+
+  ```
+  /home/pi/Adafruit_Python_SSD1306/tiny_front_panel_lcd/startup.sh &
+  ```
+
+  within the /etc/rc.local script which already runs on boot. What this line does, is it gives an absolute path (since the environment isn't set up) to a script within the project folder that runs all of our scripts. You can find startup.sh within this repository to see exactly what it is doing.
+
 ### Readme TODO
 
 * screen flow diagrams
