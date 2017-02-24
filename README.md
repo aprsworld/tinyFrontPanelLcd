@@ -1,5 +1,23 @@
 # Readme
 
+### Requires
+
+#### Adafruit Python SSD1306 Library
+https://github.com/adafruit/Adafruit_Python_SSD1306
+
+Install with ````sudo python setup.py install````
+
+#### Adafruit Python GPIO Library
+https://github.com/adafruit/Adafruit_Python_GPIO
+
+Install with instructions from README.md
+
+#### python-pil 
+````apt-get install python-pil````
+
+#### python-dateutil
+````apt-get install python-dateutil````
+
 ### Files
 
 * charlie2.py (rename)
