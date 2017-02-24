@@ -29,20 +29,18 @@ def dispLogo(message,imageFile):
 	draw.text((0, 2 + 20), message, font=font, fill=255)
 
 	# Display image.
-
 	disp.image(image.rotate(180))
-
 	disp.display()
 
 if __name__ == '__main__':
 	message='Please wait...'
-	image='res/images/logo2.ppm'
+	image='res/images/dash.ppm'
 
 	# first (optional) argument is message to put below image 
 	if len(sys.argv) >= 2:
 		message=sys.argv[1]
 	# second (optional) argument is the image
-	if len(sys.argv) >= 2:
+	if len(sys.argv) >= 3:
 		image=sys.argv[2]
 
 
