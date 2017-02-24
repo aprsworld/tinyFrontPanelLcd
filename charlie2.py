@@ -1,6 +1,6 @@
 # charlie2
 import sys
-import Adafruit_SSD1306
+import SSD1306
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
