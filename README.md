@@ -13,22 +13,45 @@ https://github.com/adafruit/Adafruit_Python_GPIO
 Install with instructions from README.md
 
 #### python-pil 
-````apt-get install python-pil````
+`apt-get install python-pil`
 
 #### python-dateutil
-````apt-get install python-dateutil````
+`apt-get install python-dateutil`
+
 
 ### Files
 
-* charlie2.py (rename)
+#### tinyLCDimage.py [message] \[/path/to/image.ppm\]
+
+Puts a 128x32 PPM image to OLED display.
+
+This is useful for a splash screen when the system is starting up. Under systemd this can be accomplished by creating a service.
+
+/lib/systemd/system/splashOLED.service:
+```
+[Unit]
+Description=Boot Splash Screen on I2C OLED Display
+
+[Service]
+ExecStart=/usr/bin/python /home/pi/tinyFrontPanelLcd/tinyLCDimage.py "systemd booting..." /home/pi/tinyFrontPanelLcd/res/images/logo2.ppm
+StandardOutput=null
+
+[Install]
+WantedBy=basic.target
+Alias=spashOLED.service
+```
+And then enabling it with `systemctl enable splashOLED.service`
+
+
+#### charlie2.py (rename)
 
   This is the main script. It sets up the button callbacks, builds all of the menus, defines the dictionary for retrieving data, and initializes the screen objects and timers.
 
-* globalDependencies.py
+#### globalDependencies.py
 
   This is where most global values are declared so that they may be used by different files in the project. Helper classes such as Autovivification and stack are also declared here.
 
-* layout.json
+#### layout.json
 
   This is the structure for the menu. The json is parsed and is used as an instruction of sorts to build the menu. For instance:
 
@@ -42,7 +65,7 @@ Install with instructions from README.md
           ],
           "wifiScan": [
               "wifiscan",
-              "editable",
+              "editable",can't write to /tmp or /run/shm as pi ... wtf?
               "Wifi Scan"
           ],
           "networks": [
@@ -62,41 +85,37 @@ Install with instructions from README.md
 
   Charlie2.py is ultimately what builds the menu structure from the JSON file.
 
-* getConfig.py (poorly named)
+#### getConfig.py (poorly named)
 
   This is the file that holds most of the communication to outside sources. One such communication is grabbing information from piNetConfig, which is used in combination with layout.json to build certain menu structures and populate screens with real data.
 
-* screens.py
+#### screens.py
 
   This file contains all of the screen class definitions for the project. It also contains most functions that deals with the screens.
 
-* validate.py
+#### validate.py
 
   This file is used for validating configurations before sending off to piNetConfig - it allows the application to display warning messages that piNetConfig would not normally sending
 
-* charlieimage.py (rename)
-
-  Used to display startup splash image on LCD
-
 ### Top-Level Screens
 
-* Network Status
+#### Network Status
 
   This is where current network information is stored. Information within this menu is updated on an interval while it is in view. The submenus of Network Status consist of the various interfaces found on the device, and within those are current settings such as the ip address, host name, SSID, etc.
 
-* MagWebPro Status
+#### MagWebPro Status
 
   Currently, the only information within this is the Host name of the device
 
-* Date and Time
+#### Date and Time
 
   This consists of one screen which displays the date and time - it updates every second. The date and time can be changed in a menu under the main setup menu.
 
-* Tools
+#### Tools
 
   Currently, this houses screens that allow the user to ping, save changes, or restart the program. This may be removed and have its contents divided amongst other parts of the structure at some point.
 
-* Main Setup Menu
+#### Main Setup Menu
 
   This is where settings such as Date and Time can be adjusted. This is also where certain network settings can be configured.
 
