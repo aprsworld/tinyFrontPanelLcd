@@ -9,7 +9,7 @@ import RPi.GPIO as GPIO
 import time
 from datetime import datetime as dt
 from dateutil.relativedelta import relativedelta as tdelta
-import charlieimage
+import tinyLCDimage
 import getConfig
 import validate
 import sys
@@ -135,10 +135,11 @@ def autoVivify(d):
         # recursive adaptation of child dictionary elements
         d = AutoVivification({k: autoVivify(v) for k, v in d.iteritems()})
     return d
+
 # URLS for AJAX calls
-URL = "http://localhost/piNetConfig/netconfig.php"
-URL2 = "http://localhost/piNetConfig/netconfig.php"
-URL3 = "http://localhost/piNetConfig/netconfig-scan.php"
+URL = "http://localhost:2001/netconfig.php"
+URL2 = "http://localhost:2001/netconfig.php"
+URL3 = "http://localhost:2001/netconfig-scan.php"
 LAYOUT_URL = "layout.json"
 # initialize object that holds future incoming data
 thisData = AutoVivification()

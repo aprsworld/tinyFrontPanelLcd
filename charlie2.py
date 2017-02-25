@@ -1,6 +1,6 @@
 # charlie2
 import sys
-import SSD1306
+import Adafruit_SSD1306
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
@@ -10,8 +10,8 @@ import RPi.GPIO as GPIO
 import time
 from datetime import datetime as dt
 from dateutil.relativedelta import relativedelta as tdelta
-import charlieimage
-charlieimage.dispLogo("Booting...")
+import tinyLCDimage
+tinyLCDimage.dispLogo("Booting...","res/images/logo2.ppm")
 import globalDependencies as gd
 import getConfig
 import validate
@@ -294,7 +294,8 @@ def safeget(dct, *keys):
         try:
             dct = dct[key]
         except KeyError:
-            return None
+#            return None
+            return ""
     return dct
 
 def createScreen(editable, title, screentype, value, interface, phys):
@@ -527,7 +528,7 @@ def createMenus():
 
 def deleteMenu():
     global thisData, wifiList
-    charlieimage.dispLogo("Restarting...")
+    tinyLCDimage.dispLogo("Restarting...","res/images/logo2.ppm")
     del gd.thisData
     gd.thisData = gd.AutoVivification()
     gd.thisData.update(getConfig.getData(gd.URL))
@@ -552,7 +553,7 @@ def detect_edges(callbackFn):
     GPIO.add_event_detect(27, GPIO.FALLING, callback=callbackFn, bouncetime=300)
 
 detect_edges(button_callback)
-charlieimage.dispLogo("Press Any Button...")
+tinyLCDimage.dispLogo("Press Any Button...","res/images/logo2.ppm")
 gd.screenSleepFlag = False
 while(gd.logoFlag is False):
     time.sleep(1)

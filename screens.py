@@ -9,7 +9,7 @@ import ctypes.util
 import time
 import math
 import socket
-import charlieimage
+import tinyLCDimage
 
 URL = gd.URL
 URL2 = gd.URL2
@@ -25,7 +25,7 @@ def safeget(dct, *keys):
         try:
             dct = dct[key]
         except KeyError:
-            return None
+            return ""
     return dct
 
 def retrieveData(physical, logical, requestedData):
@@ -529,8 +529,9 @@ class NetworkScreen(Screen):
             self.title = title
         self.dataName = title
         # String: line two on the LCD Screen
-        if addr is None:
+        if addr is None or len(addr) == 0: 
             addr = "000.000.000.000"
+	print "addr is: ", addr
         addr = addr.split(".")
         self.addr0 = addr0 = int(addr[0])
         self.addr1 = addr1 = int(addr[1])
@@ -1500,7 +1501,7 @@ class MethodScreen(Screen):
         self.titleOrig = title
         # String: line two on the LCD Screen
         self.childIndex = 0
-        self.value = humanTranslations[value]
+        self.value = "fuck!" # humanTranslations[value]
         self.val0 = "static"
         self.val1 = "DHCP"
         self.interface = interface
@@ -1593,7 +1594,7 @@ class confSend(Screen):
                 #     text_file.write("Data: {0}".format(thisData['config']))
                 getConfig.sendConfig(URL2, thisData['config'])
                 self.navigation = self.incrLine
-                charlieimage.dispLogo("Saved! Rebooting...")
+                tinyLCDimage.dispLogo("Saved! Rebooting...","res/images/logo2.ppm")
                 # gd.draw_confirmation("S A V E D !", "Sent valid config", "RESTARTING", 255, 0)
                 # print thisData['config']
             else:
@@ -1655,7 +1656,7 @@ class quickSave(confSend):
                 #     text_file.write("Data: {0}".format(thisData['config']))
                 getConfig.sendConfig(URL2, thisData['config'])
                 self.navigation = self.incrLine
-                charlieimage.dispLogo("Saved! Rebooting...")
+                tinyLCDimage.dispLogo("Saved! Rebooting...","res/images/logo2.ppm")
                 # gd.draw_confirmation("S A V E D !", "Sent valid config", "RESTARTING", 255, 0)
                 # print thisData['config']
             else:
