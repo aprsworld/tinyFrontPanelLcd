@@ -1,12 +1,16 @@
 import Adafruit_SSD1306
+import RPi.GPIO as GPIO
 import sys
 
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
 
+
+
 # Raspberry Pi pin configuration:
 RST = 24
+OLED_POWER_EN = 4
 
 def dispLogo(message,imageFile):
 
@@ -43,7 +47,11 @@ if __name__ == '__main__':
 	if len(sys.argv) >= 3:
 		image=sys.argv[2]
 
-
+	# power up the OLED
+	GPIO.setmode(GPIO.BCM)
+	GPIO.setwarnings(False)
+	GPIO.setup(OLED_POWER_EN, GPIO.OUT)
+	GPIO.output(OLED_POWER_EN,True)
+	
 	dispLogo(message,image);
-
 
