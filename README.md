@@ -33,7 +33,7 @@ This is useful for a splash screen when the system is starting up. Under systemd
 Description=Boot Splash Screen on I2C OLED Display
 
 [Service]
-ExecStart=/usr/bin/python /home/aprs/tinyFrontPanelLcd/tinyLCDimage.py "systemd booting..." /home/aprs/tinyFrontPanelLcd/res/images/logo2.ppm
+ExecStart=/bin/bash -c "/usr/bin/python /home/aprs/tinyFrontPanelLcd/tinyLCDimage.py \"`hostname` booting...\" /home/aprs/tinyFrontPanelLcd/res/images/logo2.ppm"
 StandardOutput=null
 
 [Install]
