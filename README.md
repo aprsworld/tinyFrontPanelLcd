@@ -38,7 +38,7 @@ StandardOutput=null
 
 [Install]
 WantedBy=basic.target
-Alias=spashOLED.service
+Alias=splashOLED.service
 ```
 And then enabling it with `systemctl enable splashOLED.service`
 
